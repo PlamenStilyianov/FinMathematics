@@ -1,0 +1,1388 @@
+(***********************************************************************
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used on any computer system with Mathematica 3.0,
+MathReader 3.0, or any compatible application. The data for the notebook 
+starts with the line of stars above.
+
+To get the notebook into a Mathematica-compatible application, do one of 
+the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing the 
+word CacheID, otherwise Mathematica-compatible applications may try to 
+use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+***********************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     45528,       1151]*)
+(*NotebookOutlinePosition[     47383,       1207]*)
+(*  CellTagsIndexPosition[     47339,       1203]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["\<\
+Chapter 27. 
+Simple Interest-Rate Options\
+\>", "Title",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  TextAlignment->Left,
+  TextJustification->0,
+  AspectRatioFixed->True],
+
+Cell["Analytical Models of Swaptions and Bond Options ", "Subsubtitle",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["27.1 Introduction", "Section",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "Readers with a special interest in interest-rate options may be \
+disappointed that the discussion of interest-rate options comes almost last \
+and is confined to just one chapter. In fact, a text larger than this one \
+could be written on the subject of interest-rate options alone, and a full \
+treatment is well beyond the scope of this text. The project that led to this \
+book was in fact a test of all ",
+  StyleBox["equity",
+    FontSlant->"Italic"],
+  " derivative models, which is the reason for the presentational bias. It \
+may well be the case that material for a text on ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " applied specifically to interest-rate options becomes available as a \
+result of further work in this area. For now, I will make the following \
+points.\n\n(1) Much of the technology we have developed for the equity \
+environment is immediately transferable to the interest-rate environment with \
+very little change other than a re-interpretation of underlyings, to use \
+something that is approximately log-normal. We shall discuss this very \
+specifically with reference to the Black model. Furthermore, when the PDEs \
+associated with the interest-rate world are analysed carefully, the \
+single-factor models can all be reduced to the standard heat equation with \
+advection and source terms added, so that much of the numerical technology \
+developed here can be carried over.\n\n(2) The number of interesting \
+interest-rate options admitting simple closed-form analytics is relatively \
+small, so there is less emphasis on the symbolic calculus aspects of ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  ", and more on the numerical methods.\n\n(3) The issues we have raised on \
+the equity side, with regard to strong stability of FD schemes, the manner in \
+which trees are constructed, and the convergence properties of Monte Carlo \
+simulations, all apply to the interest-rate side. Whereas we have proposed \
+some specific solutions relevant to the equity side, the nature of the \
+problems on the interest-rate side, and the details of how they may be fixed, \
+are not quite as straightforward. My hope is that some of the issues raised \
+here for the vanilla Black-Scholes PDE (i.e. the diffusion equation with \
+nasty boundary conditions) will stimulate investigation into the stability \
+and robust differentiability of numerically obtained solutions on the \
+interest-rate side. \n\n(4) There are many more complications on the \
+interest-rate side. We have already discussed the family of interest-rate \
+diffusion models, which leads to a high component of model risk, and the need \
+to build yield curves. Interest-rate derivatives force one also to confront \
+the issue of the term structure of volatility, which is now of course a hot \
+topic in equity derivative modelling.\n\nThe previous chapters have, \
+hopefully, equipped you with the resources to build trees, FD models and \
+Monte Carlo simulations within ",
+  StyleBox["Mathematica. ",
+    FontSlant->"Italic"],
+  "It is up to you to develop the implementations and applications to other \
+derivative instruments. There are many interesting projects. One that is \
+obvious is to adapt the tree technology we have developed to include the \
+Hull-White and Black-Derman-Toy formalisms. Another is to build a two-factor \
+finite-difference model that is adaptable to equities and interest rates \
+(e.g. for convertibles), or to equities and volatility, for real-world equity \
+option pricing, or to any other pair of factors.\n\nOur main purpose in this \
+chapter is first to point out the simple cases that can be modelled by use of \
+the existing equity technology, and then to explore briefly the Vasicek and \
+Cox-Ingersoll-Ross models as applied to the pricing of bond options. This \
+makes particularly good use of ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  "'s special-function capabilities, and in the case of Vasicek, exposes the \
+way in which log-normal models re-emerge from within more complicated \
+schemes.\n\nThe references for this chapter include those of Chapter 25. In \
+particular, the reader is referred to Chapters 16 and 17 of Hull (1996), and \
+to works by Jamshidian, on elegant analytical models of bond derivatives. One \
+which is easily accessible is Jamshidian (1989/1996), which is an exact \
+formula for options on bonds in the Vasicek world. The corresponding formula \
+in the Cox-Ingersoll-Ross model is Cox, Ingersoll and Ross (1985/1996). These \
+latter papers are part of a wonderful collection of articles put together by \
+Hughston (1996), which is an excellent complement to the indispensable text \
+by Rebonato (1996)."
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["27.2 Interest-Rate Options in the Black World", "Section",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "For certain classes of European-style interest-rate options, it is \
+commonplace, indeed, almost a market standard, to bypass the interest-rate \
+diffusion models discussed in Chapter 25, and to use Black's (1976) model. \
+The idea is to treat the forward value of a generic underlying as being \
+log-normally distributed at the expiry of the associated (European) option.  \
+Typical applications include (rates/prices are always forwards, and the term \
+\"underlying\" is used solely to indicate a choice of log-normal variable):\n\
+\n(a) swaptions - the swap rate at option maturity is the underlying;\n(b) \
+caplets - the interest rate at maturity is the underlying;\n(c) bond options \
+- the bond price at maturity is the underlying.\n\nThe Black formula was \
+originally based on options of the futures price of a commodity. Being based \
+on the futures price, it is implicit that we are dealing with an underlying \
+whose risk-neutral drift is zero, so to make use of the equity technology \
+developed previously, we need to set ",
+  Cell[BoxData[
+      \(TraditionalForm\`q\  = \ r\)]],
+  " in the option-pricing formulae. It is used in general for any option \
+where the underlying has zero risk-neutral drift, and can be assumed to have \
+a log-normal standard deviation ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Sigma] \@ T\)]],
+  " at maturity ",
+  Cell[BoxData[
+      \(TraditionalForm\`T\)]],
+  ". The interest rate used for discounting, ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\)]],
+  ", is the risk-free rate for time ",
+  Cell[BoxData[
+      \(TraditionalForm\`T\)]],
+  ", i.e., is taken off the yield curve. \n\nIt is important to realize that \
+the Black model, as applied to any one of (a), (b), (c) above in isolation, \
+is an extremely useful approximation. It happens to have deeper \
+justifications in particular cases, but it is not logically consistent to \
+assume that swaptions, caplets and bond options can all be priced on the \
+assumption of a log-normal world. For a detailed discussion, see Chapter 1 of \
+Rebonato (1996), however, since a swap is a linear combination of forward \
+rates, it is not possible (precisely as in the case of the dividend model \
+discussed in Chapter 24) for the forward interest rates and the forward swap \
+rate to both be log-normal. Log-normal distributions do not add to \
+log-normal. But in the equity case, it was extremely useful to make \
+approximations for Baskets, Asian options, and options on underlyings with \
+dividends, based on a log-normal view. This is also the case in the \
+interest-rate world.\n\nThe analogy with equity log-normal approximation \
+schemes is rather more useful still. The volatility one uses in the Black \
+model is just a parameter ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Sigma]\)]],
+  " with the property that  ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Sigma] \@ T\)]],
+  " is the standard deviation of the log of the forward price. It does not \
+(cf. log-normal approximations in the equity case) have to be related to a \
+local or constant volatility of a random walk followed by an interpretable \
+underlying. \n\nWhen used for European options, then, it is just a matter of \
+defining the underlying suitably as a forward, taking ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\)]],
+  " off the yield curve, setting ",
+  Cell[BoxData[
+      \(TraditionalForm\`q\  = \ r\)]],
+  ", and choosing the right volatility parameter. We shall explore this in \
+more detail presently for the particular case of a swaption. There is little \
+point here in roaming through all the different applications of Black's \
+model. The reader is encouraged to consult Chapter 16 of Hull (1996), and to \
+plug in relevant parameters to the formulae we have given in Chapter 7 for \
+the vanilla Black-Scholes model. For the case of bond options, we shall see \
+explicitly how a Black model emerges from the Vasicek world through the work \
+of Jamshidian (1989/1996).  That author has also looked at deeper \
+justifications for the assumptions of a Black environment (Jamshidian, 1993). \
+"
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Stretching the Black Model", "Subsubsection",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The following remarks will almost certainly have no support in the \
+academic community, but are sometimes very useful in getting rough estimates \
+for the values of more complex instruments, and checking more complex \
+interest-rate models, by providing an approximate comparison. It is tempting \
+to interpret the ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Sigma]\)]],
+  " parameter as indeed being a local volatility, and to regard the option \
+value as being the solution of the PDE, possibly with constraints for early \
+exercise,"
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[PartialD]V\/\[PartialD]t + 
+        1\/2\ \[Sigma]\^2\ F\^2\ \[PartialD]\^2 V\/\[PartialD]F\^2 - r\ V = 
+      0\)], "NumberedEquation",
+  CellFrame->False,
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where ",
+  Cell[BoxData[
+      \(TraditionalForm\`F\)]],
+  " is the appropriate forward rate. This allows one to use the FD and tree \
+models to value, for example, Bermudan and American swaptions, using all of \
+the numerical technology developed for the equity case. One just sets ",
+  Cell[BoxData[
+      \(TraditionalForm\`q\  = \ r\)]],
+  " and writes down the payoff constraints very carefully. If ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Sigma]\)]],
+  " is allowed to be time-dependent, this approach can produce estimates that \
+are not completely unreasonable, in spite of it having no serious theoretical \
+justification. "
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["European Swaptions in a Black World", "Subsection",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The application of Black's model, at least if one has the input \
+data, is little more than the application of some interesting decoration to \
+the Black-Scholes model discussed in Chapter 7. It will probably be helpful \
+to see how to do this once, and to then encourage the reader to play with \
+other cases. We shall look at the case of a European swaption, and follow the \
+route taken by Hull (1996), Section 16.8. We build the model from scratch, in \
+case you have dived directly into the section of this book that deals with \
+interest rates. The cumulative normal distribution is given by\
+\>", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[{
+    \(\(Norm[z_?NumberQ] := N[0.5\ Erf[z\/\@2] + 0.5]; \)\), 
+    \(Norm[x_] := 1\/2\ \((1 + Erf[x\/\@2])\)\)}], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+In terms of the forward swap rate, strike, effective volatility and \
+time, the relevant auxiliary functions for the Black formula are\
+\>", "Text",\
+
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[{
+    \(\(swapdone[f_, c_, \[Sigma]_, t_] := 
+      Log[f\/c]\/\(\[Sigma]\ \@t\) + \(\[Sigma]\ \@t\)\/2; \)\), 
+    \(\(swapdtwo[f_, c_, \[Sigma]_, t_] := 
+      Log[f\/c]\/\(\[Sigma]\ \@t\) - \(\[Sigma]\ \@t\)\/2; \)\)}], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+We build formulae for payer's swaptions (\"Calls\") and receiver's \
+swaptions (\"Puts\") in two stages. The raw option component is given by the \
+pair of functions:\
+\>", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[{
+    \(RawOptPaySwap[f_, c_, \[Sigma]_, t_, years_, r_] := 
+      Exp[\(-r\)*t]\ \((f\ Norm[swapdone[f, c, \[Sigma], t]] - 
+            c\ Norm[swapdtwo[f, c, \[Sigma], t]])\)\), 
+    \(RawOptReceiveSwap[f_, c_, \[Sigma]_, t_, years_, r_] := 
+      Exp[\(-r\)*t]\ \((c\ Norm[\(-swapdtwo[f, c, \[Sigma], t]\)] - 
+            f\ Norm[\(-swapdone[f, c, \[Sigma], t]\)])\)\)}], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "If we build in all the relevant discounted cash flows, we arrive at the \
+following ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " form of the Hull (1996) implementation of the Black swaption model:"
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[{
+    \(HullPaySwap[f_, c_, \[Sigma]_, t_, mfreq_, years_, principal_, 
+        rates_] := \(1\/mfreq\) \((\((\[Sum]\+\(i = 1\)\%\(mfreq\ years\)Exp[\
+\(-rates\[LeftDoubleBracket]i\[RightDoubleBracket]\)\ \((t + 
+                        i\/mfreq)\)])\)\ principal\ \((f\ Norm[
+                    swapdone[f, c, \[Sigma], t]] - 
+                c\ Norm[swapdtwo[f, c, \[Sigma], t]])\))\)\), 
+    \(HullReceiveSwap[f_, c_, \[Sigma]_, t_, mfreq_, years_, principal_, 
+        rates_] := \(1\/mfreq\) \((\((\[Sum]\+\(i = 1\)\%\(mfreq\ years\)Exp[\
+\(-rates\[LeftDoubleBracket]i\[RightDoubleBracket]\)\ \((t + 
+                        i\/mfreq)\)])\)\ principal\ \((c\ Norm[\(-swapdtwo[f, 
+                        c, \[Sigma], t]\)] - 
+                f\ Norm[\(-swapdone[f, c, \[Sigma], t]\)])\))\)\)}], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell["We can do a quick symbolic parity check on this model:", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+TraditionalForm[Simplify[HullPaySwap[f, c, \[Sigma], t, mfreq, \
+years, principal, rates] - HullReceiveSwap[f, c, \[Sigma], t, mfreq, years, \
+principal, rates]]]\
+\>", "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(-\(\(\((c - 
+                f)\)\ principal\ \(\[Sum]\+\(i = 1\)\%\(mfreq\ years\)\
+\[ExponentialE]\^\(\(-rates\[LeftDoubleBracket]i\[RightDoubleBracket]\)\ \((i\
+\/mfreq + t)\)\)\)\)\/mfreq\)\)\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "We can also check that the model agrees with published data. Consider the \
+example given by Hull (1996). The yield curve is taken to be flat with 6% \
+continuously compounded interest rate. The swaption expires in five years and \
+has a strike of 6.2% for a three-year semi-annual swap starting at the expiry \
+of the options - the swaption holder has the right to enter into a three-year \
+swap, after five years, where they pay 6.2%. The effective volatility for the \
+forward swap rate is 0.20, and for a three-year semi-annual swap with a ",
+  StyleBox["flat",
+    FontSlant->"Italic"],
+  " yield curve, the swap forward rate, ",
+  Cell[BoxData[
+      \(TraditionalForm\`F\)]],
+  ", is given by "
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(r\  = \ 0.06; \nF\  = \ 2*\((Exp[r/2]\  - \ 1)\)\)], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.0609090679070338758`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+For a principal of 100 currency units, the value of the payer's \
+swaption is then\
+\>", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(HullPaySwap[0.060901, \ 0.062, \ 0.2, \ 5, \ 2, \ 3, \ 100, \ 
+      0.06*{1, 1, 1, 1, 1, 1}]\)], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(2.07005563783042001`\)], "Output"]
+}, Open  ]],
+
+Cell["This agrees with Hull's result of 2.07. ", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["27.3 Bond Options in a Vasicek World", "Section",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The Black model for bond options can be justified on the basis of several \
+of the interest-rate models. The Vasicek, Ho-Lee and Hull-White models \
+introduced briefly in Chapter 25 all have the property that the interest-rate \
+distribution is itself Gaussian. Given the mathematical exponential \
+relationship between bond prices and interest rates, it should not come as \
+too much of a surprise that the distribution of bond prices within these \
+models, at the expiry of an option, can be regarded as log-normal, with \
+results that map nicely into the Black model. \n\nWe shall explore this \
+correspondence in detail for the Vasicek interest-rate world, where there are \
+very simple closed-form analytics for discount bond options, which have been \
+spelled out in detail by Jamshidian (1989/1996). That paper also contains a \
+useful and generally applicable method for dealing with options on bonds with \
+coupons.\n\nRecall first that in Chapter 25 we got ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " to derive the discount bond-pricing formula for the Vasicek world. We \
+have the functions ",
+  Cell[BoxData[
+      \(TraditionalForm\`A, \ B\)]],
+  " expressed by the following ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " expressions (go and re-load the calculation in Chapter 25 to avoid \
+re-keying here) where we now make these functions explicitly dependent on the \
+Vasicek model parameters. "
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(VasB[t_, \ T_, \ a_, \ b_]\  := 1\/a - E\^\(a\ t - a\ T\)\/a\)], "Input",\
+
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(VasA[t_, \ T_, \ a_, \ 
+        b_, \ \[Sigma]_]\  := \ \(-\(\(E\^\(2\ a\ t - 2\ a\ T\)\ \
+\[Sigma]\^2\)\/\(4\ a\^3\)\)\) - \(E\^\(a\ t - a\ T\)\ \((a\^2\ b - \
+\[Sigma]\^2)\)\)\/a\^3 + \(t\ \((2\ a\^2\ b - \[Sigma]\^2)\)\)\/\(2\ a\^2\) + 
+        1\/4\ \((\(4\ b\)\/a - 
+              4\ b\ T - \(3\ \[Sigma]\^2\)\/a\^3 + \(2\ T\ \
+\[Sigma]\^2\)\/a\^2)\)\)], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This gives the exact formula for the bond price in terms of the parameters \
+",
+  Cell[BoxData[
+      \(TraditionalForm\`a, \ b, \ \[Sigma]\)]],
+  ". The bond price is then given explicitly as"
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(VasP[r_, \ t_, \ T_, \ a_, \ b_, \ \[Sigma]_]\  := \ 
+      Exp[VasA[t, \ T, \ a, \ b, \ \[Sigma]]\  - \ r*VasB[t, T, a, b]]\)], 
+  "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Readers may wish to explore this issue of calibrating this model against \
+real yield-curve data, such as those obtained by the processing of the data \
+in Chapter 26. We shall proceed without this step, to the option case. In \
+what follows, the option is being valued at time ",
+  Cell[BoxData[
+      \(TraditionalForm\`t\)]],
+  ", and expires at time ",
+  Cell[BoxData[
+      \(TraditionalForm\`T\)]],
+  ", and is on a bond maturing at time ",
+  Cell[BoxData[
+      \(TraditionalForm\`s\)]],
+  ". The first variable is the log-normal standard deviation parameter, \
+usually denoted by ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Sigma]\_P\)]],
+  ". A ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " representation is"
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(sigp[t_, \ T_, \ s_, \ a_, \ 
+        b_, \ \[Sigma]_]\  := \ \((\[Sigma]/a)\)*\((1\  - \ 
+            Exp[\(-a\)*\((s - T)\)])\)\ Sqrt[\((1\  - \ 
+                Exp[\(-2\)*a*\((T - t)\)])\)/\((2\ a)\)]\)], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The analogue of the ",
+  Cell[BoxData[
+      \(TraditionalForm\`d\)]],
+  "-functions is the variable ",
+  Cell[BoxData[
+      \(TraditionalForm\`h\)]],
+  ", given, for principal ",
+  Cell[BoxData[
+      \(TraditionalForm\`L\)]],
+  " and option strike ",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  ", by"
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(h[L_, \ X_, \ r_, \ t_, \ T_, \ s_, \ a_, \ 
+        b_, \ \[Sigma]_]\  := \n\t\((1/
+              sigp[t, \ T, \ s, \ a, \ b, \ \[Sigma]])\)*
+          Log[\((L*VasP[r, \ t, \ s, \ a, \ b, \ \[Sigma]])\)/\((X*
+                  VasP[r, \ t, \ T, \ a, \ b, \ \[Sigma]])\)]\  + \ 
+        sigp[t, \ T, \ s, \ a, \ b, \ \[Sigma]]/2\)], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The Call and Put options on a zero-coupon bond in the Vasicek world \
+are then given, respectively, by\
+\>", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(VasDiscCall[L_, \ X_, \ r_, \ t_, \ T_, \ s_, \ a_, \ 
+        b_, \ \[Sigma]_]\  := \ 
+      L*VasP[r, \ t, \ s, \ a, \ b, \ \[Sigma]]*
+          Norm[h[L, \ X, \ r, \ t, \ T, \ s, \ a, \ b, \ \[Sigma]]]\  - \ 
+        X*VasP[r, \ t, \ T, \ a, \ b, \ \[Sigma]]*
+          Norm[h[L, \ X, \ r, \ t, \ T, \ s, \ a, \ b, \ \[Sigma]] - \ 
+              sigp[t, \ T, \ s, \ a, \ b, \ \[Sigma]]\ ]\)], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(VasDiscPut[L_, \ X_, \ r_, \ t_, \ T_, \ s_, \ a_, \ 
+        b_, \ \[Sigma]_]\  := \ 
+      L*VasP[r, \ t, \ T, \ a, \ b, \ \[Sigma]]*
+          Norm[\(-h[L, \ X, \ r, \ t, \ T, \ s, \ a, \ b, \ \[Sigma]]\) + 
+              sigp[t, \ T, \ s, \ a, \ b, \ \[Sigma]]]\  - \ 
+        X*VasP[r, \ t, \ s, \ a, \ b, \ \[Sigma]]*
+          Norm[\(-h[L, \ X, \ r, \ t, \ T, \ s, \ a, \ b, \ \[Sigma]]\)]\)], 
+  "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+27.4 Interest Rates and Bond Options in a 
+Cox-Ingersoll-Ross World\
+\>", "Section",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Recall first that the CIR world is governed by an interest-rate \
+diffusion of the form\
+\>", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(d\ r = \(a(
+            b - r)\)\ d\ t\  + \[Sigma]\ \@r\ d\ z\ \)\)], "NumberedEquation",\
+
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This describes a mean-reverting process without negative rates. The \
+existence of a simple closed form for bond options is not confined to the \
+Vasicek environment. Corresponding results exist also for the CIR world. \
+Before we can develop these we need to do ground work on some new special \
+functions related to the distribution of interest rates in a CIR world. We \
+load the ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " Package describing a range of interesting distributions."
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell["Needs[\"Statistics`ContinuousDistributions`\"]", "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Here are the contents, which are useful for all kinds of \
+applications:\
+\>", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["?Statistics`ContinuousDistributions`*", "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+BetaDistribution                LogNormalDistribution
+CauchyDistribution              NoncentralChiSquareDistribution
+ChiDistribution                 NoncentralFRatioDistribution
+ExponentialDistribution         NoncentralStudentTDistribution
+ExtremeValueDistribution        ParetoDistribution
+GammaDistribution               RayleighDistribution
+HalfNormalDistribution          UniformDistribution
+LaplaceDistribution             WeibullDistribution
+LogisticDistribution\
+\>", "Print",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell["Here is some information about the one we want:", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?NoncentralChiSquareDistribution\)\)], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \("NoncentralChiSquareDistribution[n, lambda] represents the non-central \
+chi-square distribution with n degrees of freedom and non-centrality \
+parameter lambda."\)], "Print"]
+}, Open  ]],
+
+Cell["We have a formula for the probability density function:", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+PDF[NoncentralChiSquareDistribution[n,\[Lambda]], x]\
+\>", "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(2\^\(\(-n\)/2\)\ E\^\(1\/2\ \((\(-x\) - \[Lambda])\)\)\ x\^\(\(-1\) + n\
+\/2\)\ Hypergeometric0F1Regularized[n\/2, \(x\ \[Lambda]\)\/4]\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+The cumulative distribution function is in general an \
+integral:\
+\>", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+CDF[NoncentralChiSquareDistribution[n,\[Lambda]], x]\
+\>", "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(2\^\(\(-n\)/2\)\ \(\[Integral]\_0\%x\( E\^\(1\/2\ \((\(-x1\) - \
+\[Lambda])\)\)\ x1\^\(\(-1\) + n\/2\)\ Hypergeometric0F1Regularized[
+              n\/2, \(x1\ \[Lambda]\)\/4]\) \[DifferentialD]x1\)\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+The relationship of this distribution to the probability \
+distribution of interest rates is obtained by introducing some auxiliary \
+functions. Our discussion is based on CIR (1985/1996) but with the notation \
+(for the random walk) of Hull (1996). We set\
+\>", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(q[a_, \ b_, \ \[Sigma]_]\  := \ 2*a*b/\[Sigma]^2\  - \ 1; \n
+    c[a_, \ \[Sigma]_, \ s_, \ t_]\  := \ 
+      2*a/\((\[Sigma]^2*\((1\  - \ Exp[\(-a\)*\((s - t)\)])\))\); \n
+    u[rt_, \ c_, \ a_, \ s_, \ t_]\  := \ c*rt*Exp[\(-a\)*\((s - t)\)]; \n
+    v[rs_, \ c_]\  := \ c*rs; \ \)\)], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The role of these parameters is as follows:\n\n(1) the variable ",
+  Cell[BoxData[
+      \(TraditionalForm\`q\)]],
+  ", which depends on the random walk parameters, is related to the number of \
+degrees of freedom ",
+  Cell[BoxData[
+      \(TraditionalForm\`n\  = \ 2  q + 2\)]],
+  ";\n\n(2) ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(\ rt\ \)\)]],
+  "is the value of the interest rate at the current time ",
+  Cell[BoxData[
+      \(TraditionalForm\`t\)]],
+  "; ",
+  Cell[BoxData[
+      \(TraditionalForm\`rs\)]],
+  " is the probabilistic value at some later time ",
+  Cell[BoxData[
+      \(TraditionalForm\`s\)]],
+  ";\n\n(3) the quantity ",
+  Cell[BoxData[
+      \(TraditionalForm\`2\ u\)]],
+  " is the parameter of non-centrality;\n\n(4) the quantity ",
+  Cell[BoxData[
+      FormBox[
+        RowBox[{
+          FormBox[\(2\ v\),
+            "TraditionalForm"], " ", "=", " ", \(2\ c\ rs\)}], 
+        TraditionalForm]]],
+  " is the standardized random variable, in that the distribution function \
+is"
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(CDF[NoncentralChiSquareDistribution[2*q + 2, 2\ u], \ 2\ v]\)], "Input",\
+
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "It follows that the density function, as a function of ",
+  Cell[BoxData[
+      \(TraditionalForm\`rs\)]],
+  ", is given by "
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(DensA[c_, \ q_, \ u_, \ v_]\  = 
+      Simplify[2*c*
+          PDF[NoncentralChiSquareDistribution[2*q + 2, 2\ u], \ 2\ v]]\)], 
+  "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(c\ E\^\(\(-u\) - v\)\ v\^q\ Hypergeometric0F1Regularized[1 + q, 
+        u\ v]\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Let's consider an alternative formulation of this function, which \
+may be more familiar to you. We set \
+\>", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(DensB[c_, \ q_, \ u_, \ v_]\  = 
+      c\ Exp[\(-u\) - v]\ \((v/u)\)^\((q/2)\)\ BesselI[q, \ 
+          2\ Sqrt[u*v]]; \)\)], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm[DensB[c, q, u, v]]\)], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`c\ \[ExponentialE]\^\(\(-u\) - v\)\ \
+\((v\/u)\)\^\(q/2\)\ \(\(I\_q\)(2\ \@\(u\ v\))\)\)], "NumberedEquation",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+These two representations are equivalent, as may be verified by \
+consulting special-function tables. You can reassure yourself of this by \
+making some simple checks - for example:\
+\>", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \({DensA[1, 0.1, \ 2, \ 3], \ DensB[1, 0.1, \ 2, \ 3]}\)], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.170955093393628327`, 0.170955093393628265`}\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "The representation in terms of Bessel functions is the one originally \
+given by CIR (1985). These distributions of interest rates are very \
+revealing. We can use the symbolic power of ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " to investigate them. For example, it is easy to demonstrate the \
+mean-reverting character. Let's first work out the mean of the distribution, \
+using the powerful tools built in to the statistics Packages. We need to \
+re-scale by ",
+  Cell[BoxData[
+      \(TraditionalForm\`2  c\)]],
+  " to undo the standardization of the random variables. "
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Simplify[
+      Mean[NoncentralChiSquareDistribution[2*q + 2, 2\ u]]/\((2*c)\)]\)], 
+  "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(1 + q + u\)\/c\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Now let's substitute for the actual variables, and simplify (you \
+should run the following twice):\
+\>", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Expand[
+      Simplify[%\  /. \ {\ u\  -> \ u[rt, \ c, \ a, \ s, \ t], 
+            c\  -> \ c[a, \ \[Sigma], \ s, \ t], \ 
+            q\  -> \ \ q[a, \ b, \ \[Sigma]]}]\ ]\)], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(b - b\ E\^\(a\ \((\(-s\) + t)\)\) + E\^\(a\ \((\(-s\) + t)\)\)\ rt\)], 
+  "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Collect[%, \ b]\)], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(b\ \((1 - E\^\(a\ \((\(-s\) + t)\)\))\) + 
+      E\^\(a\ \((\(-s\) + t)\)\)\ rt\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "So for ",
+  Cell[BoxData[
+      \(TraditionalForm\`s\)]],
+  " close to the current time ",
+  Cell[BoxData[
+      \(TraditionalForm\`t\)]],
+  ", we get ",
+  Cell[BoxData[
+      \(TraditionalForm\`rt\)]],
+  " back, whereas for large times ",
+  Cell[BoxData[
+      \(TraditionalForm\`s\)]],
+  " the mean tends to ",
+  Cell[BoxData[
+      \(TraditionalForm\`b\)]],
+  ". "
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Real World vs Risk-Neutral World", "Subsubsection",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The literature on interest-rate models is made a little confusing \
+by different defaults on whether to talk in terms of real-world variables or \
+risk-neutral variables. The notation employed by Hull (1996) refers to \
+risk-neutral variables. So in the random walk specification\
+\>", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(d\ r = \(a(
+            b - r)\)\ d\ t\  + \[Sigma]\ \@r\ d\ z\ \)\)], "NumberedEquation",\
+
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "the variables ",
+  Cell[BoxData[
+      \(TraditionalForm\`a\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`b\)]],
+  " are based on a risk-neutral description. In contrast, the papers by CIR \
+(1985/1996) refer to random walks of the form"
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(d\ r = \(\[Kappa](\[Theta] - 
+              r)\)\ d\ t\  + \[Sigma]\ \@r\ d\ z\ \)\)], "NumberedEquation",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "and ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Kappa], \ \[Theta]\)]],
+  " are ",
+  StyleBox["real-world",
+    FontSlant->"Italic"],
+  " variables.  These different relations are linked by the variable \
+representing the ",
+  StyleBox["market price of risk",
+    FontSlant->"Italic"],
+  ", usually called \[Lambda], by the conditions"
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[{
+    \(TraditionalForm\`a = \[Kappa] + \[Lambda]\), 
+    \(TraditionalForm\`b = \(\[Kappa]\ \[Theta]\)\/\(\[Kappa] + \
+\[Lambda]\)\)}], "NumberedEquation",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "For example, the bond-pricing formula given by Hull is in terms of \
+risk-neutral variables, and is equivalent to the one we gave in Chapter 25. \
+CIR give the bond-pricing formula in terms of real-world variables. The two \
+formulae are linked by equation (5). Clearly we can interpret our remarks on \
+the distribution of interest rates as applying to real or risk-neutral \
+coordinates, but when we price instruments we can hypothetically work with \
+either risk-neutral variables, or real-world variables with explicit \
+management of the market price of risk. However, there is an additional issue \
+that must be faced. We cannot observe the values of ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Kappa], \ \[Theta], \ \[Lambda]\)]],
+  " directly from the market - we can only observe the values of the \
+combinations ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Kappa] + \[Lambda]\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Kappa]\ \[Theta]\)]],
+  ". This is most easily seen by examining the bond-pricing formula which \
+only involves ",
+  Cell[BoxData[
+      \(TraditionalForm\`a\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`b\)]],
+  ". In particular, when we calibrate our model against supplied yield curve \
+data, we can only expect to obtain values for ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Kappa] + \[Lambda]\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Kappa]\ \[Theta]\)]],
+  ". "
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Pricing of Discount Bond Options in CIR", "Subsection",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The question of the pricing of instruments can now be addressed. Note that \
+in Chapter 25 we did bonds in a risk-neutral world by manipulations with the \
+bond-pricing equations. Now we turn our attention to an option on a bond. The \
+results for this neatly parallel the results for equity options, except that \
+we have to work in terms of the cumulative non-central ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Chi]\^2\)]],
+  " distribution, rather than the ubiquitous ",
+  Cell[BoxData[
+      \(TraditionalForm\`N\)]],
+  " for the log-normal case.  We consider the case of pure discount bonds - \
+there are no coupons. First we re-define the ",
+  Cell[BoxData[
+      \(TraditionalForm\`A\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`B\)]],
+  " functions governing the price of a discount bond. We use the forms \
+derived by ",
+  StyleBox["Mathematica ",
+    FontSlant->"Italic"],
+  "from the reduced form of the bond-pricing equation - readers may wish to \
+satisfy themselves that these are the same functions as those derived by CIR, \
+even though they look completely different. Note that the CIR ",
+  Cell[BoxData[
+      \(TraditionalForm\`A\)]],
+  " is the exponential of our original ",
+  Cell[BoxData[
+      \(TraditionalForm\`A\)]],
+  ", so in order to follow CIR, we exponentiate our previous definitions. We \
+introduce variables ",
+  Cell[BoxData[
+      \(TraditionalForm\`kpl\  = \ \[Kappa] + \[Lambda]\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`kth\  = \ \[Kappa]\ \[Theta]\)]],
+  " so that we work only in terms of observable  quantities:"
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(B[t_, \ T_, \ kpl_, \ \[Sigma]_]\  := 
+      Module[{g\  = \ 
+            Sqrt[kpl^2\  + \ 2\ \[Sigma]^2]}, \n\t\t\t\(-\(\(kpl + 
+                g\ Tanh[
+                    1\/2\ g\ \((t - T)\) - 
+                      ArcTanh[kpl\/g]]\)\/\[Sigma]\^2\)\)]\)], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(A[t_, \ T_, \ kpl_, \ \[Sigma]_, \ kth_]\  := 
+      Exp[Re[Module[{g\  = \ 
+                Sqrt[kpl^2\  + \ 
+                    2\ \[Sigma]^2]}, \(1\/\(g\ \[Sigma]\^2\)\) \((kth\ \
+\((\((kpl - g)\)\ Log[1 - kpl\/g] - \((kpl + 
+                            g)\)\ Log[\(-\(\(kpl + g\)\/g\)\)] + 
+                      kpl\ Log[\(-1\) + 
+                            Tanh[1\/2\ g\ \((t - T)\) - ArcTanh[kpl\/g]]] + 
+                      g\ Log[\(-1\) + 
+                            Tanh[1\/2\ g\ \((t - T)\) - ArcTanh[kpl\/g]]] - 
+                      kpl\ Log[
+                          1 + Tanh[1\/2\ g\ \((t - T)\) - ArcTanh[kpl\/g]]] + 
+                      g\ Log[1 + 
+                            Tanh[1\/2\ g\ \((t - T)\) - 
+                                ArcTanh[kpl\/g]]])\))\)]\ ]]\)], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell["Now we write the bond price explicitly as", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(Clear[A, B, 
+      P]; \[IndentingNewLine]P[r_, \ t_, \ s_, \ kpl_, \ \[Sigma]_, \ 
+        kth_]\  := 
+      A[t, s, kpl, \[Sigma], kth]\ Exp[\(-r\)*B[t, s, kpl, \[Sigma]]]\)], 
+  "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Now we can prescribe the CIR bond option formula. We give two \
+forms. The first is a function of some intermediate parameters, and the \
+second is fully explicit and makes use of the first.\
+\>", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(PartialCall[r_, t_, T_, s_, K_, rstar_, \[Phi]_, \[Psi]_, g_, \ 
+        kpl_, \[Sigma]_, kth_]\  := \n\t
+      P[r, \ t, \ s, kpl, \ \[Sigma], \ kth]*
+          CDF[NoncentralChiSquareDistribution[4*kth/\[Sigma]^2, 
+              2  \[Phi]^2\ r\ Exp[
+                    g*\((T - t)\)]/\((\[Phi] + \[Psi] + 
+                      B[T, \ s, \ kpl, \ \[Sigma]])\)], \ 
+            2*rstar*\((\[Phi] + \[Psi] + B[T, \ s, kpl, \ \[Sigma]])\)]\  - \ 
+        K*P[r, \ t, \ T, \ kpl, \ \[Sigma], \ kth]*
+          CDF[NoncentralChiSquareDistribution[4*kth/\[Sigma]^2, 
+              2  \[Phi]^2\ r\ Exp[
+                    g*\((T - t)\)]/\((\[Phi] + \[Psi])\)], \ \ 2*
+              rstar*\((\[Phi] + \[Psi])\)]\)], "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The parameters in the final form are\n\n",
+  Cell[BoxData[
+      \(TraditionalForm\`r\)]],
+  " - current interest rate;\n",
+  Cell[BoxData[
+      \(TraditionalForm\`t\)]],
+  " - current time;\n",
+  Cell[BoxData[
+      \(TraditionalForm\`T\)]],
+  " - option expiry date;\n",
+  Cell[BoxData[
+      \(TraditionalForm\`s\)]],
+  " - bond maturity date;\n",
+  Cell[BoxData[
+      \(TraditionalForm\`K\)]],
+  " - strike price;\n\nand the CIR model parameters make up the rest."
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(CIRBondCall[r_, \ t_, \ T_, \ s_, \ K_, \ kpl_, \ \[Sigma]_, \ 
+        kth_] := \ \n\t
+      Module[{rstar, \ \[Phi], \ \[Psi], \ g}, \n\t\t\trstar\  = \ 
+          Log[A[T, \ s, \ kpl, \ \[Sigma], \ kth]/K]/
+            B[T, \ s, \ kpl, \ \[Sigma]]; \n\t\t\tg\  = \ 
+          Sqrt[kpl^2\  + \ 
+              2\ \[Sigma]^2]; \n\t\t\t\[Psi]\  = \ \((kpl\  + \ 
+                g)\)/\[Sigma]^2; \n\t\t\t\[Phi]\  = \ 
+          2\ g/\((\[Sigma]^2 \((Exp[g*\((T - t)\)] - 
+                      1)\))\); \n\t\t\tPartialCall[r, \ t, \ T, \ s, \ K, \ 
+          rstar, \ \[Phi], \ \[Psi], g, \ kpl, \ \[Sigma], \ kth]]\ \)\)], 
+  "Input",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Readers should note the structural similarity to the log-normal \
+formula.\
+\>", "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Chapter 27 Bibliography", "Section",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "See the Bibliography for Chapter 25, and also\n\nBlack, F., 1976, The \
+pricing of commodity contracts, ",
+  StyleBox["Journal of Financial Economics",
+    FontSlant->"Italic"],
+  ", 3, p. 167.\n\nCox, J.C., Ingersoll, J.E. and Ross, S.A., 1985/1996, A \
+theory of the term structure of interest rates, ",
+  StyleBox["Econometrica",
+    FontSlant->"Italic"],
+  ", 53, p. 385, reprinted in Hughston (1996).\n\nHughston, L.P. (editor), \
+1996, ",
+  StyleBox[
+  "Vasicek and Beyond - Approaches to Building and Applying Interest Rate \
+Models",
+    FontSlant->"Italic"],
+  ", RISK-EuroBrokers.\n\nJamshidian, F., 1989/1996, An exact bond option \
+formula,",
+  StyleBox[" Journal of Finance",
+    FontSlant->"Italic"],
+  ", 44, p. 205, reprinted in  Hughston (1996).\n\nJamshidian, F., 1993, \
+Options and futures evaluation with deterministic volatilities, ",
+  StyleBox["Mathematical Finance",
+    FontSlant->"Italic"],
+  ", 3, p. 149. \n\n"
+}], "Text",
+  CellMargins->{{6.8125, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]]
+},
+FrontEndVersion->"Macintosh 3.0",
+ScreenRectangle->{{0, 1152}, {0, 850}},
+AutoGeneratedPackage->None,
+ScreenStyleEnvironment->"Printout",
+WindowToolbars->{},
+CellGrouping->Automatic,
+WindowSize->{570, 651},
+WindowMargins->{{20, Automatic}, {Automatic, 1}},
+PrintingCopies->1,
+PrintingStartingPageNumber->504,
+PrintingPageRange->{1, Automatic},
+PageHeaders->{{Inherited, Inherited, Cell[ 
+        TextData[ {"27. Interest-Rate Options"}]]}, {Cell[ 
+        TextData[ {"27. Interest-Rate Options"}]], Inherited, Inherited}},
+PageFooters->{{Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}, {Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}},
+PrintingOptions->{"PrintingMargins"->{{0, 0}, {57, 57}},
+"PaperSize"->{439, 716},
+"PrintCellBrackets"->False,
+"PrintRegistrationMarks"->False,
+"PrintMultipleHorizontalPages"->False,
+"FirstPageHeader"->False,
+"FacingPages"->True},
+PrivateNotebookOptions->{"ColorPalette"->{RGBColor, 128}},
+ShowCellLabel->False,
+ShowCellTags->False,
+RenderingOptions->{"ObjectDithering"->True,
+"RasterDithering"->False},
+Magnification->1,
+StyleDefinitions -> "Default.nb",
+MacintoshSystemPageSetup->"\<\
+00<0004/0B`000003;H8`Omooh`=<`Tj0fL5N`?P0080004/0B`000000]P2:001
+0000I00000400`<30?l00BL?00400@S<]<000000000006P801T1T00000000000
+00000000004000000000000000000000\>"
+]
+
+
+(***********************************************************************
+Cached data follows.  If you edit this Notebook file directly, not using
+Mathematica, you must remove the line containing CacheID at the top of 
+the file.  The cache data will then be recreated when you save this file 
+from within Mathematica.
+***********************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1731, 51, 223, 8, 95, "Title"],
+Cell[1957, 61, 133, 1, 33, "Subsubtitle"],
+
+Cell[CellGroupData[{
+Cell[2115, 66, 146, 3, 44, "Section"],
+Cell[2264, 71, 4846, 75, 558, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[7147, 151, 126, 1, 44, "Section"],
+Cell[7276, 154, 4182, 73, 493, "Text"],
+
+Cell[CellGroupData[{
+Cell[11483, 231, 113, 1, 28, "Subsubsection"],
+Cell[11599, 234, 632, 12, 62, "Text"],
+Cell[12234, 248, 257, 5, 32, "NumberedEquation"],
+Cell[12494, 255, 731, 16, 62, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[13262, 276, 119, 1, 32, "Subsection"],
+Cell[13384, 279, 683, 10, 73, "Text"],
+Cell[14070, 291, 198, 3, 76, "Input"],
+Cell[14271, 296, 222, 5, 29, "Text"],
+Cell[14496, 303, 306, 5, 86, "Input"],
+Cell[14805, 310, 252, 5, 29, "Text"],
+Cell[15060, 317, 458, 7, 64, "Input"],
+Cell[15521, 326, 304, 7, 29, "Text"],
+Cell[15828, 335, 884, 13, 185, "Input"],
+Cell[16715, 350, 132, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[16872, 355, 249, 5, 46, "Input"],
+Cell[17124, 362, 248, 4, 56, "Output"]
+}, Open  ]],
+Cell[17387, 369, 794, 15, 73, "Text"],
+
+Cell[CellGroupData[{
+Cell[18206, 388, 143, 2, 37, "Input"],
+Cell[18352, 392, 56, 1, 36, "Output"]
+}, Open  ]],
+Cell[18423, 396, 168, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[18616, 404, 188, 3, 37, "Input"],
+Cell[18807, 409, 54, 1, 36, "Output"]
+}, Open  ]],
+Cell[18876, 413, 118, 1, 20, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[19043, 420, 117, 1, 38, "Section"],
+Cell[19163, 423, 1532, 27, 184, "Text"],
+Cell[20698, 452, 157, 3, 38, "Input"],
+Cell[20858, 457, 450, 8, 72, "Input"],
+Cell[21311, 467, 286, 7, 29, "Text"],
+Cell[21600, 476, 222, 4, 37, "Input"],
+Cell[21825, 482, 826, 22, 62, "Text"],
+Cell[22654, 506, 299, 5, 37, "Input"],
+Cell[22956, 513, 403, 15, 20, "Text"],
+Cell[23362, 530, 424, 7, 62, "Input"],
+Cell[23789, 539, 188, 4, 29, "Text"],
+Cell[23980, 545, 486, 8, 62, "Input"],
+Cell[24469, 555, 494, 9, 62, "Input"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[25000, 569, 156, 4, 53, "Section"],
+Cell[25159, 575, 173, 4, 20, "Text"],
+Cell[25335, 581, 193, 4, 20, "NumberedEquation"],
+Cell[25531, 587, 592, 11, 62, "Text"],
+Cell[26126, 600, 125, 1, 25, "Input"],
+Cell[26254, 603, 158, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[26437, 611, 116, 1, 25, "Input"],
+Cell[26556, 614, 557, 11, 106, "Print"]
+}, Open  ]],
+Cell[27128, 628, 125, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[27278, 633, 131, 2, 25, "Input"],
+Cell[27412, 637, 195, 3, 44, "Print"]
+}, Open  ]],
+Cell[27622, 643, 133, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[27780, 648, 139, 3, 25, "Input"],
+Cell[27922, 653, 169, 2, 48, "Output"]
+}, Open  ]],
+Cell[28106, 658, 151, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[28282, 666, 139, 3, 25, "Input"],
+Cell[28424, 671, 232, 3, 64, "Output"]
+}, Open  ]],
+Cell[28671, 677, 342, 6, 40, "Text"],
+Cell[29016, 685, 379, 6, 64, "Input"],
+Cell[29398, 693, 1101, 33, 128, "Text"],
+Cell[30502, 728, 156, 3, 25, "Input"],
+Cell[30661, 733, 218, 6, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[30904, 743, 221, 5, 37, "Input"],
+Cell[31128, 750, 112, 2, 36, "Output"]
+}, Open  ]],
+Cell[31255, 755, 190, 4, 29, "Text"],
+Cell[31448, 761, 218, 4, 37, "Input"],
+Cell[31669, 767, 129, 2, 25, "Input"],
+Cell[31801, 771, 209, 3, 29, "NumberedEquation"],
+Cell[32013, 776, 267, 5, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[32305, 785, 147, 2, 25, "Input"],
+Cell[32455, 789, 80, 1, 36, "Output"]
+}, Open  ]],
+Cell[32550, 793, 682, 14, 62, "Text"],
+
+Cell[CellGroupData[{
+Cell[33257, 811, 177, 4, 37, "Input"],
+Cell[33437, 817, 50, 1, 48, "Output"]
+}, Open  ]],
+Cell[33502, 821, 185, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[33712, 829, 268, 5, 37, "Input"],
+Cell[33983, 836, 103, 2, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[34123, 843, 110, 2, 25, "Input"],
+Cell[34236, 847, 113, 2, 36, "Output"]
+}, Open  ]],
+Cell[34364, 852, 460, 18, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[34849, 874, 119, 1, 28, "Subsubsection"],
+Cell[34971, 877, 365, 6, 40, "Text"],
+Cell[35339, 885, 193, 4, 20, "NumberedEquation"],
+Cell[35535, 891, 341, 10, 29, "Text"],
+Cell[35879, 903, 207, 3, 20, "NumberedEquation"],
+Cell[36089, 908, 430, 13, 29, "Text"],
+Cell[36522, 923, 231, 4, 44, "NumberedEquation"],
+Cell[36756, 929, 1540, 35, 128, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[38333, 969, 123, 1, 32, "Subsection"],
+Cell[38459, 972, 1678, 39, 128, "Text"],
+Cell[40140, 1013, 352, 7, 61, "Input"],
+Cell[40495, 1022, 887, 16, 189, "Input"],
+Cell[41385, 1040, 119, 1, 20, "Text"],
+Cell[41507, 1043, 271, 6, 50, "Input"],
+Cell[41781, 1051, 276, 5, 29, "Text"],
+Cell[42060, 1058, 802, 14, 100, "Input"],
+Cell[42865, 1074, 563, 18, 106, "Text"],
+Cell[43431, 1094, 718, 13, 100, "Input"],
+Cell[44152, 1109, 160, 4, 20, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[44361, 1119, 104, 1, 38, "Section"],
+Cell[44468, 1122, 1032, 25, 194, "Text"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+
+(***********************************************************************
+End of Mathematica Notebook file.
+***********************************************************************)
+

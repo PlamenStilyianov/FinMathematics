@@ -1,0 +1,2023 @@
+(***********************************************************************
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used on any computer system with Mathematica 3.0,
+MathReader 3.0, or any compatible application. The data for the notebook 
+starts with the line of stars above.
+
+To get the notebook into a Mathematica-compatible application, do one of 
+the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing the 
+word CacheID, otherwise Mathematica-compatible applications may try to 
+use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+***********************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     59184,       1632]*)
+(*NotebookOutlinePosition[     60987,       1687]*)
+(*  CellTagsIndexPosition[     60943,       1683]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["\<\
+Chapter 10. 
+Vanilla Asian Options - Analytical Methods\
+\>", "Title",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  TextAlignment->Left,
+  TextJustification->0,
+  AspectRatioFixed->True],
+
+Cell["\<\
+Extending the Power of Analytical Methods to
+Problems Involving the Average\
+\>", "Subsubtitle",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["10.1 Introduction", "Section",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "\nIn Chapter 9 we considered path-dependent options involving the maximum \
+or minimum of the underlying price when sampled continuously throughout the \
+life of the option. Another type of path-dependent feature is the ",
+  StyleBox["average",
+    FontSlant->"Italic"],
+  " of the underlying along the path taken from initiation to expiry. We can \
+consider both the arithmetic average and the geometric average. The latter \
+has the advantage of having a simple closed-form solution. Recent research \
+has provided a means of solving the arithmetic problem almost in closed form. \
+In this chapter we shall explore the mechanics of both types of option, \
+drawing heavily on the existing mathematical knowledge. We shall see also \
+that ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " can be used to provided some simplifications to the analysis made thus \
+far on the arithmetic case. \n\nThe analytical formulation of the pricing \
+problem can be used as is when the option contract is appropriate for such a \
+model. More often, a more complex contract may require Monte Carlo simulation \
+of the stock price path. In these cases these analytical models can both \
+serve as a useful check on the Monte Carlo algorithm (Are there enough paths, \
+and are we sampling the path sufficiently?), and also provide useful control \
+variates for variance reduction in more general cases. A classic example of \
+this is to use the exact solution for a continuously sampled geometric Asian \
+as a control variate for corresponding arithmetic problems. The results \
+presented here will lay the foundations for this approach, which we shall \
+revisit in Chapter 25."
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["10.2 Definition of Asian Options ", "Section",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Just as in the case of the use of max/min, there are four different \
+ways of feeding an average into an otherwise vanilla object. We can consider \
+Calls and Puts where either stock price at expiry, or the strike, is replaced \
+by the average. Here of course we can consider two further sub-cases \
+according to whether we are working arithmetically or geometrically. In the \
+following definitions, we shall denote the average generically by\
+\>", "Text",\
+
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\( < S > \)\)], "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "When it is important to indicate the nature of the averaging, we can use a \
+subscript ",
+  Cell[BoxData[
+      \(TraditionalForm\`A\)]],
+  " or ",
+  Cell[BoxData[
+      \(TraditionalForm\`G\)]],
+  " as follows:"
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\( < S\( > \_A\)\ \ \ \ \ \ \ \  < S\( > \_G\)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Average Price Call", "Subsubsection",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["Here the payoff is", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(TraditionalForm\`Max[0, \ \( < S > \(-\ K\)\)]\)], "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Average Price Put", "Subsubsection",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["Here the payoff is", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(TraditionalForm\`Max[0, \ \(K - \) < S > ]\)], "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Average Strike Call", "Subsubsection",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["Here the payoff is", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(TraditionalForm\`Max[0, \ \(S - \) < S > ]\)], "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Average Strike Put", "Subsubsection",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["Here the payoff is", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(TraditionalForm\`Max[0, \ \( < S > \(-S\)\)]\)], "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+In what follows we shall focus attention on the average price \
+options, where the strike is fixed and the price used is the average. These \
+are the types most commonly considered. \
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+10.3 Analytical Mathematical Models of Geometric Asian Price \
+Options\
+\>", "Section",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "\nFor geometric Asian options, we have used the observations made by Kemna \
+and Vorst (1990) who pointed out that the geometric average of a set of \
+log-normally distributed variables is also log-normal. This allows standard \
+formulae to be used, at least for the average price options, with some \
+changes of variables. These can be written down for either discrete or \
+continuous sampling. A large class of such changes of variables are given in \
+Chapter 11 of Wilmott ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " (1993), to which we refer the reader for the theory, and for a further \
+discussion of average strike options. In the continuous-sampling case, the \
+results are also given by Hull (1996, Chapter 18). It is then just a matter \
+of writing down the effective volatility and yield."
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(TraditionalForm\`VolEff(\[Sigma]) = \[Sigma]\/\@3\)], "NumberedEquation",\
+
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`QEff(r, q, \[Sigma]) = 
+      1\/2\ \((\[Sigma]\^2\/6 + q + r)\)\)], "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " Implementation of Geometric Asian"
+}], "Subsection",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell["\<\
+There is now very little left to do. We just give definitions for \
+the changes of variables thus:\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell[BoxData[
+    \(VolEff[\[Sigma]_] := \[Sigma]\/\@3\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell[BoxData[
+    \(QEff[r_, q_, \[Sigma]_] := 1\/2\ \((r + q + \[Sigma]\^2\/6)\)\)], 
+  "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell["\<\
+Now we load the standard Package for vanilla European options:\
+\>",
+   "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell[BoxData[
+    \(Needs["\<Derivatives`BlackScholes`\>"]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell["\<\
+Now we define the valuation and Greek functions in the usual way, \
+using symbolic differentiation. First we give the valuations:\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell["\<\
+GeoAsianPriceCall[p_, k_, \[Sigma]_, r_, q_, t_] := \
+BlackScholesCall[p,k,VolEff[\[Sigma]],r,QEff[r,q,\[Sigma]],t];
+GeoAsianPricePut[p_, k_, \[Sigma]_, r_, q_, t_] := \
+BlackScholesPut[p,k,VolEff[\[Sigma]],r,QEff[r,q,\[Sigma]],t]\
+\>", "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic,
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["Next we write down the Greeks for the Call and the Put:", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell[BoxData[
+    \(GeoAsianPriceCallDelta[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ t_]\  = \ 
+      Evaluate[D[GeoAsianPriceCall[p, \ k, \ \[Sigma], \ r, \ q, \ t], \ 
+          p]]; \nGeoAsianPriceCallGamma[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ 
+        t_]\  = \ 
+      Evaluate[D[
+          GeoAsianPriceCall[p, \ k, \ \[Sigma], \ r, \ q, \ t], \ {p, 2}]]; \n
+    GeoAsianPriceCallTheta[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ 
+        t_]\  = \ \(-Evaluate[
+          D[GeoAsianPriceCall[p, \ k, \ \[Sigma], \ r, \ q, \ t], \ t]]\); \n
+    GeoAsianPriceCallRho[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ t_]\  = \ 
+      Evaluate[D[GeoAsianPriceCall[p, \ k, \ \[Sigma], \ r, \ q, \ t], \ 
+          r]]; \nGeoAsianPriceCallVega[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ 
+        t_]\  = \ 
+      Evaluate[D[
+          GeoAsianPriceCall[p, \ k, \ \[Sigma], \ r, \ q, \ 
+            t], \ \[Sigma]]]; \[IndentingNewLine]GeoAsianPricePutDelta[p_, \ 
+        k_, \ \[Sigma]_, \ r_, \ q_, \ t_]\  = \ 
+      Evaluate[D[GeoAsianPricePut[p, \ k, \ \[Sigma], \ r, \ q, \ t], \ 
+          p]]; \nGeoAsianPricePutGamma[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ 
+        t_]\  = \ 
+      Evaluate[D[
+          GeoAsianPricePut[p, \ k, \ \[Sigma], \ r, \ q, \ t], \ {p, 2}]]; \n
+    GeoAsianPricePutTheta[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ 
+        t_]\  = \ \(-Evaluate[
+          D[GeoAsianPricePut[p, \ k, \ \[Sigma], \ r, \ q, \ t], \ t]]\); \n
+    GeoAsianPricePutRho[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ t_]\  = \ 
+      Evaluate[D[GeoAsianPricePut[p, \ k, \ \[Sigma], \ r, \ q, \ t], \ 
+          r]]; \nGeoAsianPricePutVega[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ 
+        t_]\  = \ 
+      Evaluate[D[
+          GeoAsianPricePut[p, \ k, \ \[Sigma], \ r, \ q, \ 
+            t], \ \[Sigma]]]; \)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell["\<\
+These functions can now be explored in the usual way - for example, \
+all the investigations of Chapter 7 can be carried out just as easily. We \
+shall return to the geometric Asian price options when we consider Monte \
+Carlo pricing methods.\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+10.4 Approximate Analytical Mathematical Models of Arithmetic Asian \
+Price Options\
+\>", "Section",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "When we come to consider the ",
+  StyleBox["arithmetic",
+    FontSlant->"Italic"],
+  " averaging procedure, there is no simple closed-form solution along the \
+lines of the Black-Scholes formula. However, there are both an approximate \
+solution with the simplicity of the geometric solution, and a recently \
+discovered exact analytical solution that uses Laplace transform methods. In \
+this section we shall consider the approximate model - the Laplace approach \
+will be given in Section 10.5. \n\nHere we develop the analytical \
+approximation given by Turnbull and Wakeman (1991). It is based on computing \
+exactly the first two moments of the distribution of the average price, and \
+valuing assuming that the distribution is log-normal with the same two \
+moments. Pros and cons of this are discussed by Levy and Turnbull (1992). \
+That article makes the point that the analytical approximation is very good \
+for volatilities up to about 20%, but has biases for higher volatility. The \
+pattern follows that for geometric Asians, but first we need to write down \
+the appropriate moments. These results are also described by Hull (1996). The \
+first two moments of the distribution are given by ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\ M\_1\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^2\) M\_2\)]],
+  ", where"
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(M\_1\)(r, q, 
+        t) = \(\[ExponentialE]\^\(\((r - q)\)\ t\) - 1\)\/\(\((r - q)\)\ \
+t\)\)], "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(TraditionalForm\`M\_2[\[Sigma], r, q, 
+        t] = \(2\ \((1\/\(\[Sigma]\^2 + 2\ \((r - q)\)\) - \
+\[ExponentialE]\^\(\((r - q)\)\ t\)\/\(\[Sigma]\^2 - q + r\))\)\)\/\(\((r - \
+q)\)\ t\^2\) + \(2\ \[ExponentialE]\^\(\((\[Sigma]\^2 + 2\ \((r - q)\))\)\ \
+t\)\)\/\(\((\((\[Sigma]\^2 - q + r)\)\ \((\[Sigma]\^2 - 2\ q + 2\ r)\))\)\ \
+t\^2\)\)], "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell["The effective yields and volatilities are then given by", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[{
+    \(TraditionalForm\`QEffA(r, q, t) = r - \(log(M\_1)\)\/t\), 
+    \(TraditionalForm\`VolEffA(\[Sigma], r, q, 
+        t) := \@\(\(log(M\_2)\)\/t - 2\ \((r - QEffA)\)\)\)}], 
+  "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " Implementation of Approximate Arithmetic Asian"
+}], "Subsection",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The pattern for doing this has already been established for the \
+geometric case, and we just parrot it:\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(mone[r_, q_, 
+        t_] := \(Exp[\((r - q)\)\ t] - 1\)\/\(\((r - q)\)\ t\); \)\)], "Input",\
+
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(\(mtwo[\[Sigma]_, r_, q_, 
+        t_] := \(2\ Exp[\((2\ \((r - q)\) + \[Sigma]\^2)\)\ t]\)\/\(t\^2\ \((\
+\((r - q + \[Sigma]\^2)\)\ \((2\ r - 2\ q + \[Sigma]\^2)\))\)\) + \(2\ \((1\/\
+\(2\ \((r - q)\) + \[Sigma]\^2\) - Exp[\((r - q)\)\ t]\/\(r - q + \[Sigma]\^2\
+\))\)\)\/\(t\^2\ \((r - q)\)\); \)\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(QEffA[r_, q_, t_] := r - Log[mone[r, q, t]]\/t; \n
+    VolEffA[\[Sigma]_, r_, q_, 
+        t_] := \@\(Log[mtwo[\[Sigma], r, q, t]]\/t - 2\ \((r - QEffA[r, q, \
+t])\)\); \)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell["\<\
+Now we can give the valuations, using a similar change of \
+variables:\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+AppAriAsianPriceCall[p_, k_, \[Sigma]_, r_, q_, t_] := \
+BlackScholesCall[p,k,VolEffA[\[Sigma],r,q,t],r,QEffA[r,q,t],t];
+AppAriAsianPricePut[p_, k_, \[Sigma]_, r_, q_, t_] := \
+BlackScholesPut[p,k,VolEffA[\[Sigma],r,q,t],r,QEffA[r,q,t],t]\
+\>", "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["Next we write down the Greeks for the Call:", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(AppAriAsianPriceCallDelta[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ 
+        t_]\  = \ 
+      Evaluate[D[AppAriAsianPriceCall[p, \ k, \ \[Sigma], \ r, \ q, \ t], \ 
+          p]]; \nAppAriAsianPriceCallGamma[p_, \ k_, \ \[Sigma]_, \ r_, \ 
+        q_, \ t_]\  = \ 
+      Evaluate[D[
+          AppAriAsianPriceCall[p, \ k, \ \[Sigma], \ r, \ q, \ t], \ {p, 
+            2}]]; \nAppAriAsianPriceCallTheta[p_, \ k_, \ \[Sigma]_, \ r_, \ 
+        q_, \ t_]\  = \ \(-Evaluate[
+          D[AppAriAsianPriceCall[p, \ k, \ \[Sigma], \ r, \ q, \ t], \ 
+            t]]\); \nAppAriAsianPriceCallRho[p_, \ k_, \ \[Sigma]_, \ r_, \ 
+        q_, \ t_]\  = \ 
+      Evaluate[D[AppAriAsianPriceCall[p, \ k, \ \[Sigma], \ r, \ q, \ t], \ 
+          r]]; \nAppAriAsianPriceCallVega[p_, \ k_, \ \[Sigma]_, \ r_, \ 
+        q_, \ t_]\  = \ 
+      Evaluate[D[
+          AppAriAsianPriceCall[p, \ k, \ \[Sigma], \ r, \ q, \ 
+            t], \ \[Sigma]]]; \)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["Finally we give the Greeks for the Put:", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(AppAriAsianPricePutDelta[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ t_]\  = \ 
+      Evaluate[D[AppAriAsianPricePut[p, \ k, \ \[Sigma], \ r, \ q, \ t], \ 
+          p]]; \nAppAriAsianPricePutGamma[p_, \ k_, \ \[Sigma]_, \ r_, \ 
+        q_, \ t_]\  = \ 
+      Evaluate[D[
+          AppAriAsianPricePut[p, \ k, \ \[Sigma], \ r, \ q, \ t], \ {p, 
+            2}]]; \nAppAriAsianPricePutTheta[p_, \ k_, \ \[Sigma]_, \ r_, \ 
+        q_, \ t_]\  = \ \(-Evaluate[
+          D[AppAriAsianPricePut[p, \ k, \ \[Sigma], \ r, \ q, \ t], \ 
+            t]]\); \nAppAriAsianPricePutRho[p_, \ k_, \ \[Sigma]_, \ r_, \ 
+        q_, \ t_]\  = \ 
+      Evaluate[D[AppAriAsianPricePut[p, \ k, \ \[Sigma], \ r, \ q, \ t], \ 
+          r]]; \nAppAriAsianPricePutVega[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ 
+        t_]\  = \ 
+      Evaluate[D[
+          AppAriAsianPricePut[p, \ k, \ \[Sigma], \ r, \ q, \ 
+            t], \ \[Sigma]]]; \)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Examples", "Subsubsection",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Various computations have appeared in the literature - it is a good \
+idea to make a few simple checks. We make a comparison of results from the \
+approximate formula with the results given by Eydeland and Geman (1995). We \
+fix the risk-free rate at 0.05, the volatility at 0.5, the strike at 2, and \
+consider stock prices of 1.9, 2 and 2.1 - we obtain the following: \
+\>", 
+  "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(TableForm[
+      Table[{S, \ 
+          AppAriAsianPriceCall[S, \ 2, \ 0.5, \ 0.05, \ 0, \ 1]}, \ {S, \ 
+          1.9, \ 2.1, \ 0.1}]]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    TagBox[GridBox[{
+          {
+            StyleBox["1.9`",
+              StyleBoxAutoDelete->True,
+              PrintPrecision->2], "0.195379314788549311`"},
+          {"2.`", "0.249790736854626382`"},
+          {"2.10000000000000008`", "0.310645676112592417`"}
+          },
+        RowSpacings->1,
+        ColumnSpacings->3,
+        RowAlignments->Baseline,
+        ColumnAlignments->{Left}],
+      (TableForm[ #]&)]], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "Next we fix the price at 2, and consider various values of ",
+  Cell[BoxData[
+      \(TraditionalForm\`r, \ \[Sigma], \ t\)]],
+  ":"
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(TableForm[{{"\<r\>", \ "\<sigma\>", \ "\<t\>", \ 
+          "\<Value\>"}, \n\t\ {0.02, \ 0.1, \ 1, \ 
+          AppAriAsianPriceCall[2, \ 2, \ 0.1, \ 0.02, \ 0, \ 
+            1]}, \n\t{0.18, \ 0.3, \ 1, \ 
+          AppAriAsianPriceCall[2, \ 2, \ 0.3, \ 0.18, \ 0, \ 
+            1]}, \n\t{0.0125, 0.25, \ 2, \ 
+          AppAriAsianPriceCall[2, \ 2, \ 0.25, \ 0.0125, \ 0, \ 
+            2]}, \n\t{0.05, \ 0.5, \ 2, \ 
+          AppAriAsianPriceCall[2, \ 2, \ 0.5, \ 0.05, \ 0, \ 2]}}]\)], "Input",\
+
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    TagBox[GridBox[{
+          {"\<\"r\"\>", "\<\"sigma\"\>", "\<\"t\"\>", "\<\"Value\"\>"},
+          {
+            StyleBox["0.02`",
+              StyleBoxAutoDelete->True,
+              PrintPrecision->1], 
+            StyleBox["0.1`",
+              StyleBoxAutoDelete->True,
+              PrintPrecision->1], "1", "0.056053722581299592`"},
+          {
+            StyleBox["0.179999999999999982`",
+              StyleBoxAutoDelete->True,
+              PrintPrecision->2], 
+            StyleBox["0.3`",
+              StyleBoxAutoDelete->True,
+              PrintPrecision->1], "1", "0.219829184999209337`"},
+          {
+            StyleBox["0.0125`",
+              StyleBoxAutoDelete->True,
+              PrintPrecision->3], 
+            StyleBox["0.25`",
+              StyleBoxAutoDelete->True,
+              PrintPrecision->2], "2", "0.173489720532958413`"},
+          {
+            StyleBox["0.05`",
+              StyleBoxAutoDelete->True,
+              PrintPrecision->1], 
+            StyleBox["0.5`",
+              StyleBoxAutoDelete->True,
+              PrintPrecision->1], "2", "0.359204355242094131`"}
+          },
+        RowSpacings->1,
+        ColumnSpacings->3,
+        RowAlignments->Baseline,
+        ColumnAlignments->{Left}],
+      (TableForm[ #]&)]], "Output"]
+}, Open  ]],
+
+Cell["\<\
+These calculations reveal that the method gives values close to the \
+exact answer, but may be biased upwards or downwards depending on the \
+parameters. Finally here is a table of Delta for the first three simulations \
+again:\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(TableForm[
+      Table[{S, \ 
+          AppAriAsianPriceCallDelta[S, \ 2, \ 0.5, \ 0.05, \ 0, \ 
+            1]}, \ {S, \ 1.9, \ 2.1, \ 0.1}]]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[BoxData[
+    TagBox[GridBox[{
+          {
+            StyleBox["1.9`",
+              StyleBoxAutoDelete->True,
+              PrintPrecision->2], "0.510080458472348396`"},
+          {"2.`", "0.577289796872082661`"},
+          {"2.10000000000000008`", "0.638772149067552597`"}
+          },
+        RowSpacings->1,
+        ColumnSpacings->3,
+        RowAlignments->Baseline,
+        ColumnAlignments->{Left}],
+      (TableForm[ #]&)]], "Output"]
+}, Open  ]],
+
+Cell["\<\
+The at-the-money value computed by Eydeland and Geman (1995) is \
+0.56. So it seems that such methods are actually quite good for giving rough \
+values. If one has a system already geared up to do the Black-Scholes \
+analysis, it is quite tempting to use the simple changes of variables based \
+on the moments. As we shall see in the next section, one can do rather \
+better, while remaining in an essentially analytical framework.\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False,
+  PageBreakWithin->True]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+10.5 Exact Analytical Mathematical Models of Arithmetic Asian Price \
+Options\
+\>", "Section",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell[TextData[{
+  "This section gives a brief summary of the exact solution for the Asian \
+Call given by Geman and Yor (1993) (henceforth abbreviated as GY), as also \
+summarized by Eydeland and Geman (1995). Suppose that the current time is ",
+  Cell[BoxData[
+      \(TraditionalForm\`t\)]],
+  ", and that the option matures at a time ",
+  Cell[BoxData[
+      \(TraditionalForm\`T > t\)]],
+  ". The averaging is arithmetic, continuous, and began at a time ",
+  Cell[BoxData[
+      \(TraditionalForm\`t\_0 \[LessEqual] t\)]],
+  ". Suppose that the known average value of the underlying over the time \
+interval ",
+  Cell[BoxData[
+      \(TraditionalForm\`\([t\_0, \ t]\)\)]],
+  " is ",
+  Cell[BoxData[
+      \(TraditionalForm\`ES\)]],
+  ". GY define the following changes of variables:\n"
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[Tau] = 1\/4\ \[Sigma]\^2\ \((T - t)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[Nu] = \(2\ \((r - q)\)\)\/\[Sigma]\^2 - 1\)], 
+  "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[Alpha] = \(\[Sigma]\^2\ \((K\ \((T - t\_0)\) - \((t \
+- t\_0)\)\ ES)\)\)\/\(4\ S\)\)], "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "They also define a function of a (transform) variable ",
+  Cell[BoxData[
+      \(TraditionalForm\`p\)]],
+  " as"
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[Mu](p) = \@\(\[Nu]\^2 + 2\ p\)\)], "NumberedEquation",\
+
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["The value of the average price option is then given by", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(\[ExponentialE]\^\(\(-r\)\ \((T - t)\)\)\ 4\ S\ \(C(\
+\[Tau], \ \[Nu], \[Alpha])\)\)\/\(\((T - t\_0)\)\ \[Sigma]\^2\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The remaining function ",
+  Cell[BoxData[
+      \(TraditionalForm\`C[\[Nu], \ \[Tau], \ \[Alpha]]\)]],
+  " is not given explicitly, but GY give its Laplace transform, "
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`U(
+        p, \[Nu], \[Alpha]) = \[Integral]\_0\%\[Infinity]\( 
+            C(\[Tau], \ \[Nu], \[Alpha])\)\ \(\[ExponentialE]\^\(\(-p\)\ \
+\[Tau]\)\) \[DifferentialD]\[Tau]\)], "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["as an integral:", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`U(
+        p, \[Nu], \[Alpha]) = \(\[Integral]\_0\%\(1\/\(2\ \[Alpha]\)\)\(x\^\(\
+\(\[Mu] - \[Nu]\)\/2 - 2\)\ \((1 - 2\ \[Alpha]\ x)\)\^\(\(\[Mu] + \[Nu]\)\/2 \
++ 1\)\ \[ExponentialE]\^\(-x\)\) \[DifferentialD]x\)\/\(p\ \((p - 2\ \[Nu] - \
+2)\)\ \(\[CapitalGamma](\(\[Mu] - \[Nu]\)\/2 - 1)\)\)\)], "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Mu]\)]],
+  " is as given above as a function of ",
+  Cell[BoxData[
+      \(TraditionalForm\`p\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Nu]\)]],
+  ". GY develop a series description of the transform and show how it can be \
+inverted. We shall now explore how this can be managed and simplified in ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  "."
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " Implementation of Exact Arithmetic Asian"
+}], "Subsection",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The first part of the translation to software is obvious - we first \
+enter the definitions of the various basic functions.\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\[Tau][T_, \ t_, \ \[Sigma]_]\  := \ \[Sigma]^2\ \((T - t)\)/4; \n\[Nu][
+        r_, \ q_, \ \[Sigma]_]\  := \ 
+      2 \((r - q)\)/\[Sigma]^2\  - \ 1; \n\[Alpha][S_, \ ES_, \ 
+        K_, \ \[Sigma]_, \ T_, \ t_, \ 
+        to_] := \ \[Sigma]^2/\((4*S)\) \((K*\((T - to)\)\  - \ \((t - to)\)*
+              ES)\); \n\[Mu][\[Nu]_, \ p_]\  := \ Sqrt[\[Nu]^2\  + \ 2*p]\)], 
+  "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Now we enter the definition of the integral that is part of the \
+transform, and request immediate evaluation:\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(F[p_, \[Mu]_, \ \[Nu]_, \[Alpha]_] = \[Integral]\_0\%\(1\/\(2\ \[Alpha]\
+\)\)x\^\(\(\[Mu] - \[Nu]\)\/2 - 2\)\ \((1 - 2\ \[Alpha]\ x)\)\^\(\(\[Mu] + \
+\[Nu]\)\/2 + 1\)\ Exp[\(-x\)] \[DifferentialD]x\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(If[\[Alpha] > 0 && Re[\[Mu]\/2 - \[Nu]\/2] > 1 && 
+        Re[\[Mu] + \[Nu]] > \(-4\), \(1\/Gamma[1 + \[Mu]]\((2\^\(1\/2\ \((2 - \
+\[Mu] + \[Nu])\)\)\ \[Alpha]\^\(1\/2\ \((2 - \[Mu] + \[Nu])\)\)\ Gamma[
+            1\/2\ \((\(-2\) + \[Mu] - \[Nu])\)]\ Gamma[
+            1\/2\ \((4 + \[Mu] + \[Nu])\)]\ Hypergeometric1F1[
+            1\/2\ \((\(-2\) + \[Mu] - \[Nu])\), 
+            1 + \[Mu], \(-\(1\/\(2\ \[Alpha]\)\)\)])\)\), \[Integral]\_0\%\(1\
+\/\(2\ \[Alpha]\)\)\(E\^\(-x\)\ x\^\(\(-2\) + \(\[Mu] - \[Nu]\)\/2\)\ \((1 - \
+2\ x\ \[Alpha])\)\^\(1 + \(\[Mu] + \[Nu]\)\/2\)\) \[DifferentialD]x]\)], 
+  "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "We see that ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " can actually evaluate the expression in \"closed form\", albeit in terms \
+of a special function not usually encountered in option pricing. In fact we \
+have received a result dependent on certain conditions - we can extract the \
+answer (which is valid in our case) as follows:"
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(G[p_, \[Mu]_, \ \ \[Nu]_, \ \[Alpha]_]\  = \ \(F[
+          p, \[Mu], \ \[Nu], \[Alpha]]\)[\([2]\)]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(1\/Gamma[1 + \[Mu]]\((2\^\(1\/2\ \((2 - \[Mu] + \[Nu])\)\)\ \
+\[Alpha]\^\(1\/2\ \((2 - \[Mu] + \[Nu])\)\)\ Gamma[
+          1\/2\ \((\(-2\) + \[Mu] - \[Nu])\)]\ Gamma[
+          1\/2\ \((4 + \[Mu] + \[Nu])\)]\ Hypergeometric1F1[
+          1\/2\ \((\(-2\) + \[Mu] - \[Nu])\), 
+          1 + \[Mu], \(-\(1\/\(2\ \[Alpha]\)\)\)])\)\)\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+There are further cancellations when we insert the other terms that \
+make up the transform:\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(U[p_, \[Mu]_, \[Nu]_, \[Alpha]_] = 
+      Simplify[G[p, \[Mu], \ \[Nu], \[Alpha]]\/\(p\ \((p - 2\ \[Nu] - 2)\)\ \
+Gamma[\(\[Mu] - \[Nu]\)\/2 - 1]\)]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  GroupPageBreakWithin->True],
+
+Cell[BoxData[
+    \(\((2\^\(1\/2\ \((2 - \[Mu] + \[Nu])\)\)\ \[Alpha]\^\(1\/2\ \((2 - \[Mu] \
++ \[Nu])\)\)\ Gamma[1\/2\ \((4 + \[Mu] + \[Nu])\)]\ Hypergeometric1F1[
+            1\/2\ \((\(-2\) + \[Mu] - \[Nu])\), 
+            1 + \[Mu], \(-\(1\/\(2\ \[Alpha]\)\)\)])\)/\((p\ \((\(-2\) + p - 
+              2\ \[Nu])\)\ Gamma[1 + \[Mu]])\)\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+In standard mathematical notation, the transform is just (the \
+output style has been converted here)\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm[U[p, \[Mu], \[Nu], \[Alpha]]]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      FractionBox[
+        RowBox[{\(2\^\(1\/2\ \((\(-\[Mu]\) + \[Nu] + 2)\)\)\), 
+          " ", \(\[Alpha]\^\(1\/2\ \((\(-\[Mu]\) + \[Nu] + 2)\)\)\), 
+          " ", \(\[CapitalGamma](1\/2\ \((\[Mu] + \[Nu] + 4)\))\), " ", 
+          TagBox[
+            RowBox[{\(\(\[ThinSpace]\_1\)F\_1\), 
+              RowBox[{"(", 
+                RowBox[{
+                  TagBox[\(1\/2\ \((\[Mu] - \[Nu] - 2)\)\),
+                    (Editable -> True)], ";", 
+                  TagBox[\(\[Mu] + 1\),
+                    (Editable -> True)], ";", 
+                  TagBox[\(-\(1\/\(2\ \[Alpha]\)\)\),
+                    (Editable -> True)]}], ")"}]}],
+            InterpretTemplate[ 
+            Hypergeometric1F1[ #, #2, #3]&]]}], \(p\ \((p - 2\ \[Nu] - 
+              2)\)\ \(\[CapitalGamma](\[Mu] + 1)\)\)], TraditionalForm]], 
+  "NumberedEquation"],
+
+Cell[TextData[{
+  "Aficionados of obscure integrals might like to know that the evaluation of \
+this integral to hypergeometric functions is a \"known fact\" - it is quoted, \
+for example, as result 3.383.1 in Gradshteyn and Rhyzik (1980). We now have \
+the ingredients to build the ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " model of the arithmetic average price Asian Call. In the following the \
+Laplace transform inversion is done by direct numerical integration along the \
+truncated Bromwich contour. The truncation is fixed at a value of ",
+  Cell[BoxData[
+      \(TraditionalForm\`500\)]],
+  " - readers may need to experiment and increase the integration range for \
+peculiar parameter values. The author has not obtained satisfactory results \
+with any of the standard numerical approximate methods for Laplace transform \
+inversion. "
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(Off[NIntegrate::slwcon]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(AriAsianPriceCall[S_, \ ES_, \ K_, \ r_, \ q_, \ \[Sigma]_, \ T_, \ 
+        t_, \ to_] := \n\t
+      Module[{ti = \[Tau][T, \ t, \ \[Sigma]], n = \[Nu][r, \ q, \ \[Sigma]], 
+          a\  = \ \[Alpha][S, ES, K, \[Sigma], T, t, to], \ contour}, \n\t
+        contour\  = \ 2  n + 3; \n\t
+        ac\  = \ Re[\ 
+            1/\((2\ Pi)\)*
+              NIntegrate[\t
+                U[\((contour + I\ p)\), \[Mu][n, \((contour + I\ p)\)], n, a]*
+                  Exp[\((contour + I\ p)\)*ti], {p, \ \(-500\), \ 500}, \ 
+                MaxRecursion\  -> \ 11]]; \n\ 
+        Exp[\(-r\)*\((T\  - \ t)\)]*4*S/\((\((T\  - \ to)\)*\[Sigma]^2)\)*
+          ac]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AriAsianPriceCall[1.9, 0, 2, 0.05, \ 0, \ 0.5, \ 1, 0, 0]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.193173995646942628`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AriAsianPriceCall[2.0, 0, 2, 0.05, \ 0, \ 0.5, \ 1, 0, 0]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.246416753726171045`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AriAsianPriceCall[2.1, 0, 2, 0.05, \ 0, \ 0.5, \ 1, 0, 0]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.306222526946705775`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+For future reference we also record two values when the asset price \
+suggests the option is increasingly well in the money:\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AriAsianPriceCall[3, 0, 2, 0.05, \ 0, \ 0.5, \ 1, 0, 0]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(1.04049801620915172`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AriAsianPriceCall[4, 0, 2, 0.05, \ 0, \ 0.5, \ 1, 0, 0]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(2.00014638108044806`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Poles and the In-the-Money Solution", "Subsubsection",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The transform has some manifest poles in two locations. For the \
+pole at zero, the residue can be identified as\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(PowerExpand[
+      Normal[Series[Sqrt[\[Nu]^2\  + \ 2  p], \ {p, \ 0, \ 2}]]]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(-\(p\^2\/\(2\ \[Nu]\^3\)\)\) + p\/\[Nu] + \[Nu]\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Apart[
+      Residue[U[p, \[Nu], \[Nu], \[Alpha]], \ {p, 0}]\  /. \ 
+        Gamma[2 + \[Nu]] -> \((1 + \[Nu])\)*Gamma[1 + \[Nu]]]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(-\[Alpha]\) - 1\/\(2\ \((1 + \[Nu])\)\)\)], "Output"]
+}, Open  ]],
+
+Cell["At the other pole, the residue is just", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Simplify[
+      Limit[\((p - 2 - 2  \[Nu])\)*U[p, \[Nu] + 2, \[Nu], \[Alpha]], \ 
+        p -> \ 2 + 2  \[Nu]]]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(1\/\(2 + 2\ \[Nu]\)\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+The contribution of the residues is remarkably simple - some \
+algebra just leads to their sum which, when normalized, turns out to be the \
+answer when the Asian is known to be in the money:\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(ITMAsianPriceCall[S_, \ ES_, \ K_, \ r_, \ q_, \ \[Sigma]_, \ T_, \ 
+        t_, \ to_] := \n\t
+      Exp[\(-r\)*\((T - t)\)]*\((ES*\((t - to)\)/\((T - to)\) + 
+            S*\((\((Exp[\((r - q)\)*\((T - t)\)] - 
+                      1)\)/\((\((r - q)\)*\((T - to)\))\))\) - K)\)\)], 
+  "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+We display this in Traditional Form to make the structure \
+clear:\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[ExponentialE]\^\(\(-r\)\ \((T - t)\)\)\ \((\(\((\
+\[ExponentialE]\^\(\((r - q)\)\ \((T - t)\)\) - 1)\)\ S\)\/\(\((r - q)\)\ \
+\((T - to)\)\) + \(ES\ \((t - to)\)\)\/\(T - to\) - K)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Let's take a look at the two values computed previously, when the \
+asset price was rather larger than the strike, using the \"in-the-money\" \
+formula based on the sum of the residues at the two manifest poles:\
+\>", 
+  "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(ITMAsianPriceCall[3, \ 0, \ 2, \ 0.05, \ 0, \ 0.5, \ 1, \ 0, \ 0]\)], 
+  "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(1.0237756809557359`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(ITMAsianPriceCall[4, \ 0, \ 2, \ 0.05, \ 0, \ 0.5, \ 1, \ 0, \ 0]\)], 
+  "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(1.99918719094145718`\)], "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The Delta of the Arithmetic Asian", "Subsection",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "An advantage of the transform method is that the transform is given \
+analytically. In principle, the hedge parameters can be computed by symbolic \
+differentiation. GY point out that this can be done, in principle, for Delta. \
+We can use ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " to make this all very explicit, using the closed-form expressions for the \
+transform that we have derived. The stock price appears in two places, \
+explicitly, then implicitly through the variable \[Alpha]. The first thing we \
+need to work out is"
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(V[p_, \ \[Mu]_, \ \[Nu]_, \ \[Alpha]_]\  = \ 
+      Simplify[D[U[p, \[Mu], \[Nu], \[Alpha]], \ \[Alpha]]]; \)\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm[V[p, \ \[Mu], \ \[Nu], \ \[Alpha]]]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{"(", 
+          
+          RowBox[{\(2\^\(1\/2\ \((\(-\[Mu]\) + \[Nu] - 2)\)\)\), 
+            " ", \(\[Alpha]\^\(1\/2\ \((\(-\[Mu]\) + \[Nu] - 2)\)\)\), 
+            " ", \((\[Mu] - \[Nu] - 2)\), 
+            " ", \(\[CapitalGamma](1\/2\ \((\[Mu] + \[Nu] + 4)\))\), " ", 
+            RowBox[{"(", 
+              RowBox[{
+                RowBox[{"2", " ", "\[Alpha]", " ", \((\[Mu] + 1)\), " ", 
+                  TagBox[
+                    RowBox[{\(\(\[ThinSpace]\_1\)F\_1\), 
+                      RowBox[{"(", 
+                        RowBox[{
+                          TagBox[\(1\/2\ \((\[Mu] - \[Nu] - 2)\)\),
+                            (Editable -> True)], ";", 
+                          TagBox[\(\[Mu] + 1\),
+                            (Editable -> True)], ";", 
+                          TagBox[\(-\(1\/\(2\ \[Alpha]\)\)\),
+                            (Editable -> True)]}], ")"}]}],
+                    InterpretTemplate[ Hypergeometric1F1[ #, #2, #3]&]]}], 
+                "-", 
+                TagBox[
+                  RowBox[{\(\(\[ThinSpace]\_1\)F\_1\), 
+                    RowBox[{"(", 
+                      RowBox[{
+                        TagBox[\(\(\[Mu] - \[Nu]\)\/2\),
+                          (Editable -> True)], ";", 
+                        TagBox[\(\[Mu] + 2\),
+                          (Editable -> True)], ";", 
+                        TagBox[\(-\(1\/\(2\ \[Alpha]\)\)\),
+                          (Editable -> True)]}], ")"}]}],
+                  InterpretTemplate[ Hypergeometric1F1[ #, #2, #3]&]]}], 
+              ")"}]}], ")"}], 
+        "/", \((p\ \((\[Mu] + 1)\)\ \((\(-p\) + 2\ \[Nu] + 
+                2)\)\ \(\[CapitalGamma](\[Mu] + 1)\))\)}], TraditionalForm]], 
+  "NumberedEquation"],
+
+Cell[TextData[{
+  "So we need to invert this transform, suitably normalize it, and add the \
+term arising from the explicit appearance of ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  ". Since ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " appears linearly in the numerator, this term is just the price of the \
+Call divided by ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  ". It is therefore most efficient if we just work out the contribution of \
+the term in ",
+  Cell[BoxData[
+      \(TraditionalForm\`V\)]],
+  ", and add it to the call price divided by ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  ". The inverse Laplace transform of ",
+  Cell[BoxData[
+      \(TraditionalForm\`V\)]],
+  " has to be multiplied by"
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Simplify[
+      Exp[\(-r\)*\((T\  - \ t)\)]*4*S/\((\((T\  - \ to)\)*\[Sigma]^2)\)*
+        D[\ \[Alpha][S, ES, K, \[Sigma], T, t, to], S]]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  GroupPageBreakWithin->True],
+
+Cell[BoxData[
+    \(\(E\^\(r\ \((t - T)\)\)\ \((ES\ \((t - to)\) + K\ \((\(-T\) + \
+to)\))\)\)\/\(S\ \((T - to)\)\)\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+So the new contour integral in Delta is given by (again, \
+experimentation with the truncation may be useful)\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(AAPCDeltaCorr[S_, \ ES_, \ K_, \ r_, \ q_, \ \[Sigma]_, \ T_, \ t_, \ 
+        to_] := \n\t
+      Module[{ti = \[Tau][T, \ t, \ \[Sigma]], n = \[Nu][r, \ q, \ \[Sigma]], 
+          a\  = \ \[Alpha][S, ES, K, \[Sigma], T, t, to], \ contour}, \n\t
+        contour\  = \ 2  n + 3; \n\t
+        bc\  = \ Re[\ 
+            1/\((2\ Pi)\)*
+              NIntegrate[
+                V[\((contour + I\ p)\), \[Mu][n, \((contour + I\ p)\)], n, a]*
+                  Exp[\((contour + I\ p)\)*ti], {p, \ \(-500\), \ 500}, \ 
+                MaxRecursion\  -> \ 
+                  11]]; \n\((E^\((r*\((t\  - \ T)\))\)*\((ES*\((t\  - \ 
+                          to)\)\  + \ 
+                    K*\((\(-T\)\  + \ to)\))\))\)/\n\ \ \((S*\((T\  - \ 
+                    to)\))\)*bc]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Eydeland and Geman give a sample calculation of Delta in their article in \
+",
+  StyleBox["RISK Magazine",
+    FontSlant->"Italic"],
+  " (1995), for the parameters"
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(S\  = \ 2; \ ES\  = \ 0; \ K\  = \ 2; \ r\  = \ 0.05; \ 
+    q\  = \ 0; \ \[Sigma]\  = \ 0.5; \ t = 0; \ to = 0; \ T = 1; \)], "Input",\
+
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["We remind you of the call value:", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(value\  = \ 
+      AriAsianPriceCall[2.0, 0, 2, 0.05, \ 0, \ 0.5, \ 1, 0, 0]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.246416753726171045`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AAPCDeltaCorr[S, \ ES, \ K, \ r, \ q, \ \[Sigma], \ T, \ t, \ to]\)], 
+  "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.442851307589629161`\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "The value of Delta is this plus the Call value divided by ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  ", i.e.,"
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(% + value/S\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.566059684452714684`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+The value quoted in the article is 0.56, so we have good agreement.\
+\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Remarks", "Subsection",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This type of analytical result can be made the basis of a great deal of \
+further study. It has been used by Fu ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " (1997) to analyse in detail the efficiency of Monte Carlo simulation. One \
+can also investigate the holomorphic and branching structure of the Laplace \
+transforms, with a view to improving the inversion algorithm, and to \
+investigate the utility of various approximate techniques for transform \
+inversion. One such approximate method was used by Fu ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " (1997). Others are investigated by this author in the text ",
+  StyleBox["Complex Mathematica",
+    FontSlant->"Italic"],
+  " (Shaw, 1998)."
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+10.6 Discrete Averaging and Delayed Averaging Start for  
+Geometric Asian Price Options\
+\>", "Section",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "\nMatters become more complicated when the sampling of the average is \
+discrete. The author is unaware of any analytical characterization of the \
+problem when the averaging is arithmetic. For geometric Asian options where \
+the sampling is discrete, and sampling begins some time after initiation of \
+the option, a similar procedure can be followed as for the case of continuous \
+sampling. The effective volatility, using arguments given by  Levy (1996), is \
+given by the following formula, where ",
+  Cell[BoxData[
+      \(TraditionalForm\`t = 0\)]],
+  " is the initiation time, and averaging is performed at ",
+  Cell[BoxData[
+      \(TraditionalForm\`N\)]],
+  " equal time intervals beginning at ",
+  Cell[BoxData[
+      \(TraditionalForm\`t = ts\)]],
+  " and ending at the maturity date ",
+  Cell[BoxData[
+      \(TraditionalForm\`t = T\)]],
+  ". We go straight to the ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " implementation, as the pattern for this is now clear:"
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+Clear[r, q, \[Sigma], ts, t, T];
+VolEffD[\[Sigma]_, ts_, T_, N_] := \[Sigma]*Sqrt[(1-ts/T)*(1/3-1/(6*N)) + \
+ts/T]\
+\>", "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+TraditionalForm[VolEffD[\[Sigma], ts, T, N]]\
+\>", "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(\[Sigma] \@\( ts\/T + \((1\/3 - 1\/\(6\ N\))\)\ \((1 \
+- ts\/T)\)\)\ \)\)], "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Some useful checks on this result are given by considering, first, \
+continuous averaging beginning at initiation:\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(VolEffD[\[Sigma], 0, T, Infinity]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\[Sigma]\/\@3\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Next, suppose that there is only one averaging point, at \
+maturity:\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(VolEffD[\[Sigma], T, T, 1]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\[Sigma]\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+If we average geometrically over two points, at initiation, where \
+the stock price is known, and at maturity, we are writing an option involving \
+just the square root of the stock price, with effective volatility\
+\>", 
+  "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(VolEffD[\[Sigma], 0, T, 2]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\[Sigma]\/2\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "This can be seen to be correct by considering the stochastic process \
+followed by ",
+  Cell[BoxData[
+      \(TraditionalForm\`\@S\)]],
+  ". For the effective yield, some algebra with Levy's analysis leads to the \
+following result:"
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+QEffD[r_, q_, \[Sigma]_, ts_, T_, N_] := \
+1/2*(\[Sigma]^2/6*(1-ts/T)*(1+1/N) + q*(1+ts/T) + r*(1-ts/T))\
+\>", "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm[QEffD[r, \ q, \ \[Sigma], \ ts, \ T, \ N]]\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`1\/2\ \((1\/6\ \((1 + 1\/N)\)\ \((1 - 
+                ts\/T)\)\ \[Sigma]\^2 + r\ \((1 - ts\/T)\) + 
+          q\ \((ts\/T + 1)\))\)\)], "NumberedEquation",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+This formula also correctly interpolates between the continuous \
+sampling result and one sampling at maturity:\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \({QEffD[r, q, \[Sigma], 0, T, Infinity], \ 
+      QEffD[r, q, \[Sigma], T, T, 1]}\)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({1\/2\ \((q + r + \[Sigma]\^2\/6)\), q}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Now we define the valuation and Greek functions in the usual way, \
+using symbolic differentiation. First we give the valuations:\
+\>", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+DiscreteGeoAsianPriceCall[p_, k_, \[Sigma]_, r_, q_, ts_, T_, N_] \
+:= 
+BlackScholesCall[p,k,VolEffD[\[Sigma], ts, T, N],r,QEffD[r, q, \[Sigma], ts, \
+T, N],T];
+DiscreteGeoAsianPricePut[p_, k_, \[Sigma]_, r_, q_, ts_, T_, N_] := 
+BlackScholesPut[p,k,VolEffD[\[Sigma], ts, T, N],r,QEffD[r, q, \[Sigma], ts, \
+T, N],t];\
+\>", "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["Next we write down the Greeks for the Call and the Put:", "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(DiscreteGeoAsianPriceCallDelta[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ 
+        ts_, \ T_, \ N_]\  = \ 
+      Evaluate[D[
+          DiscreteGeoAsianPriceCall[p, \ k, \ \[Sigma], \ r, \ q, \ ts, \ 
+            T, \ N], \ p]]; \n
+    DiscreteGeoAsianPriceCallGamma[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ 
+        ts_, \ T_, \ N_]\  = \ 
+      Evaluate[D[
+          DiscreteGeoAsianPriceCall[p, \ k, \ \[Sigma], \ r, \ q, \ \ ts, \ 
+            T, \ N], \ {p, 2}]]; \n
+    DiscreteGeoAsianPriceCallTheta[p_, \ k_, \ \[Sigma]_, \ r_, \ 
+        q_, \ \ ts_, \ T_, \ 
+        N_]\  = \ \(-Evaluate[
+          D[DiscreteGeoAsianPriceCall[p, \ k, \ \[Sigma], \ r, \ q, \ ts, \ 
+              T, \ N], \ t]]\); \n
+    DiscreteGeoAsianPriceCallRho[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ ts_, \ 
+        T_, \ N_]\  = \ 
+      Evaluate[D[
+          DiscreteGeoAsianPriceCall[p, \ k, \ \[Sigma], \ r, \ q, \ ts, \ 
+            T, \ N], \ r]]; \n
+    DiscreteGeoAsianPriceCallVega[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ ts_, \ 
+        T_, \ N_]\  = \ 
+      Evaluate[D[
+          DiscreteGeoAsianPriceCall[p, \ k, \ \[Sigma], \ r, \ q, \ \ ts, \ 
+            T, \ N], \ \[Sigma]]]; \
+\[IndentingNewLine]DiscreteGeoAsianPricePutDelta[p_, \ k_, \ \[Sigma]_, \ 
+        r_, \ q_, \ ts_, \ T_, \ N_]\  = \ 
+      Evaluate[D[
+          DiscreteGeoAsianPricePut[p, \ k, \ \[Sigma], \ r, \ q, \ ts, \ T, \ 
+            N], \ p]]; \n
+    DiscreteGeoAsianPricePutGamma[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ ts_, \ 
+        T_, \ N_]\  = \ 
+      Evaluate[D[
+          DiscreteGeoAsianPricePut[p, \ k, \ \[Sigma], \ r, \ q, \ \ ts, \ 
+            T, \ N], \ {p, 2}]]; \n
+    DiscreteGeoAsianPricePutTheta[p_, \ k_, \ \[Sigma]_, \ r_, \ 
+        q_, \ \ ts_, \ T_, \ 
+        N_]\  = \ \(-Evaluate[
+          D[DiscreteGeoAsianPricePut[p, \ k, \ \[Sigma], \ r, \ q, \ ts, \ 
+              T, \ N], \ t]]\); \n
+    DiscreteGeoAsianPricePutRho[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ ts_, \ 
+        T_, \ N_]\  = \ 
+      Evaluate[D[
+          DiscreteGeoAsianPricePut[p, \ k, \ \[Sigma], \ r, \ q, \ ts, \ T, \ 
+            N], \ r]]; \n
+    DiscreteGeoAsianPricePutVega[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ ts_, \ 
+        T_, \ N_]\  = \ 
+      Evaluate[D[
+          DiscreteGeoAsianPricePut[p, \ k, \ \[Sigma], \ r, \ q, \ \ ts, \ 
+            T, \ N], \ \[Sigma]]]; \)], "Input",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}},
+  PageBreakWithin->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Chapter 10 Bibliography", "Section",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Eydeland, A. and Geman, H., 1995, Asian options revisited: inverting the \
+Laplace transform, ",
+  StyleBox["RISK Magazine",
+    FontSlant->"Italic"],
+  ", March.\n\nFu, M.C., Madan, D.B. and Wang, T., 1997, Pricing Asian \
+options: a comparison of analytical and Monte Carlo methods, University of \
+Maryland College of Business and Management preprint, March.\n\nGeman, H. and \
+Yor, M., 1993, Bessel processes, Asian options, and perpetuities, ",
+  StyleBox["Mathematical Finance",
+    FontSlant->"Italic"],
+  ", 3, p. 349.\n\nGradshteyn, I.S. and Rhyzik, I.M., 1980, ",
+  StyleBox["Tables of Integrals, Series and Products",
+    FontSlant->"Italic"],
+  ", Corrected and Enlarged Edition, Translated by A. Jeffrey, Academic \
+Press.\n\nHull, J.C., 1996,",
+  StyleBox[" Options, Futures, and other Derivatives",
+    FontSlant->"Italic"],
+  ", 3rd edition, Prentice-Hall.\n\nKemna, A. and Vorst, A., 1990, A pricing \
+method for options based on average asset values, ",
+  StyleBox["Journal of Banking and Finance",
+    FontSlant->"Italic"],
+  ", 14, p. 113.\n\nLevy, E., 1996, Exotic options I, in the ",
+  StyleBox["Handbook of Risk Management and Analysis",
+    FontSlant->"Italic"],
+  ", ed. C. Alexander, J. Wiley and Sons.\n\nLevy, E. and Turnbull, S., 1992, \
+Average intelligence, ",
+  StyleBox["RISK Magazine",
+    FontSlant->"Italic"],
+  " 5, p. 53.\n\nShaw, W.T., 1998, ",
+  StyleBox["Complex Mathematica",
+    FontSlant->"Italic"],
+  ", Addison-Wesley, in preparation.\n\nTurnbull, S.M. and Wakeman, L.M., \
+1991, A quick algorithm for pricing European average options, ",
+  StyleBox["Journal of Financial and Quantitative Analysis",
+    FontSlant->"Italic"],
+  ", 26, p. 377.\n\nWilmott, P., Dewynne, J. and Howison, S., 1993, ",
+  StyleBox["Option Pricing - Mathematical Models and Computation",
+    FontSlant->"Italic"],
+  ", Oxford Financial Press."
+}], "Text",
+  CellMargins->{{6.1875, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]]
+},
+FrontEndVersion->"Macintosh 3.0",
+ScreenRectangle->{{0, 1152}, {0, 850}},
+AutoGeneratedPackage->None,
+WindowToolbars->{},
+CellGrouping->Automatic,
+WindowSize->{586, 649},
+WindowMargins->{{34, Automatic}, {Automatic, 1}},
+PrintingCopies->1,
+PrintingStartingPageNumber->200,
+PrintingPageRange->{1, Automatic},
+PageHeaders->{{Inherited, Inherited, Cell[ 
+        TextData[ {"10. Asian Options"}]]}, {Cell[ 
+        TextData[ {"10. Asian Options"}]], Inherited, Inherited}},
+PageFooters->{{Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}, {Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}},
+PrintingOptions->{"PrintingMargins"->{{0, 0}, {57, 57}},
+"PaperSize"->{439, 716},
+"PrintCellBrackets"->False,
+"PrintRegistrationMarks"->False,
+"PrintMultipleHorizontalPages"->False,
+"FirstPageHeader"->False,
+"FacingPages"->True},
+PrivateNotebookOptions->{"ColorPalette"->{RGBColor, 128}},
+ShowCellLabel->False,
+ShowCellTags->False,
+RenderingOptions->{"ObjectDithering"->True,
+"RasterDithering"->False},
+Magnification->1,
+StyleDefinitions -> "Default.nb",
+MacintoshSystemPageSetup->"\<\
+00<0004/0B`000003;T8`?n3ohP==PTh0b85N`?P0080004/0B`000006G<AP001
+0000I00000400@4100800BL?00400A9j^S0000000000070X01T1T00000000000
+00000000007oo`00003oo`000mP:kP00\>"
+]
+
+
+(***********************************************************************
+Cached data follows.  If you edit this Notebook file directly, not using
+Mathematica, you must remove the line containing CacheID at the top of 
+the file.  The cache data will then be recreated when you save this file 
+from within Mathematica.
+***********************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1731, 51, 237, 8, 174, "Title"],
+Cell[1971, 61, 168, 4, 64, "Subsubtitle"],
+
+Cell[CellGroupData[{
+Cell[2164, 69, 146, 3, 50, "Section"],
+Cell[2313, 74, 1811, 30, 288, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4161, 109, 114, 1, 50, "Section"],
+Cell[4278, 112, 531, 9, 78, "Text"],
+Cell[4812, 123, 134, 2, 21, "NumberedEquation"],
+Cell[4949, 127, 305, 10, 29, "Text"],
+Cell[5257, 139, 174, 3, 21, "NumberedEquation"],
+
+Cell[CellGroupData[{
+Cell[5456, 146, 153, 3, 40, "Subsubsection"],
+Cell[5612, 151, 144, 3, 21, "Text"],
+Cell[5759, 156, 152, 2, 21, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5948, 163, 152, 3, 30, "Subsubsection"],
+Cell[6103, 168, 144, 3, 21, "Text"],
+Cell[6250, 173, 148, 2, 21, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6435, 180, 154, 3, 30, "Subsubsection"],
+Cell[6592, 185, 144, 3, 21, "Text"],
+Cell[6739, 190, 148, 2, 21, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6924, 197, 153, 3, 30, "Subsubsection"],
+Cell[7080, 202, 144, 3, 21, "Text"],
+Cell[7227, 207, 150, 2, 21, "NumberedEquation"],
+Cell[7380, 211, 268, 5, 36, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[7697, 222, 159, 4, 64, "Section"],
+Cell[7859, 228, 950, 17, 120, "Text"],
+Cell[8812, 247, 157, 3, 41, "NumberedEquation"],
+Cell[8972, 252, 187, 3, 42, "NumberedEquation"],
+
+Cell[CellGroupData[{
+Cell[9184, 259, 215, 6, 34, "Subsection",
+  PageBreakAbove->Automatic],
+Cell[9402, 267, 213, 5, 21, "Text",
+  PageBreakAbove->Automatic],
+Cell[9618, 274, 158, 3, 40, "Input",
+  PageBreakAbove->Automatic],
+Cell[9779, 279, 188, 4, 40, "Input",
+  PageBreakAbove->Automatic],
+Cell[9970, 285, 180, 5, 21, "Text",
+  PageBreakAbove->Automatic],
+Cell[10153, 292, 162, 3, 20, "Input",
+  PageBreakAbove->Automatic],
+Cell[10318, 297, 244, 5, 36, "Text",
+  PageBreakAbove->Automatic],
+Cell[10565, 304, 400, 9, 32, "Input",
+  PageBreakAbove->Automatic,
+  InitializationCell->True],
+Cell[10968, 315, 162, 2, 21, "Text",
+  PageBreakAbove->Automatic],
+Cell[11133, 319, 1872, 34, 201, "Input",
+  PageBreakAbove->Automatic],
+Cell[13008, 355, 329, 6, 49, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[13386, 367, 172, 4, 64, "Section"],
+Cell[13561, 373, 1485, 28, 180, "Text"],
+Cell[15049, 403, 243, 5, 45, "NumberedEquation"],
+Cell[15295, 410, 470, 8, 53, "NumberedEquation"],
+Cell[15768, 420, 133, 1, 21, "Text"],
+Cell[15904, 423, 301, 6, 81, "NumberedEquation"],
+
+Cell[CellGroupData[{
+Cell[16230, 433, 199, 5, 34, "Subsection"],
+Cell[16432, 440, 190, 4, 21, "Text"],
+Cell[16625, 446, 205, 5, 36, "Input"],
+Cell[16833, 453, 419, 7, 52, "Input"],
+Cell[17255, 462, 290, 6, 76, "Input"],
+Cell[17548, 470, 156, 4, 21, "Text"],
+Cell[17707, 476, 379, 8, 56, "Input",
+  InitializationCell->True],
+Cell[18089, 486, 121, 1, 21, "Text"],
+Cell[18213, 489, 1024, 19, 136, "Input"],
+Cell[19240, 510, 117, 1, 21, "Text"],
+Cell[19360, 513, 1005, 18, 136, "Input"],
+
+Cell[CellGroupData[{
+Cell[20390, 535, 95, 1, 30, "Subsubsection"],
+Cell[20488, 538, 459, 8, 64, "Text"],
+
+Cell[CellGroupData[{
+Cell[20972, 550, 230, 5, 20, "Input"],
+Cell[21205, 557, 447, 13, 46, "Output"]
+}, Open  ]],
+Cell[21667, 573, 225, 6, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[21917, 583, 584, 11, 72, "Input"],
+Cell[22504, 596, 1296, 36, 74, "Output"]
+}, Open  ]],
+Cell[23815, 635, 338, 7, 36, "Text",
+  PageBreakAbove->False],
+
+Cell[CellGroupData[{
+Cell[24178, 646, 262, 6, 20, "Input",
+  PageBreakAbove->False],
+Cell[24443, 654, 447, 13, 46, "Output"]
+}, Open  ]],
+Cell[24905, 670, 567, 10, 64, "Text",
+  PageBreakAbove->False,
+  PageBreakWithin->True]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[25533, 687, 195, 5, 64, "Section",
+  PageBreakAbove->Automatic],
+Cell[25731, 694, 863, 21, 92, "Text"],
+Cell[26597, 717, 165, 3, 40, "NumberedEquation"],
+Cell[26765, 722, 169, 3, 38, "NumberedEquation"],
+Cell[26937, 727, 207, 3, 42, "NumberedEquation"],
+Cell[27147, 732, 205, 6, 21, "Text"],
+Cell[27355, 740, 157, 3, 29, "NumberedEquation"],
+Cell[27515, 745, 132, 1, 21, "Text"],
+Cell[27650, 748, 245, 4, 44, "NumberedEquation"],
+Cell[27898, 754, 261, 6, 21, "Text"],
+Cell[28162, 762, 295, 5, 38, "NumberedEquation"],
+Cell[28460, 769, 93, 1, 21, "Text"],
+Cell[28556, 772, 416, 6, 69, "NumberedEquation"],
+Cell[28975, 780, 519, 16, 36, "Text"],
+
+Cell[CellGroupData[{
+Cell[29519, 800, 193, 5, 34, "Subsection"],
+Cell[29715, 807, 209, 4, 21, "Text"],
+Cell[29927, 813, 465, 8, 58, "Input"],
+Cell[30395, 823, 196, 4, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[30616, 831, 292, 4, 36, "Input"],
+Cell[30911, 837, 634, 10, 137, "Output"]
+}, Open  ]],
+Cell[31560, 850, 443, 9, 50, "Text"],
+
+Cell[CellGroupData[{
+Cell[32028, 863, 194, 3, 20, "Input"],
+Cell[32225, 868, 366, 6, 72, "Output"]
+}, Open  ]],
+Cell[32606, 877, 178, 4, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[32809, 885, 273, 5, 44, "Input"],
+Cell[33085, 892, 352, 5, 70, "Output"]
+}, Open  ]],
+Cell[33452, 900, 187, 4, 21, "Text"],
+Cell[33642, 906, 140, 2, 20, "Input"],
+Cell[33785, 910, 874, 19, 54, "NumberedEquation"],
+Cell[34662, 931, 935, 17, 106, "Text"],
+Cell[35600, 950, 118, 2, 20, "Input"],
+Cell[35721, 954, 749, 14, 97, "Input"],
+
+Cell[CellGroupData[{
+Cell[36495, 972, 152, 2, 20, "Input"],
+Cell[36650, 976, 55, 1, 20, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[36742, 982, 152, 2, 20, "Input"],
+Cell[36897, 986, 55, 1, 20, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[36989, 992, 152, 2, 20, "Input"],
+Cell[37144, 996, 55, 1, 20, "Output"]
+}, Open  ]],
+Cell[37214, 1000, 210, 4, 36, "Text"],
+
+Cell[CellGroupData[{
+Cell[37449, 1008, 150, 2, 20, "Input"],
+Cell[37602, 1012, 54, 1, 20, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[37693, 1018, 150, 2, 20, "Input"],
+Cell[37846, 1022, 54, 1, 20, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[37937, 1028, 122, 1, 30, "Subsubsection"],
+Cell[38062, 1031, 198, 4, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[38285, 1039, 172, 3, 20, "Input"],
+Cell[38460, 1044, 83, 1, 38, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[38580, 1050, 225, 4, 20, "Input"],
+Cell[38808, 1056, 75, 1, 37, "Output"]
+}, Open  ]],
+Cell[38898, 1060, 116, 1, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[39039, 1065, 206, 4, 20, "Input"],
+Cell[39248, 1071, 53, 1, 36, "Output"]
+}, Open  ]],
+Cell[39316, 1075, 277, 5, 36, "Text"],
+Cell[39596, 1082, 378, 7, 32, "Input"],
+Cell[39977, 1091, 152, 4, 21, "Text"],
+Cell[40132, 1097, 310, 5, 45, "NumberedEquation"],
+Cell[40445, 1104, 300, 6, 36, "Text"],
+
+Cell[CellGroupData[{
+Cell[40770, 1114, 163, 3, 20, "Input"],
+Cell[40936, 1119, 53, 1, 20, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[41026, 1125, 163, 3, 20, "Input"],
+Cell[41192, 1130, 54, 1, 20, "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[41307, 1138, 117, 1, 34, "Subsection"],
+Cell[41427, 1141, 641, 12, 80, "Text"],
+Cell[42071, 1155, 206, 3, 20, "Input"],
+Cell[42280, 1160, 146, 2, 20, "Input"],
+Cell[42429, 1164, 1790, 38, 96, "NumberedEquation"],
+Cell[44222, 1204, 822, 24, 64, "Text"],
+
+Cell[CellGroupData[{
+Cell[45069, 1232, 263, 5, 20, "Input"],
+Cell[45335, 1239, 129, 2, 40, "Output"]
+}, Open  ]],
+Cell[45479, 1244, 195, 4, 21, "Text"],
+Cell[45677, 1250, 862, 16, 110, "Input"],
+Cell[46542, 1268, 257, 7, 22, "Text"],
+Cell[46802, 1277, 219, 4, 20, "Input"],
+Cell[47024, 1283, 110, 1, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[47159, 1288, 171, 3, 20, "Input"],
+Cell[47333, 1293, 55, 1, 20, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[47425, 1299, 163, 3, 20, "Input"],
+Cell[47591, 1304, 55, 1, 20, "Output"]
+}, Open  ]],
+Cell[47661, 1308, 213, 6, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[47899, 1318, 106, 2, 20, "Input"],
+Cell[48008, 1322, 55, 1, 20, "Output"]
+}, Open  ]],
+Cell[48078, 1326, 155, 4, 21, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[48270, 1335, 91, 1, 34, "Subsection"],
+Cell[48364, 1338, 804, 17, 80, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[49217, 1361, 176, 4, 64, "Section"],
+Cell[49396, 1367, 1132, 26, 106, "Text"],
+Cell[50531, 1395, 201, 5, 32, "Input"],
+Cell[50735, 1402, 131, 3, 20, "Input"],
+Cell[50869, 1407, 196, 3, 44, "NumberedEquation"],
+Cell[51068, 1412, 200, 4, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[51293, 1420, 128, 2, 20, "Input"],
+Cell[51424, 1424, 47, 1, 41, "Output"]
+}, Open  ]],
+Cell[51486, 1428, 154, 4, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[51665, 1436, 121, 2, 20, "Input"],
+Cell[51789, 1440, 42, 1, 20, "Output"]
+}, Open  ]],
+Cell[51846, 1444, 303, 6, 36, "Text"],
+
+Cell[CellGroupData[{
+Cell[52174, 1454, 121, 2, 20, "Input"],
+Cell[52298, 1458, 45, 1, 33, "Output"]
+}, Open  ]],
+Cell[52358, 1462, 326, 8, 40, "Text"],
+Cell[52687, 1472, 191, 4, 20, "Input"],
+Cell[52881, 1478, 153, 2, 20, "Input"],
+Cell[53037, 1482, 255, 4, 40, "NumberedEquation"],
+Cell[53295, 1488, 197, 4, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[53517, 1496, 175, 3, 20, "Input"],
+Cell[53695, 1501, 73, 1, 42, "Output"]
+}, Open  ]],
+Cell[53783, 1505, 215, 4, 36, "Text"],
+Cell[54001, 1511, 458, 11, 56, "Input",
+  InitializationCell->True],
+Cell[54462, 1524, 133, 1, 21, "Text"],
+Cell[54598, 1527, 2455, 52, 266, "Input",
+  PageBreakWithin->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[57090, 1584, 104, 1, 44, "Section"],
+Cell[57197, 1587, 1959, 41, 397, "Text"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+
+(***********************************************************************
+End of Mathematica Notebook file.
+***********************************************************************)
+

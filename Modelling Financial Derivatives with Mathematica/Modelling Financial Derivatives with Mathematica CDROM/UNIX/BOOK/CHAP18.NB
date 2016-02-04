@@ -1,0 +1,3035 @@
+(***********************************************************************
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used on any computer system with Mathematica 3.0,
+MathReader 3.0, or any compatible application. The data for the notebook 
+starts with the line of stars above.
+
+To get the notebook into a Mathematica-compatible application, do one of 
+the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing the 
+word CacheID, otherwise Mathematica-compatible applications may try to 
+use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+***********************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     87403,       2536]*)
+(*NotebookOutlinePosition[     89258,       2592]*)
+(*  CellTagsIndexPosition[     89214,       2588]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["\<\
+Chapter 18. 
+Traditional and Supersymmetric Trees \
+\>", "Title",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  TextAlignment->Left,
+  TextJustification->0,
+  AspectRatioFixed->True],
+
+Cell[TextData[StyleBox[
+"A Re-specification of Trees by Symmetry Methods, \nand Lifting the Curse of \
+\"Negative Probability\"",
+  FontSlant->"Italic"]], "Subsubtitle",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["18.1 Introduction", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The discussion of trees is an awkward topic within a text employing ",
+  StyleBox["Mathematica,",
+    FontSlant->"Italic"],
+  " and taking a largely continuum-PDE-oriented approach. For a large class \
+of derivatives that are specifiable by a partial differential equation, there \
+are usually more efficient implicit finite-difference methods that can be \
+used. On the other hand, tree systems may sometimes be a good way of defining \
+a new model, for which a continuum PDE model may or may not emerge. Secondly, \
+it is very easy and elegant to write down brief and concise code to model \
+trees within ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  ", but these particular models are rather inefficient in execution. One can \
+define uglier code that executes rather more quickly, and we shall do so in \
+Chapter 20.\n\nThere are two standard families of models of (binomial) trees \
+in common use. The first family is based on the original Cox, Ross and \
+Rubenstein model (Cox, Ross and Rubenstein, 1979), involving a binomial model \
+with certain up and down states and probabilities associated with them. A \
+variant family developed by Jarrow and Rudd (1983) is also in common use. We \
+shall refer to these families as the CRR and JR families respectively, using \
+obvious abbreviations. One can construct trinomial variants of either of \
+these families. I use the term \"family\" rather than \"model\" as each \
+family contains at least two models, though that is perhaps not quite how \
+their originators might see it! The two basic variants are, in each case, \
+obtained by considering an exact and an approximate solution of the \
+constraints laid down for each family. Both the CRR and JR \"approximate\" \
+binomial models are described by Hull (1996), who in a footnote makes \
+reference also to an \"exact\" form of CRR. The exact forms of both families \
+are those described by Wilmott ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " (1995). A significant difference between the two models is that the \
+\"up\" and \"down\" \"probabilities\" in the CRR model can become negative if \
+the time-step is large enough, whereas the JR probabilities are always 0.5. \
+The abscissas of the exact JR model can also become negative. The CRR model \
+is, if anything, used more frequently, but neither family is entirely \
+satisfactory - Wilmott ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " (1995) note that either method can fail if the time-steps are such that \
+the weights or abscissas become negative. A notable exception is the \
+\"approximate\" Jarrow-Rudd model - we shall see how this model emerges as \
+the ",
+  StyleBox["exact",
+    FontSlant->"Italic"],
+  " solution of a new set of constraints based on symmetry considerations, \
+along with other new models with non-negative weights and abscissas. \n\nOur \
+discussion of trees is also complicated by the desire of the author to \
+attempt to develop a more systematic approach to tree models. I hope by now \
+that the reader will have learnt to forgive the author for criticizing almost \
+every numerical method known (gripes about Monte Carlo forthcoming), but the \
+literature on trees appears dominated by a certain probabilistic approach. It \
+turns out to be neither necessary nor consistent to have a probabilistic \
+view. That the probabilistic approach is inconsistent is manifest in the \
+original models, as the \"probabilities\" can become negative, as has been \
+said. Here we shall demonstrate that the probabilistic methodology is also \
+completely unnecessary. We will present a new approach, based on symmetry \
+relations associated with simple solutions of the Black-Scholes equation, \
+which contains as special cases all the well-known models, but which also \
+allows us to construct new models. The most interesting new models are \
+supersymmetric in a sense which we shall define, and do not suffer from any \
+problems with negative weights or abscissas. Our approach does allow the \
+derivation of the traditional models, but it also makes it transparent that \
+these are sub-optimal.\n\nIn order to give a complete presentation I will \
+devote three chapters to tree models, covering the following three topics:\n\n\
+(a) (this chapter) A general and rigorous re-specification of tree models, \
+including what we argue is a more systematic approach;\n(b) the elegant \
+recursive tree models developed by Benninga ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " (1993) and generalizations, and overview of what can go wrong (Chapter \
+19);\n(c) how to optimize tree models at the price of some elegance (Chapter \
+20).\n\nI can thoroughly recommend the article in ",
+  StyleBox["The Mathematica Journal",
+    FontSlant->"Italic"],
+  " by Simon Benninga, Raz Steinmetz and John Stroughair (1993) for an \
+introduction to this type of scheme and to Monte Carlo schemes. Several of my \
+own studies were in part motivated by that article, and by their elegant \
+approach to tree modelling in particular. The approach taken in the next \
+chapter will be based in part on the methods introduced by Benninga ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  ". However, as well as specifying the tree theory rather more carefully \
+than is traditional, we shall also be seeking generalizations that allow us \
+to\n\n(a) compute hedge parameters;\n(b) deal with trinomial or other \
+systems;\n(c) proceed more efficiently.\n\nThe first two of these topics will \
+be addressed in Chapter 19, while (c) is deferred to Chapter 20. Also, and in \
+the spirit of this text, we shall first investigate how binomial and \
+trinomial systems emerge from a solution-symmetry approach. The paper by \
+Benninga ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " motivates matters from a binomial-probabilistic viewpoint, which is \
+discussed by many authors - this is the view we argue is somewhat incomplete. \
+Here we shall take a complementary approach.\n"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["18.2 A General Definition of a Tree Rule", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["A \"tree rule\" is a  backwards evolution scheme of the form", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`V(S, 
+        t) = \[ExponentialE]\^\(\(-r\)\ \[CapitalDelta]\ t\)\ \(\[Sum]\+\(i = \
+1\)\%n w\_i\ \(V(S\ u\_i, t + \[CapitalDelta]\ t)\)\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The variables ",
+  Cell[BoxData[
+      \(TraditionalForm\`w\_i\)]],
+  " are called the \"weights\", and the points ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\ u\_i\)]],
+  " are called the \"abscissas\". If ",
+  Cell[BoxData[
+      \(TraditionalForm\`n = 2\)]],
+  " we have a general binomial scheme, whereas if ",
+  Cell[BoxData[
+      \(TraditionalForm\`n = 3\)]],
+  " we have a general trinomial scheme. Some authors may use the term \
+\"binary\" rather than binomial. Explicitly, for a binomial scheme"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`V(S, 
+        t) = \(\[ExponentialE]\^\(\(-r\)\ \[CapitalDelta]\ t\)\)\ [
+        w\_1\ \(V(S\ u\_1, t + \[CapitalDelta]\ t)\) + 
+          w\_2\ \(V(S\ u\_2, t + \[CapitalDelta]\ t)\)]\)], "NumberedEquation",\
+
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Basic Solutions of the Black-Scholes Equation", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "What we shall do now is to write down some basic solutions of the \
+Black-Scholes equation that we wish to be exactly consistent with the tree \
+rule. Clearly the choice is somewhat arbitrary. One question is, how many \
+solutions to use? For a binomial scheme, we have two weights, two abscissas, \
+and the parameter ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[CapitalDelta]\ t\)]],
+  ", making five in total. For a trinomial scheme, there are three weights, \
+three abscissas and the time-step, totalling seven. It is traditional to \
+allow the time-step to remain free - we shall do so for the present, though \
+we shall see in the next chapter that there are all kinds of good reasons for \
+picking the time-step very carefully. That leaves us with four unknowns for a \
+binomial scheme, and six for trinomial.\n\nWhat we shall demand is that the \
+tree rule is such that it is consistent with certain power solutions of the \
+Black-Scholes equation. Recall, from Chapter 4, Section 4.2, that the general \
+power solution is of the form"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`V = 
+      Z\ \((S\/K)\)\^n\ \(\[ExponentialE]\^\(\(-r\)\ \((T - 
+                  t)\)\)\) \[ExponentialE]\^\(\((\((r - q)\)\ n + \(\(n(n - \
+1)\)\ \[Sigma]\^2\)\/2)\)\ \((T - t)\)\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The special cases for ",
+  Cell[BoxData[
+      \(TraditionalForm\`n\  = \ 0, \ 1, \ 2\)]],
+  " are"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`V = Z\ \[ExponentialE]\^\(\(-r\)\ \((T - t)\)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`V = 
+      Z\ \((S\/K)\)\ \(\[ExponentialE]\^\(\(-r\)\ \((T - 
+                  t)\)\)\) \[ExponentialE]\^\(\((r - q)\)\ \((T - t)\)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`V = 
+      Z\ \((S\/K)\)\^2\ \(\[ExponentialE]\^\(\(-r\)\ \((T - 
+                  t)\)\)\) \[ExponentialE]\^\(\((2 \((r - q)\)\  + \ \[Sigma]\
+\^2)\)\ \((T - t)\)\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Considering the first negative powers, for ",
+  Cell[BoxData[
+      \(TraditionalForm\`n\  = \ \(-\ 1\), \ \(-2\)\)]],
+  " we have"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`V = 
+      Z\ \((K\/S)\)\ \(\[ExponentialE]\^\(\(-r\)\ \((T - 
+                  t)\)\)\) \[ExponentialE]\^\(\((\(-\((r - q)\)\)\  + \ \
+\[Sigma]\^2)\)\ \((T - t)\)\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`V = 
+      Z\ \((K\/S)\)\^2\ \(\[ExponentialE]\^\(\(-r\)\ \((T - 
+                  t)\)\)\) \[ExponentialE]\^\(\((\(-2\) \((r - q)\)\  + 3\ \
+\[Sigma]\^2)\)\ \((T - t)\)\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Let's demand that the binomial rule be consistent with some of the \
+power solutions. We call a tree satisfying some subset of these consistency \
+conditions a \"symmetric tree\", because the mapping defined by the tree rule \
+preserves, or leaves invariant, the solution. In general, making the \
+substitution and simplifying, this gives us\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1\ u\_1\%n + \(w\_2\) 
+          u\_2\%n\  = \[ExponentialE]\^\(\((1\/2\ \[Sigma]\^2\ \(n(n - 1)\)\  \
++ n\ \((r - q)\))\)\ \[CapitalDelta]\ t\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "and for ",
+  Cell[BoxData[
+      \(TraditionalForm\`n\  = \ 0, \ 1, \ 2\)]],
+  " this gives"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1 + w\_2\  = 1\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1\ u\_1 + \(w\_2\) 
+          u\_2\  = \[ExponentialE]\^\(\ \((r - q)\)\ \[CapitalDelta]\ t\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1\ u\_1\%2 + \(w\_2\) 
+          u\_2\%2\  = \[ExponentialE]\^\(\((2 \((r - q)\)\  + \ \
+\[Sigma]\^2)\)\ \[CapitalDelta]\ t\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The first pair of negative powers give us the equations, for ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(-1\), \ \(-2\)\)]],
+  " respectively, "
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1\/u\_1 + 
+        w\_2\/u\_2 = \[ExponentialE]\^\(\((\(-\((r - q)\)\)\  + \ \
+\[Sigma]\^2)\)\ \[CapitalDelta]\ t\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1\/u\_1\%2 + 
+        w\_2\/u\_2\%2 = \[ExponentialE]\^\(\((\(-2\) \((r - q)\)\  + 3\ \
+\[Sigma]\^2)\)\ \[CapitalDelta]\ t\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The condition that the weights sum to unity is traditionally regarded as \
+arising from the fact that these weights are \"up\" and \"down\" \
+probabilities. We see that such a view is unnecessary - it suffices to demand \
+that \"cash is conserved\", i.e., that the tree preserves the simple cash (",
+  Cell[BoxData[
+      \(TraditionalForm\`n = 0\)]],
+  ") solution to the Black-Scholes PDE.\n\nIt is clear that we can generate \
+weights and abscissas consistent with up to four simple solutions of the \
+Black-Scholes equation. A scheme preserving a full ",
+  StyleBox["four",
+    FontSlant->"Italic"],
+  " of the solutions will be called \"supersymmetric\". First, however, we \
+need to see how some standard models arise, and to note that these are only \
+partially symmetric."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Schemes of Jarrow-Rudd Type", "Subsubsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["We impose the condition", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1 = \(w\_2 = 1\/2\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+which solves the cash conservation condition, leaving us with two \
+unknowns and two conditions based on the first and second power \
+solutions:\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_1 + u\_2\  = 
+      2\ \[ExponentialE]\^\(\ \((r - q)\)\ \[CapitalDelta]\ t\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_1\^2 + u\_2\^2\  = 
+      2\ \[ExponentialE]\^\(\((2 \((r - q)\)\  + \ \[Sigma]\^2)\)\ \((T - \
+t)\)\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "These can be solved with pen and paper, by solving a quadratic equation, \
+but we can be lazy and get ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " to do the work. "
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(soln = 
+      Solve[{u\_1 + u\_2 == 2\ Exp[\((r - q)\)\ \[CapitalDelta]t], 
+          u\_1\%2 + u\_2\%2 == 
+            2\ Exp[\((2\ \((r - 
+                            q)\) + \[Sigma]\^2)\)\ \[CapitalDelta]t]}, {u\_1, 
+          u\_2}]; \)\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The larger of the two solutions (here ",
+  Cell[BoxData[
+      \(TraditionalForm\`u\_2\)]],
+  ") is now called ",
+  Cell[BoxData[
+      \(TraditionalForm\`u\)]],
+  ", as is conventional. (In the following the output has been converted to \
+Traditional Form and set as a numbered equation - this is not quite \
+WYSIWMAMA)"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(u = 
+      Simplify[PowerExpand[
+          Simplify[
+            u\_2 /. soln\[LeftDoubleBracket]1\[RightDoubleBracket]]]]\)], 
+  "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[ExponentialE]\^\(\((r - q)\)\ \[CapitalDelta]t\)\ \
+\((1 + \@\(\[ExponentialE]\^\(\[CapitalDelta]t\ \[Sigma]\^2\) - 1\))\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(d\  = \ Simplify[PowerExpand[Simplify[u\_1 /. soln[\([1]\)]]]]\)], 
+  "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[ExponentialE]\^\(\((r - q)\)\ \[CapitalDelta]t\)\ \
+\((1 - \@\(\[ExponentialE]\^\(\[CapitalDelta]t\ \[Sigma]\^2\) - 1\))\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "These give us the \"exact\" forms of the up and down states in the \
+Jarrow-Rudd model. Note that the ",
+  Cell[BoxData[
+      \(TraditionalForm\`d\)]],
+  " variable can become zero if the time-step is large enough. We need"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(\[Sigma]\^2\ \[CapitalDelta]\ t << \ log(2)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+for this particular scheme to be sensible. However, there is an \
+interesting approximation, which is the version described by Hull (1996), and \
+appears to be the form originally given by Jarrow and Rudd. This is based on \
+comparing the expansions for\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["1+Series[Sqrt[Exp[x]-1], {x, 0, 1}]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{"1", "+", \(\@x\), "+", 
+        InterpretationBox[\(O[x]\^\(3/2\)\),
+          SeriesData[ x, 0, {}, 0, 3, 2]]}],
+      SeriesData[ x, 0, {1, 1}, 0, 3, 2]]], "Output"]
+}, Open  ]],
+
+Cell["and for", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["1-Series[Sqrt[Exp[x]-1], {x, 0, 1}]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{"1", "-", \(\@x\), "+", 
+        InterpretationBox[\(O[x]\^\(3/2\)\),
+          SeriesData[ x, 0, {}, 0, 3, 2]]}],
+      SeriesData[ x, 0, {1, -1}, 0, 3, 2]]], "Output"]
+}, Open  ]],
+
+Cell["with those for the pair", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Series[Exp[Sqrt[x]-x/2], {x, 0, 1}]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{"1", "+", \(\@x\), "+", 
+        InterpretationBox[\(O[x]\^\(3/2\)\),
+          SeriesData[ x, 0, {}, 0, 3, 2]]}],
+      SeriesData[ x, 0, {1, 1}, 0, 3, 2]]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Series[Exp[-Sqrt[x]-x/2], {x, 0, 1}]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{"1", "-", \(\@x\), "+", 
+        InterpretationBox[\(O[x]\^\(3/2\)\),
+          SeriesData[ x, 0, {}, 0, 3, 2]]}],
+      SeriesData[ x, 0, {1, -1}, 0, 3, 2]]], "Output"]
+}, Open  ]],
+
+Cell["\<\
+In the approximate (original) form of the Jarrow-Rudd model, the up \
+and down scale factors are written as\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\  = \ \(\(\[ExponentialE]\^\(\((r - 
+                    q - \[Sigma]\^2/
+                      2)\)\ \[CapitalDelta]t\)\) \[ExponentialE]\^\(\[Sigma] \
+\@ \[CapitalDelta]t\ \)\ \ \ \ \ \ \ \ \ d\  = \ \(\[ExponentialE]\^\(\((r - 
+                    q - \[Sigma]\^2/
+                      2)\)\ \[CapitalDelta]t\)\) \[ExponentialE]\^\(\(-\
+\[Sigma]\) \@\[CapitalDelta]t\ \)\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This then conveniently avoids the down scale factor becoming negative, but \
+this approximation violates the matching of both the solutions in ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\^2\)]],
+  ". We shall, nevertheless, see later how this \"approximation\" can be \
+justified exactly from the symmetry method, even though it does not quite fit \
+our considerations so far."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Schemes of Cox-Ross-Rubenstein Type", "Subsubsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+To get schemes similar to those of CRR, we impose the \
+conditions\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_1 = \ 1/u\_2\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["leaving us with two unknowns and conditions:", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1\ u\_1 + \((1 - w\_1)\) 
+          1/u\_1\  = \[ExponentialE]\^\(\ \((r - q)\)\ \[CapitalDelta]\ \
+t\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1\ u\_1\%2 + \((1 - w\_1)\) 
+          1/u\_1\%2\  = \[ExponentialE]\^\(\((2 \((r - q)\)\  + \ \
+\[Sigma]\^2)\)\ \[CapitalDelta]\ t\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Clearly the first equation allows us to write ",
+  Cell[BoxData[
+      \(TraditionalForm\`w\_1\)]],
+  "as an explicit function of ",
+  Cell[BoxData[
+      \(TraditionalForm\`u\_1\)]],
+  ":"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1 = \(\(\[ExponentialE]\^\(\((r - q)\)\ \
+\[CapitalDelta]\ t\) - u\_2\)\/\(u\_1 - u\_2\) = \(\[ExponentialE]\^\(\((r - \
+q)\)\ \[CapitalDelta]\ t\) - 1\/u\_1\)\/\(u\_1 - 1\/u\_1\)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["The second equation allows us to equate this also to", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1 = \(\(\[ExponentialE]\^\(\((2 \((r - q)\)\  + \ \
+\[Sigma]\^2)\)\ \[CapitalDelta]\ t\) - u\_2\%2\)\/\(u\_1\%2 - u\_2\%2\) = \(\
+\[ExponentialE]\^\(\((2 \((r - q)\)\  + \ \[Sigma]\^2)\)\ \[CapitalDelta]\ \
+t\) - 1\/u\_1\%2\)\/\(u\_1\%2 - 1\/u\_1\%2\)\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "If we re-organize these two expressions for ",
+  Cell[BoxData[
+      \(TraditionalForm\`w\_1\)]],
+  " a little, we obtain the quadratic equation"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_1\%2 - \((\[ExponentialE]\^\(\((\[Sigma]\^2 + \((r \
+- q)\))\)\ \[CapitalDelta]t\) + \[ExponentialE]\^\(\(-\((r - q)\)\)\ \
+\[CapitalDelta]t\))\)\ u\_1 + 1 = 0\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(soln\  = \ 
+      u\_1 /. Solve[
+          u\_1\^2 - \ \((Exp[\((\((r - 
+                                q)\) + \[Sigma]^2)\) \[CapitalDelta]t] + \ 
+                    Exp[\(-\((r - q)\)\) \[CapitalDelta]t])\) u\_1 + \ 
+              1\  == \ 0, \ u\_1]; \)\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\({d, u}\  = \ soln; \)\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(u\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(1\/2\ \((E\^\(\((q - r)\)\ \[CapitalDelta]t\) + 
+          E\^\(\[CapitalDelta]t\ \((\(-q\) + r + \[Sigma]\^2)\)\) + \
+\@\(\(-4\) + \((\(-E\^\(\((q - r)\)\ \[CapitalDelta]t\)\) - E\^\(\
+\[CapitalDelta]t\ \((\(-q\) + r + \[Sigma]\^2)\)\))\)\^2\))\)\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(d\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(1\/2\ \((E\^\(\((q - r)\)\ \[CapitalDelta]t\) + 
+          E\^\(\[CapitalDelta]t\ \((\(-q\) + r + \[Sigma]\^2)\)\) - \
+\@\(\(-4\) + \((\(-E\^\(\((q - r)\)\ \[CapitalDelta]t\)\) - E\^\(\
+\[CapitalDelta]t\ \((\(-q\) + r + \[Sigma]\^2)\)\))\)\^2\))\)\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+So far we have described the \"exact\" form of the CRR model. \
+However, the form of the up and down factors for small time-intervals is \
+interesting:\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(PowerExpand[Normal[Series[{u, d}, \ {\[CapitalDelta]t, \ 0, \ 1}]]]\)], 
+  "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({1 + \@\[CapitalDelta]t\ \[Sigma] + \(\[CapitalDelta]t\ \
+\[Sigma]\^2\)\/2, 
+      1 - \@\[CapitalDelta]t\ \[Sigma] + \(\[CapitalDelta]t\ \
+\[Sigma]\^2\)\/2}\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "They are identical, to this order, to those for ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[ExponentialE]\^\(\[Sigma]\ \
+\@\[CapitalDelta]t\)\)]],
+  "and its inverse:"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(PowerExpand[
+      Normal[Series[{Exp[\[Sigma]\ Sqrt[\[CapitalDelta]t]], 
+            Exp[\(-\[Sigma]\)\ Sqrt[\[CapitalDelta]t]]}, \ {\[CapitalDelta]t, \
+\ 0, \ 1}]]]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({1 + \@\[CapitalDelta]t\ \[Sigma] + \(\[CapitalDelta]t\ \
+\[Sigma]\^2\)\/2, 
+      1 - \@\[CapitalDelta]t\ \[Sigma] + \(\[CapitalDelta]t\ \
+\[Sigma]\^2\)\/2}\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "This gives an approximate form of the CRR model that is in common use. \
+Note however that if we work with the exact forms, the constant, asset and \
+asset-squared solutions are matched exactly. Jarrow and Rudd (1983) commented \
+that alternative approximate forms of the CRR model do not satisfy the \
+quadratic conditions (in their approach, expressed statistically as the \
+second moment). This is only a feature of the approximation - there is no \
+fundamental problem with a solution of CRR type matching the second moment, \
+as we have shown. A drawback of the CRR form is that the weight factor can \
+become zero - at least it is a drawback if a probabilistic interpretation is \
+used. This is not avoided by the use of the approximate form. Note that Hull \
+(1996) describes the original approximate form in detail, and makes \
+references to the exact form in a footnote. The exact forms of both the CRR \
+and the JR models are the ones described by Wilmott",
+  StyleBox[" et al ",
+    FontSlant->"Italic"],
+  "(1995). "
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["18.3 Supersymmetric Schemes?", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The question arises whether we can build other schemes that are \
+supersymmetric. We can pick one other solution to the PDE, and arrange both \
+the weights and abscissas so that this solution is preserved. The question \
+arises which one to take. We can only rely on common sense here, and some \
+experimentation with different possibilities is helpful. We note that in some \
+situations, for example Put options, we wish to model cases where the option \
+value tends to zero for large values of the underlying. This suggests that it \
+might be useful to consider setting the tree parameters so that the solution \
+for a negative power of ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " is preserved exactly. If we use the first negative power, this creates a \
+supersymmetric tree rule, and will turn out to have an interesting impact on \
+the behaviour of the weights and abscissas. \n\nWith this choice, we have the \
+four unknowns satisfying the four equations (the last one is the new \
+constraint that replaces the ",
+  StyleBox["ansatz",
+    FontSlant->"Italic"],
+  " used by CRR or JR)"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1 + w\_2\  = 1\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1\ u\_1 + \(w\_2\) 
+          u\_2\  = \[ExponentialE]\^\(\ \((r - q)\)\ \[CapitalDelta]\ t\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1\ u\_1\%2 + \(w\_2\) 
+          u\_2\%2\  = \[ExponentialE]\^\(\((2 \((r - q)\)\  + \ \
+\[Sigma]\^2)\)\ \[CapitalDelta]\ t\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1\/u\_1 + 
+        w\_2\/u\_2 = \[ExponentialE]\^\(\((\(-\((r - q)\)\)\  + \ \
+\[Sigma]\^2)\)\ \[CapitalDelta]\ t\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Eliminating ",
+  Cell[BoxData[
+      \(TraditionalForm\`w\_2\)]],
+  " leads to"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1\ u\_1 + \((1 - w\_1)\) 
+          u\_2\  = \[ExponentialE]\^\(\ \((r - q)\)\ \[CapitalDelta]\ t\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1\ u\_1\%2 + \((1 - w\_1)\) 
+          u\_2\%2\  = \[ExponentialE]\^\(\((2 \((r - q)\)\  + \ \
+\[Sigma]\^2)\)\ \[CapitalDelta]\ t\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1\/u\_1 + \((1 - w\_1)\)\/u\_2 = \
+\[ExponentialE]\^\(\((\(-\((r - q)\)\)\  + \ \[Sigma]\^2)\)\ \[CapitalDelta]\ \
+t\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Each of these can be solved for ",
+  Cell[BoxData[
+      \(TraditionalForm\`w\_1\)]],
+  ", leading to the relations"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`w\_1 = \(\(\[ExponentialE]\^\(\((r - q)\)\ \
+\[CapitalDelta]\ t\) - u\_2\)\/\(u\_1 - u\_2\) = \(\(\[ExponentialE]\^\(\((2 \
+\((r - q)\)\  + \ \[Sigma]\^2)\)\ \[CapitalDelta]\ t\) - u\_2\%2\)\/\(u\_1\%2 \
+- u\_2\%2\)\  = \ \(\[ExponentialE]\^\(\((\(-\((r - q)\)\)\  + \ \[Sigma]\^2)\
+\)\ \[CapitalDelta]\ t\) - 1/u\_2\)\/\(1/u\_1 - 1/u\_2\)\)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["The last of these three can be re-organized, leading to", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(\[ExponentialE]\^\(\((r - q)\)\ \[CapitalDelta]\ t\) \
+- u\_2\)\/\(u\_1 - u\_2\) = \(\(\[ExponentialE]\^\(\((2 \((r - q)\)\  + \ \
+\[Sigma]\^2)\)\ \[CapitalDelta]\ t\) - u\_2\%2\)\/\(u\_1\%2 - u\_2\%2\)\  = \ \
+\(-\((\(u\_1\) \(u\_2\) \[ExponentialE]\^\(\((\(-\((r - q)\)\)\  + \ \[Sigma]\
+\^2)\)\ \[CapitalDelta]\ t\) - u\_1)\)\)\/\(u\_1 - u\_2\)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["Now multiplying through by the common denominator gives us", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[ExponentialE]\^\(\((r - q)\)\ \[CapitalDelta]\ t\) - 
+        u\_2 = \(\(\[ExponentialE]\^\(\((2 \((r - q)\)\  + \ \[Sigma]\^2)\)\ \
+\[CapitalDelta]\ t\) - u\_2\%2\)\/\(u\_1 + u\_2\)\  = \ 
+        u\_1 - \(u\_1\) \(u\_2\) \[ExponentialE]\^\(\((\(-\((r - q)\)\)\  + \ \
+\[Sigma]\^2)\)\ \[CapitalDelta]\ t\)\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Now we use the equality of the left and right sides of (37) to get \
+the condition\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\((u\_\(1\ \) + 
+            u\_2)\) - \(u\_1\) \(u\_2\) \[ExponentialE]\^\(\((\(-\((r - \
+q)\)\)\  + \ \[Sigma]\^2)\)\ \[CapitalDelta]\ t\)\  = \ \
+\[ExponentialE]\^\(\((r - q)\)\ \[CapitalDelta]\ t\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Equality of the left and middle terms of (37) gives the condition\
+\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\((u\_\(1\ \) + 
+              u\_2)\) \[ExponentialE]\^\(\((r - q)\)\ \[CapitalDelta]\ t\) - \
+\(u\_1\) u\_2\  = \[ExponentialE]\^\(\((2 \((r - q)\)\  + \ \[Sigma]\^2)\)\ \
+\[CapitalDelta]\ t\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+This is just a pair of simultaneous linear equations for the sum \
+and the product. The solution for the sum and product is\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_\(1\ \) + 
+        u\_2\  = \(\[ExponentialE]\^\(\((r - q)\)\ \[CapitalDelta]\ t\)\)(
+        1 + \[ExponentialE]\^\(\[Sigma]\^2\ \[CapitalDelta]\ t\))\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(u\_1\) 
+        u\_2\  = \ \[ExponentialE]\^\(2 \((r - q)\)\ \[CapitalDelta]\ t\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["It is evident that we can write ", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_\(i\ \)\  = \ \(\[ExponentialE]\^\(\((r - 
+                  q)\)\ \[CapitalDelta]\ t\)\) v\_\(i\ \)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where the ",
+  Cell[BoxData[
+      \(TraditionalForm\`v\_i\)]],
+  " satisfy"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`v\_\(1\ \) + v\_2\  = 
+      1 + \[ExponentialE]\^\(\[Sigma]\^2\ \[CapitalDelta]\ t\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(v\_1\) v\_2\  = \ 1\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "So these abscissas satisfy a reciprocity condition similar to that in CRR, \
+but the linear drift factor has been incorporated into the abscissas in the \
+same spirit as JR. The solution for the ",
+  Cell[BoxData[
+      \(TraditionalForm\`v\_i\)]],
+  " is now just a matter of solving a quadratic equation of the form"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`v\^2 - \((\[ExponentialE]\^\(\[Sigma]\^2\ \
+\[CapitalDelta]t\) + 1)\)\ v + 1 = 0\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+This has two roots - we extract them in the usual way, multiply \
+back by the drift factor, and finally get the \"up\" and \"down\" scale \
+factors - up is defined by taking the larger of the two roots.\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u = \(1\/2\ \[ExponentialE]\^\(\((r - q)\)\ \
+\[CapitalDelta]t\)\ \((\[ExponentialE]\^\(\[Sigma]\^2\ \[CapitalDelta]t\) + 
+              1 + \@\(\((\[ExponentialE]\^\(\[Sigma]\^2\ \[CapitalDelta]t\) + \
+1)\)\^2 - 4\))\)\  = \ \[ExponentialE]\^\(\((r - q)\)\ \[CapitalDelta]t\)\ \
+\[Alpha]\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`d = \(1\/2\ \[ExponentialE]\^\(\((r - q)\)\ \
+\[CapitalDelta]t\)\ \((\[ExponentialE]\^\(\[Sigma]\^2\ \[CapitalDelta]t\) + 
+              1 - \@\(\((\[ExponentialE]\^\(\[Sigma]\^2\ \[CapitalDelta]t\) + \
+1)\)\^2 - 4\))\) = \ \[ExponentialE]\^\(\((r - q)\)\ \[CapitalDelta]t\)\ \
+\[Beta]\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+These relations serve to define \[Alpha], \[Beta]. The up and down \
+weights are given by\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[{
+    FormBox[
+      RowBox[{\(p = \(w\_1 = \(\(\[ExponentialE]\^\(\((r - q)\)\ \
+\[CapitalDelta]\ t\) - d\)\/\(u - d\)\  = \ \(1 - \[Beta]\)\/\(\[Alpha] - \
+\[Beta]\)\)\)\)}], TraditionalForm], 
+    FormBox[
+      RowBox[{
+        FormBox[\(q = \(1 - 
+                p = \(w\_2\  = \ \(\[Alpha] - 1\)\/\(\[Alpha] - \[Beta]\)\)\)\
+\),
+          "TraditionalForm"], "\n"}], TraditionalForm]}], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Properties of the New Model", "Subsubsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This new model has some interesting theoretical features:\n\n(1) The \
+weights/probabilities are independent of the interest rate and yield - they \
+only depend on the volatility and time-step.\n\n(2) Consider the down scale \
+function term \[Beta]. Let's look at it with ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  ", as a function of",
+  StyleBox[" ",
+    FontSlant->"Italic"],
+  Cell[BoxData[
+      \(TraditionalForm\`x\  = \ \(\[Sigma]\^2\) \[CapitalDelta]\ t\)]],
+  ":"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+\[Beta][x_] := 1/2(Exp[x] + 1 - Sqrt[(Exp[x]+1)^2-4])\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Plot[Log[\[Beta][x]], {x, 0, 10}];", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[GraphicsData["PostScript", "\<\
+%!
+%%Creator: Mathematica
+%%AspectRatio: .61803 
+MathPictureStart
+/Mabs {
+Mgmatrix idtransform
+Mtmatrix dtransform
+} bind def
+/Mabsadd { Mabs
+3 -1 roll add
+3 1 roll add
+exch } bind def
+%% Graphics
+/Courier findfont 10  scalefont  setfont
+% Scaling calculations
+0.0238095 0.0952381 0.603319 0.0588601 [
+[.21429 .59082 -3 -9 ]
+[.21429 .59082 3 0 ]
+[.40476 .59082 -3 -9 ]
+[.40476 .59082 3 0 ]
+[.59524 .59082 -3 -9 ]
+[.59524 .59082 3 0 ]
+[.78571 .59082 -3 -9 ]
+[.78571 .59082 3 0 ]
+[.97619 .59082 -6 -9 ]
+[.97619 .59082 6 0 ]
+[.01131 .01472 -18 -4.5 ]
+[.01131 .01472 0 4.5 ]
+[.01131 .13244 -12 -4.5 ]
+[.01131 .13244 0 4.5 ]
+[.01131 .25016 -12 -4.5 ]
+[.01131 .25016 0 4.5 ]
+[.01131 .36788 -12 -4.5 ]
+[.01131 .36788 0 4.5 ]
+[.01131 .4856 -12 -4.5 ]
+[.01131 .4856 0 4.5 ]
+[ 0 0 0 0 ]
+[ 1 .61803 0 0 ]
+] MathScale
+% Start of Graphics
+1 setlinecap
+1 setlinejoin
+newpath
+0 g
+.25 Mabswid
+[ ] 0 setdash
+.21429 .60332 m
+.21429 .60957 L
+s
+[(2)] .21429 .59082 0 1 Mshowa
+.40476 .60332 m
+.40476 .60957 L
+s
+[(4)] .40476 .59082 0 1 Mshowa
+.59524 .60332 m
+.59524 .60957 L
+s
+[(6)] .59524 .59082 0 1 Mshowa
+.78571 .60332 m
+.78571 .60957 L
+s
+[(8)] .78571 .59082 0 1 Mshowa
+.97619 .60332 m
+.97619 .60957 L
+s
+[(10)] .97619 .59082 0 1 Mshowa
+.125 Mabswid
+.07143 .60332 m
+.07143 .60707 L
+s
+.11905 .60332 m
+.11905 .60707 L
+s
+.16667 .60332 m
+.16667 .60707 L
+s
+.2619 .60332 m
+.2619 .60707 L
+s
+.30952 .60332 m
+.30952 .60707 L
+s
+.35714 .60332 m
+.35714 .60707 L
+s
+.45238 .60332 m
+.45238 .60707 L
+s
+.5 .60332 m
+.5 .60707 L
+s
+.54762 .60332 m
+.54762 .60707 L
+s
+.64286 .60332 m
+.64286 .60707 L
+s
+.69048 .60332 m
+.69048 .60707 L
+s
+.7381 .60332 m
+.7381 .60707 L
+s
+.83333 .60332 m
+.83333 .60707 L
+s
+.88095 .60332 m
+.88095 .60707 L
+s
+.92857 .60332 m
+.92857 .60707 L
+s
+.25 Mabswid
+0 .60332 m
+1 .60332 L
+s
+.02381 .01472 m
+.03006 .01472 L
+s
+[(-10)] .01131 .01472 1 0 Mshowa
+.02381 .13244 m
+.03006 .13244 L
+s
+[(-8)] .01131 .13244 1 0 Mshowa
+.02381 .25016 m
+.03006 .25016 L
+s
+[(-6)] .01131 .25016 1 0 Mshowa
+.02381 .36788 m
+.03006 .36788 L
+s
+[(-4)] .01131 .36788 1 0 Mshowa
+.02381 .4856 m
+.03006 .4856 L
+s
+[(-2)] .01131 .4856 1 0 Mshowa
+.125 Mabswid
+.02381 .04415 m
+.02756 .04415 L
+s
+.02381 .07358 m
+.02756 .07358 L
+s
+.02381 .10301 m
+.02756 .10301 L
+s
+.02381 .16187 m
+.02756 .16187 L
+s
+.02381 .1913 m
+.02756 .1913 L
+s
+.02381 .22073 m
+.02756 .22073 L
+s
+.02381 .27959 m
+.02756 .27959 L
+s
+.02381 .30902 m
+.02756 .30902 L
+s
+.02381 .33845 m
+.02756 .33845 L
+s
+.02381 .39731 m
+.02756 .39731 L
+s
+.02381 .42674 m
+.02756 .42674 L
+s
+.02381 .45617 m
+.02756 .45617 L
+s
+.02381 .51503 m
+.02756 .51503 L
+s
+.02381 .54446 m
+.02756 .54446 L
+s
+.02381 .57389 m
+.02756 .57389 L
+s
+.25 Mabswid
+.02381 0 m
+.02381 .61803 L
+s
+0 0 m
+1 0 L
+1 .61803 L
+0 .61803 L
+closepath
+clip
+newpath
+.5 Mabswid
+.02381 .60328 m
+.02499 .59676 L
+.02605 .59424 L
+.02846 .59018 L
+.03279 .58489 L
+.04262 .57606 L
+.06244 .56251 L
+.10458 .53861 L
+.14451 .51719 L
+.18292 .49637 L
+.22379 .47364 L
+.26314 .45115 L
+.30098 .42906 L
+.34126 .40513 L
+.38004 .38181 L
+.42126 .3568 L
+.46097 .33255 L
+.49916 .30914 L
+.53981 .28416 L
+.57894 .26006 L
+.62052 .23442 L
+.66059 .2097 L
+.69914 .1859 L
+.74014 .16057 L
+.77963 .13618 L
+.8176 .11272 L
+.85802 .08774 L
+.89693 .0637 L
+.93829 .03814 L
+.97619 .01472 L
+s
+% End of Graphics
+MathPictureEnd
+\
+\>"], "Graphics",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  ImageSize->{195, 120.375},
+  ImageMargins->{{34, 0}, {0, 0}},
+  ImageRegion->{{0, 1}, {0, 1}},
+  ImageCache->GraphicsData["Bitmap", "\<\
+CF5dJ6E]HGAYHf4PAg9QL6QYHg<PAVmbKF5d0`4000330000N1000`40O003h00O`goo0033Ool00<=o
+o`00`goo0033Ool00<=oo`0057oo00<007ooOol0[7oo0007Ool30004Ool20004Ool00`00Oomoo`2/
+Ool000Qoo`03001oogoo009oo`04001oogoo0003Ool00`00Oomoo`2/Ool00003Ool0000000<0009o
+o`03001oogoo009oo`04001oogoo0003Ool2002UOol20006Ool000Qoo`03001oogoo009oo`04001o
+ogoo0003Ool00`00Oomoo`2ROol20008Ool000Qoo`03001oogoo009oo`04001oogoo0003Ool00`00
+Oomoo`2QOol00`00Oomoo`08Ool000Moo`8000Eoo`8000Aoo`03001oogoo09moo`8000]oo`0057oo
+00<007ooOol0WGoo0P003Goo000DOol00`00Oomoo`2LOol00`00Oomoo`0=Ool001Aoo`03001oogoo
+09Yoo`80011oo`0057oo00<007ooOol0VGoo00<007ooOol047oo000DOol00`00Oomoo`2HOol00`00
+Oomoo`0AOol001Aoo`03001oogoo09Ioo`8001Aoo`0057oo00<007ooOol0U7oo0P005Woo000DOol0
+0`00Oomoo`2COol00`00Oomoo`0FOol001Aoo`03001oogoo095oo`8001Uoo`0057oo00<007ooOol0
+Sgoo0P006goo000DOol00`00Oomoo`2=Ool2000MOol001Aoo`03001oogoo08aoo`03001oogoo01eo
+o`0057oo00<007ooOol0RWoo0P0087oo000DOol00`00Oomoo`28Ool2000ROol001Aoo`03001oogoo
+08Ioo`8002Aoo`003Woo0P0017oo00<007ooOol0QGoo00<007ooOol097oo000=Ool01000Oomoo`00
+0goo00<007ooOol0Pgoo0P009goo0007Ool500001Goo001oogoo00000goo0P00PWoo0P00:Goo000>
+Ool20004Ool00`00Oomoo`20Ool00`00Oomoo`0YOol000eoo`04001oogoo0003Ool00`00Oomoo`1n
+Ool2000/Ool000ioo`8000Aoo`03001oogoo07eoo`03001oogoo02aoo`0057oo00<007ooOol0O7oo
+00<007ooOol0;Goo000DOol00`00Oomoo`1jOol2000`Ool001Aoo`03001oogoo07Qoo`80039oo`00
+57oo00<007ooOol0Mgoo00<007ooOol0<Woo000DOol00`00Oomoo`1eOol2000eOol001Aoo`03001o
+ogoo07=oo`8003Moo`0057oo00<007ooOol0LGoo0P00>Goo000DOol00`00Oomoo`1`Ool00`00Oomo
+o`0iOol001Aoo`03001oogoo06ioo`8003aoo`0057oo00<007ooOol0K7oo0P00?Woo000DOol00`00
+Oomoo`1[Ool00`00Oomoo`0nOol001Aoo`03001oogoo06Uoo`80045oo`0057oo00<007ooOol0J7oo
+00<007ooOol0@Goo000DOol00`00Oomoo`1WOol00`00Oomoo`12Ool000ioo`8000Aoo`03001oogoo
+06Eoo`8004Eoo`003Goo00@007ooOol000=oo`03001oogoo06=oo`8004Moo`001goo1@0000Eoo`00
+Oomoo`0000=oo`8006=oo`03001oogoo04Moo`003Goo0`0017oo00<007ooOol0H7oo0P00BWoo000=
+Ool00`00Oomoo`04Ool00`00Oomoo`1NOol2001<Ool000ioo`<000=oo`03001oogoo05aoo`8004io
+o`0057oo00<007ooOol0Fgoo00<007ooOol0CWoo000DOol00`00Oomoo`1IOol2001AOol001Aoo`03
+001oogoo05Moo`8005=oo`0057oo00<007ooOol0EWoo00<007ooOol0Dgoo000DOol00`00Oomoo`1D
+Ool2001FOol001Aoo`03001oogoo059oo`8005Qoo`0057oo00<007ooOol0DGoo00<007ooOol0F7oo
+000DOol00`00Oomoo`1?Ool2001KOol001Aoo`03001oogoo04ioo`03001oogoo05]oo`0057oo00<0
+07ooOol0C7oo0P00GWoo000DOol00`00Oomoo`1;Ool00`00Oomoo`1NOol001Aoo`03001oogoo04Uo
+o`80065oo`0057oo00<007ooOol0Agoo0P00Hgoo000DOol00`00Oomoo`16Ool00`00Oomoo`1SOol0
+01Aoo`03001oogoo04Aoo`8006Ioo`003Woo0`000goo00<007ooOol0@Woo0P00J7oo000?Ool00`00
+Oomoo`02Ool00`00Oomoo`11Ool00`00Oomoo`1XOol000Moo`D00003Ool00000008000=oo`80041o
+o`8006]oo`003Goo00<007oo000017oo00<007ooOol0?Goo0P00KGoo000=Ool00`00Ool00004Ool0
+0`00Oomoo`0lOol00`00Oomoo`1]Ool000ioo`8000Aoo`03001oogoo03Yoo`80071oo`0057oo00<0
+07ooOol0>Goo00<007ooOol0L7oo000DOol00`00Oomoo`0gOol2001cOol001Aoo`03001oogoo03Io
+o`03001oogoo07=oo`0057oo00<007ooOol0=7oo0P00MWoo000DOol00`00Oomoo`0bOol2001hOol0
+01Aoo`03001oogoo035oo`03001oogoo07Qoo`0057oo00<007ooOol0;goo0P00Ngoo000DOol00`00
+Oomoo`0]Ool2001mOol001Aoo`03001oogoo02]oo`8007moo`0057oo00<007ooOol0:Woo00<007oo
+Ool0Ogoo000DOol00`00Oomoo`0XOol20022Ool001Aoo`03001oogoo02Ioo`8008Aoo`0057oo00<0
+07ooOol097oo0P00QWoo000DOol00`00Oomoo`0SOol00`00Oomoo`26Ool001Aoo`03001oogoo025o
+o`8008Uoo`003Goo10000goo00<007ooOol07goo0P00Rgoo000>Ool00`00Oomoo`03Ool00`00Oomo
+o`0MOol2002=Ool000Moo`D000=oo`03001oogoo009oo`8001eoo`03001oogoo08eoo`0047oo00D0
+07ooOomoo`0001aoo`80091oo`003Goo00@007ooOol000=oo`03001oogoo01Qoo`80099oo`003Woo
+0P0017oo00<007ooOol05Goo0`00U7oo000DOol00`00Oomoo`0COol2002GOol001Aoo`03001oogoo
+015oo`8009Uoo`0057oo00<007ooOol03goo0P00Vgoo000DOol00`00Oomoo`0>Ool00`00Oomoo`2K
+Ool001Aoo`03001oogoo00aoo`8009ioo`0057oo00<007ooOol02Woo0P00X7oo000DOol00`00Oomo
+o`08Ool2002ROol001Aoo`03001oogoo00Moo`03001oogoo019oo`@001moo`<001ioo`80021oo`80
+01aoo`<000Aoo`8000=oo`0057oo00<007ooOol01Goo0P005Woo00<007ooOol087oo00<007ooOol0
+77oo00@007ooOol001ioo`04001oogoo000LOol00`00Oomoo`02Ool01000Oomoo`000Woo000DOol0
+0`00Oomoo`03Ool2000IOol00`00Oomoo`0MOol4000MOol01000Oomoo`007Woo00@007ooOol001ao
+o`03001oogoo009oo`04001oogoo0002Ool001Aoo`03001oogoo009oo`03001oogoo01Yoo`03001o
+ogoo01aoo`03001oo`0001ioo`<0021oo`8001eoo`03001oogoo009oo`04001oogoo0002Ool001Ao
+o`05001oogooOol0000JOol01000Oomoo`007Woo00<007oo00007Woo00<007ooOol07goo00@007oo
+Ool001aoo`03001oogoo009oo`04001oogoo0002Ool001Aoo`04001oo`00000LOol2000POol2000O
+Ool3000OOol2000LOol20005Ool20003Ool001Aoo`800:eoo`0057oo0P00[Goo000DOol00`00Oomo
+o`2/Ool001Aoo`03001oogoo0:aoo`0047oo/@000Woo000DOol00`00Oomoo`0NOol00`00Oomoo`0O
+Ool00`00Oomoo`0NOol00`00Oomoo`0OOol00`00Oomoo`0OOol00`00Oomoo`04Ool001Aoo`03001o
+ogoo0:aoo`00`goo0033Ool00<=oo`00`goo0000\
+\>"],
+  ImageRangeCache->{{{0, 194}, {119.375, 0}} -> {-1.20403, -10.8476, 
+  0.0595961, 0.096429}}]
+}, Open  ]],
+
+Cell[TextData[{
+  "Although this function can be made arbitrarily small, it never becomes \
+zero or negative, no matter how large the time-step. ",
+  StyleBox[
+  "So we see that unlike the exact JR form, the down scale factor cannot \
+become zero or negative",
+    FontSlant->"Italic"],
+  ".\n\n(3) It is evident from this plot that it is also true that ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Beta] < 1\)]],
+  " for ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[CapitalDelta]\ t > 0\)]],
+  ", hence, ",
+  Cell[BoxData[
+      \(TraditionalForm\`p > 0\)]],
+  " always. Similarly, if we look at \[Alpha]"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+\[Alpha][x_] := 1/2(Exp[x] + 1 + Sqrt[(Exp[x]+1)^2-4])\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This function is strictly greater than unity for ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[CapitalDelta]\ t > 0\)]],
+  ". Hence ",
+  Cell[BoxData[
+      \(TraditionalForm\`q > 0\)]],
+  " always.",
+  StyleBox[
+  " Putting this together, we see that, unlike the CRR form, the up and down \
+weights can never be negative",
+    FontSlant->"Italic"],
+  ".\n\n(4) For small time-steps, the up and down weights are given by"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+p[x_] := (1 - \[Beta][x])/(\[Alpha][x] - \[Beta][x]);
+q[x_] := (\[Alpha][x]-1)/(\[Alpha][x] - \[Beta][x]);\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "in terms of ",
+  Cell[BoxData[
+      \(TraditionalForm\`x\  = \ \(\[Sigma]\^2\) \[CapitalDelta]\ t\)]],
+  ", and"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Series[p[x], {x, 0, 3}]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{\(1\/2\), "-", \(\@x\/4\), "-", \(x\^\(3/2\)\/32\), 
+        "+", \(\(7\ x\^\(5/2\)\)\/1536\), "+", 
+        InterpretationBox[\(O[x]\^\(7/2\)\),
+          SeriesData[ x, 0, {}, 0, 7, 2]]}],
+      SeriesData[ x, 0, {
+        Rational[ 1, 2], 
+        Rational[ -1, 4], 0, 
+        Rational[ -1, 32], 0, 
+        Rational[ 7, 1536]}, 0, 7, 2]]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Series[q[x], {x, 0, 3}]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{\(1\/2\), "+", \(\@x\/4\), "+", \(x\^\(3/2\)\/32\), 
+        "-", \(\(7\ x\^\(5/2\)\)\/1536\), "+", 
+        InterpretationBox[\(O[x]\^\(7/2\)\),
+          SeriesData[ x, 0, {}, 0, 7, 2]]}],
+      SeriesData[ x, 0, {
+        Rational[ 1, 2], 
+        Rational[ 1, 4], 0, 
+        Rational[ 1, 32], 0, 
+        Rational[ -7, 1536]}, 0, 7, 2]]], "Output"]
+}, Open  ]],
+
+Cell["\<\
+The small time-step behaviour of the up-down scale factors is given \
+by multiplying the drift exponential by the following series:\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Series[\[Alpha][x], {x, 0, 1}]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{"1", "+", \(\@x\), "+", \(x\/2\), "+", 
+        InterpretationBox[\(O[x]\^\(3/2\)\),
+          SeriesData[ x, 0, {}, 0, 3, 2]]}],
+      SeriesData[ x, 0, {1, 1, 
+        Rational[ 1, 2]}, 0, 3, 2]]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Series[\[Beta][x], {x, 0, 1}]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{"1", "-", \(\@x\), "+", \(x\/2\), "+", 
+        InterpretationBox[\(O[x]\^\(3/2\)\),
+          SeriesData[ x, 0, {}, 0, 3, 2]]}],
+      SeriesData[ x, 0, {1, -1, 
+        Rational[ 1, 2]}, 0, 3, 2]]], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "Note that to this order the \[Alpha] series is identical to those for ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[ExponentialE]\^\(-\@x\)\)]],
+  ":"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Series[Exp[-Sqrt[x]], {x, 0, 1}]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{"1", "-", \(\@x\), "+", \(x\/2\), "+", 
+        InterpretationBox[\(O[x]\^\(3/2\)\),
+          SeriesData[ x, 0, {}, 0, 3, 2]]}],
+      SeriesData[ x, 0, {1, -1, 
+        Rational[ 1, 2]}, 0, 3, 2]]], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "The small-time behaviour is seen to be a hybrid of the CRR and JR \
+behaviour. This model does, however, avoid the negative probability problem \
+of the former, and the negative down-scale problem of the (exact form of the) \
+latter is also avoided. It therefore merits serious consideration as an \
+alternative scheme. That is not to say it is not already in use, for this \
+scheme is essentially the result of applying the CRR model, but to the \
+forward price containing the drift correction. We now have six schemes to \
+play with: CRR, JR and the new form, which we label SS, for supersymmetric; \
+these can be used in either their exact or their approximate forms. These \
+schemes will be considered in Chapter 19, where they are implemented using \
+methods similar to those introduced by Benninga",
+  StyleBox[" et al ",
+    FontSlant->"Italic"],
+  "(1993). Before doing so, we shall explore how the supersymmetric scheme \
+may be re-derived in ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  ", and hence extended to a trinomial system."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+  "18.4 Creating Supersymmetric Schemes with  ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " "
+}], "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+In the binomial case, we wish to solve four of the relations,\
+\>", 
+  "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[{
+    \(TraditionalForm\`w\_1\ u\_1\%n + 
+        u\_2\%n\ w\_2 = \(\[ExponentialE]\^\(\((1\/2\ \(n(n - 1)\)\ \
+\[Sigma]\^2 + n\ \((r - q)\))\)\ \[CapitalDelta]\ t\) = 
+        A\^n\ B\^\(1\/2\ \(n(n - 1)\)\)\)\), 
+    \(TraditionalForm\`A = \(\[ExponentialE]\^\(\((r - q)\)\ \[CapitalDelta]\ \
+t\)\ B = \[ExponentialE]\^\(\[Sigma]\^2\ \[CapitalDelta]\ t\)\)\)}], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "which serve to define ",
+  Cell[BoxData[
+      \(TraditionalForm\`A, \ B\)]],
+  " also. We give the set with ",
+  Cell[BoxData[
+      \(TraditionalForm\`n = \(-1\), 0, 1, 2\)]],
+  " to ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " as the system of equations (you may find it helpful to quit and re-start \
+the kernel before carrying out the following):"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(symmetries = {w\_1 + w\_2 == 1, w\_1\ u\_1 + w\_2\ u\_2 == A, 
+        w\_1\ u\_1\%2 + w\_2\ u\_2\%2 == \(A\^2\) B, 
+        w\_1\/u\_1 + w\_2\/u\_2 == B/A}; \)\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "When ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " is asked to solve this system, two solutions are obtained - we just \
+extract the first, and simplify the result:"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(\[IndentingNewLine]soln = 
+      Simplify[\(Solve[
+            symmetries, {w\_1, w\_2, u\_1, 
+              u\_2}]\)\[LeftDoubleBracket]1\[RightDoubleBracket]]\)\)], 
+  "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({w\_1 \[Rule] \(3 + B - \@\(\(-3\) + 2\ B + B\^2\)\)\/\(6 + 2\ B\), 
+      w\_2 \[Rule] \(3 + B + \@\(\(-3\) + 2\ B + B\^2\)\)\/\(6 + 2\ B\), 
+      u\_2 \[Rule] 1\/2\ A\ \((1 + B - \@\(\(-3\) + 2\ B + B\^2\))\), 
+      u\_1 \[Rule] 1\/2\ A\ \((1 + B + \@\(\(-3\) + 2\ B + B\^2\))\)}\)], 
+  "Output"]
+}, Open  ]],
+
+Cell["\<\
+These are the same ones we found \"manually\" - as can be checked, \
+for example, by examining the following:\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Simplify[\(u\_1\) u\_2 /. \ soln]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(A\^2\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Simplify[u\_1*u\_1/A^2 - \ \((B + 1)\) u\_1/A + \ 1 /. \ soln]\)], 
+  "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+One can also check the extent to which neighbouring symmetries \
+apply:\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(CheckSymmetry[u_, \ d_, \ p_, \ q_, \ n_, \ a_, \ b_, \ 
+        solution_]\  := \ 
+      Factor[Simplify[
+          p\ u^n\  + \ q\ d^n\  - \ a^n\ b^\((\((n - 1)\) n/2)\)\  /. \ 
+            solution]]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(CheckSymmetry[u\_1, \ u\_2, \ w\_1, \ w\_2, \ 3, \ A, \ B, \ 
+      soln]\ \)\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(-A\^3\)\ \((\(-1\) + B)\)\^2\ \((1 + B)\)\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(CheckSymmetry[u\_1, \ u\_2, \ w\_1, \ w\_2, \ 4, \ A, \ B, \ 
+      soln]\ \)\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(-A\^4\)\ \((\(-1\) + B)\)\^2\ \((1 + B)\)\ \((1 + 2\ B + B\^2 + 
+          B\^3)\)\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(CheckSymmetry[u\_1, \ u\_2, \ w\_1, \ w\_2, \ \(-2\), \ A, \ B, \ 
+      soln]\ \)\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(-\(\(\((\(-1\) + B)\)\^2\ \((1 + B)\)\)\/A\^2\)\)\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "They are approximately satisfied, all having a factor ",
+  Cell[BoxData[
+      \(TraditionalForm\`\((B - 1)\)\^2\)]],
+  ", which is ",
+  Cell[BoxData[
+      \(TraditionalForm\`O(\((\[CapitalDelta]\ t)\)\^2)\)]],
+  ". We can look at a whole range of such variables, looking at the series \
+expansion in the form ",
+  Cell[BoxData[
+      \(TraditionalForm\`B\  = \ 1 + x\)]],
+  ". You should think of ",
+  Cell[BoxData[
+      \(TraditionalForm\`x\)]],
+  " as ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(\[Sigma]\^2\) \[CapitalDelta]\ t\)]],
+  "."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MatrixForm[
+      Table[Series[\((CheckSymmetry[u\_1, \ u\_2, \ w\_1, \ w\_2, \ n, \ A, \ 
+                B, \ soln]\  /. \ B\  -> \ 1 + x)\), \ {x, \ 0, \ 
+            2}]\ , \ {n, \ \(-6\), \ 6}]]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{"(", GridBox[{
+            {
+              InterpretationBox[
+                RowBox[{\(-\(\(140\ x\^2\)\/A\^6\)\), "+", 
+                  InterpretationBox[\(O[x]\^3\),
+                    SeriesData[ x, 0, {}, 2, 3, 1]]}],
+                SeriesData[ x, 0, {
+                  Times[ -140, 
+                    Power[ A, -6]]}, 2, 3, 1]]},
+            {
+              InterpretationBox[
+                RowBox[{\(-\(\(70\ x\^2\)\/A\^5\)\), "+", 
+                  InterpretationBox[\(O[x]\^3\),
+                    SeriesData[ x, 0, {}, 2, 3, 1]]}],
+                SeriesData[ x, 0, {
+                  Times[ -70, 
+                    Power[ A, -5]]}, 2, 3, 1]]},
+            {
+              InterpretationBox[
+                RowBox[{\(-\(\(30\ x\^2\)\/A\^4\)\), "+", 
+                  InterpretationBox[\(O[x]\^3\),
+                    SeriesData[ x, 0, {}, 2, 3, 1]]}],
+                SeriesData[ x, 0, {
+                  Times[ -30, 
+                    Power[ A, -4]]}, 2, 3, 1]]},
+            {
+              InterpretationBox[
+                RowBox[{\(-\(\(10\ x\^2\)\/A\^3\)\), "+", 
+                  InterpretationBox[\(O[x]\^3\),
+                    SeriesData[ x, 0, {}, 2, 3, 1]]}],
+                SeriesData[ x, 0, {
+                  Times[ -10, 
+                    Power[ A, -3]]}, 2, 3, 1]]},
+            {
+              InterpretationBox[
+                RowBox[{\(-\(\(2\ x\^2\)\/A\^2\)\), "+", 
+                  InterpretationBox[\(O[x]\^3\),
+                    SeriesData[ x, 0, {}, 2, 3, 1]]}],
+                SeriesData[ x, 0, {
+                  Times[ -2, 
+                    Power[ A, -2]]}, 2, 3, 1]]},
+            {"0"},
+            {"0"},
+            {"0"},
+            {"0"},
+            {
+              InterpretationBox[
+                RowBox[{\(-\(2\ A\^3\ x\^2\)\), "+", 
+                  InterpretationBox[\(O[x]\^3\),
+                    SeriesData[ x, 0, {}, 2, 3, 1]]}],
+                SeriesData[ x, 0, {
+                  Times[ -2, 
+                    Power[ A, 3]]}, 2, 3, 1]]},
+            {
+              InterpretationBox[
+                RowBox[{\(-\(10\ A\^4\ x\^2\)\), "+", 
+                  InterpretationBox[\(O[x]\^3\),
+                    SeriesData[ x, 0, {}, 2, 3, 1]]}],
+                SeriesData[ x, 0, {
+                  Times[ -10, 
+                    Power[ A, 4]]}, 2, 3, 1]]},
+            {
+              InterpretationBox[
+                RowBox[{\(-\(30\ A\^5\ x\^2\)\), "+", 
+                  InterpretationBox[\(O[x]\^3\),
+                    SeriesData[ x, 0, {}, 2, 3, 1]]}],
+                SeriesData[ x, 0, {
+                  Times[ -30, 
+                    Power[ A, 5]]}, 2, 3, 1]]},
+            {
+              InterpretationBox[
+                RowBox[{\(-\(70\ A\^6\ x\^2\)\), "+", 
+                  InterpretationBox[\(O[x]\^3\),
+                    SeriesData[ x, 0, {}, 2, 3, 1]]}],
+                SeriesData[ x, 0, {
+                  Times[ -70, 
+                    Power[ A, 6]]}, 2, 3, 1]]}
+            }], ")"}],
+      MatrixForm[ {
+        SeriesData[ x, 0, {
+          Times[ -140, 
+            Power[ A, -6]]}, 2, 3, 1], 
+        SeriesData[ x, 0, {
+          Times[ -70, 
+            Power[ A, -5]]}, 2, 3, 1], 
+        SeriesData[ x, 0, {
+          Times[ -30, 
+            Power[ A, -4]]}, 2, 3, 1], 
+        SeriesData[ x, 0, {
+          Times[ -10, 
+            Power[ A, -3]]}, 2, 3, 1], 
+        SeriesData[ x, 0, {
+          Times[ -2, 
+            Power[ A, -2]]}, 2, 3, 1], 0, 0, 0, 0, 
+        SeriesData[ x, 0, {
+          Times[ -2, 
+            Power[ A, 3]]}, 2, 3, 1], 
+        SeriesData[ x, 0, {
+          Times[ -10, 
+            Power[ A, 4]]}, 2, 3, 1], 
+        SeriesData[ x, 0, {
+          Times[ -30, 
+            Power[ A, 5]]}, 2, 3, 1], 
+        SeriesData[ x, 0, {
+          Times[ -70, 
+            Power[ A, 6]]}, 2, 3, 1]}]]], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "We see that all the positive and negative solutions are preserved with an \
+error that is of order ",
+  Cell[BoxData[
+      \(TraditionalForm\`\((\[CapitalDelta]\ t)\)\^2\)],
+    ImageMargins->{{0, 0}, {0, 0}}],
+  ", though the size of the error increases as the power of ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " increases away from zero. I conjecture that this is the best that can be \
+done with a binomial scheme. With a trinomial scheme, it turns out one can do \
+quite a lot better. One exercise that I have not yet considered is the extent \
+to which the supersymmetric binomial tree specification can be tightened \
+further by either considering a different family of power solutions, or \
+including symmetries associated with other elementary solutions. There is one \
+very important case that should be noted, however."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["\"Approximate\" Jarrow-Rudd Re-visited", "Subsubsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Let's go back to the fundamental binomial constraint. We set the yield to \
+zero (we can replace ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\)]],
+  " by ",
+  Cell[BoxData[
+      \(TraditionalForm\`r - q\)]],
+  " later - for the present this prevents any confusion between yield and the \
+down weight) and consider the constraint in the standard notation, obtained \
+by setting"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(f[u_, \ d_, \ p_, \ q_, \ n_, \ r_, \ \[Sigma]_]\  := \n\t
+      p\ u^n\  + \ q\ d^n\  - \ 
+        Exp[\((1/2\ n \((n - 1)\) \[Sigma]^2\  + \ 
+                n\ r)\) \[CapitalDelta]t]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "to zero. Previously we have considered this equation for just integer \
+values of ",
+  Cell[BoxData[
+      \(TraditionalForm\`n\)]],
+  ", and ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(-1\), 0, 1, 2\)]],
+  " in particular. We can instead consider it for real ",
+  Cell[BoxData[
+      \(TraditionalForm\`n\)]],
+  ", and demand instead that we set as many derivatives as possible to zero, \
+evaluated at ",
+  Cell[BoxData[
+      \(TraditionalForm\`n = 0\)]],
+  ". This is very illuminating. The zeroth derivative gives us"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(ea\  = \ f[u, d, p, q, 0, r, \[Sigma]]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(-1\) + p + q\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+The first derivative generates a constraint based on setting the \
+following to zero:\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(eb\  = \ D[f[u, d, p, q, n, r, \[Sigma]], \ n]\  /. \ n -> \ 0\)], 
+  "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(-\[CapitalDelta]t\)\ \((r - \[Sigma]\^2\/2)\) + q\ Log[d] + 
+      p\ Log[u]\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Astute readers will note that this is the same constraint as would \
+arise from demanding that the tree preserve the log solution. The second and \
+third derivatives give us the conditions that the following are also \
+zero:\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(ec\  = \ D[f[u, d, p, q, n, r, \[Sigma]], \ {n, 2}]\  /. \ n -> \ 0\)], 
+  "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(-\[CapitalDelta]t\)\ \[Sigma]\^2 - \[CapitalDelta]t\^2\ \((r - \
+\[Sigma]\^2\/2)\)\^2 + q\ Log[d]\^2 + p\ Log[u]\^2\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(ed\  = \ D[f[u, d, p, q, n, r, \[Sigma]], \ {n, 3}]\  /. \ n -> \ 0\)], 
+  "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(-3\)\ \[CapitalDelta]t\^2\ \[Sigma]\^2\ \((r - \[Sigma]\^2\/2)\) - \
+\[CapitalDelta]t\^3\ \((r - \[Sigma]\^2\/2)\)\^3 + q\ Log[d]\^3 + 
+      p\ Log[u]\^3\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Now let's solve these four conditions, and take the second \
+solution:\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Simplify[\(Solve[{ea == 0, \ eb == 0, \ ec == 0, \ ed == 0}, \ {u, d, 
+            p, q}]\)[\([2]\)]]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({p \[Rule] 1\/2, q \[Rule] 1\/2, 
+      u \[Rule] 
+        E\^\(r\ \[CapitalDelta]t + \@\[CapitalDelta]t\ \[Sigma] - \(\
+\[CapitalDelta]t\ \[Sigma]\^2\)\/2\), 
+      d \[Rule] 
+        E\^\(r\ \[CapitalDelta]t - \@\[CapitalDelta]t\ \[Sigma] - \(\
+\[CapitalDelta]t\ \[Sigma]\^2\)\/2\)}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+This is precisely the \"approximate\" Jarrow-Rudd form, which is \
+now seen to be an approximate supersymmetric system, based on the four \
+equations associated with the zero to third derivatives of the symmetry \
+constraint. Like the one we have derived based on four different integer \
+powers, its weights and factors remain non-negative.\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["18.5 A Supersymmetric Trinomial Scheme?", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "In the trinomial case we have three abscissa ratios, which we call ",
+  Cell[BoxData[
+      \(TraditionalForm\`u, d, s, \)]],
+  " and associated weights ",
+  Cell[BoxData[
+      \(TraditionalForm\`p, q, r\)]],
+  ". They solve the symmetry conditions"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+{p + q + r == 1,
+p*u + q*d + r*s == A,
+p*u^2 + q*d^2 + r*s^2 == A^2 B,
+p*u^3 + q*d^3 + r*s^3 == A^3 B^3,
+p/u + q/d+ r/s == B/A,
+p/u^2 + q/d^2+ r/s^2 == B^3/A^2};\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "We may as well scale ",
+  Cell[BoxData[
+      \(TraditionalForm\`A\)]],
+  " out of the problem immediately, by writing"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(u\  = \ A\ U; \nd\  = \ A\ D; \ns\  = \ A\ S; \)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["This leads to the set", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+teqns = {p + q + r == 1,
+p*U + q*D + r*S == 1,
+p*U^2 + q*D^2 + r*S^2 == B,
+p*U^3 + q*D^3 + r*S^3 == B^3,
+p/U + q/D+ r/S == B,
+p/U^2 + q/D^2+ r/S^2 == B^3};\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This family is solved most easily by a little manual intervention coupled \
+with ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  ". We first eliminate ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\)]],
+  " by using the first condition, and substitute in the remaining five \
+equations:"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(teqnsb\  = \ Rest[teqns /. \ r\  -> \ \((1 - p - q)\)]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({D\ q + \((1 - p - q)\)\ S + p\ U == 1, 
+      D\^2\ q + \((1 - p - q)\)\ S\^2 + p\ U\^2 == B, 
+      D\^3\ q + \((1 - p - q)\)\ S\^3 + p\ U\^3 == B\^3, 
+      q\/D + \(1 - p - q\)\/S + p\/U == B, 
+      q\/D\^2 + \(1 - p - q\)\/S\^2 + p\/U\^2 == B\^3}\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "The first two of these five serve to define ",
+  Cell[BoxData[
+      \(TraditionalForm\`p, \ q\)]],
+  " in terms of ",
+  Cell[BoxData[
+      \(TraditionalForm\`U, D, S\)]],
+  ":"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(teqnsc\  = \ teqnsb[\([{1, 2}]\)]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({D\ q + \((1 - p - q)\)\ S + p\ U == 1, 
+      D\^2\ q + \((1 - p - q)\)\ S\^2 + p\ U\^2 == B}\)], "Output"]
+}, Open  ]],
+
+Cell["So we solve them explicitly:", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(tsolnc\  = \ Simplify[\(Solve[teqnsc, \ {p, q}]\)[\([1]\)]]\)], "Input",\
+
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({p \[Rule] \(B + D\ \((\(-1\) + S)\) - S\)\/\(\((D - U)\)\ \((S - \
+U)\)\), q \[Rule] \(B + S\ \((\(-1\) + U)\) - U\)\/\(\((D - S)\)\ \((D - U)\)\
+\)}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Note that the weights are again independent of the drift. Now we \
+substitute these relations into the remaining three and simplify:\
+\>", "Text",\
+
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["teqnsd = Simplify[teqnsb[[{3,4,5}]] /. tsolnc]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({\(-S\)\ U + B\ \((D + S + U)\) + D\ \((\(-S\) - U + S\ U)\) == 
+        B\^3, \(B - S - U + S\ U + D\ \((\(-1\) + S + U)\)\)\/\(D\ S\ U\) == 
+        B, \(S\ U\ \((\(-S\) - U + S\ U)\) + D\^2\ \((\(-S\) + S\^2 - U + S\ \
+U + U\^2)\) + D\ \((\(-S\^2\) - 2\ S\ U + S\^2\ U - U\^2 + S\ U\^2)\) + B\ \
+\((S\ U + D\ \((S + U)\))\)\)\/\(D\^2\ S\^2\ U\^2\) == B\^3}\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "This is still quite hard to solve. In the binomial case we found a \
+solution with ",
+  Cell[BoxData[
+      \(TraditionalForm\`U\  = \ 1/D\)]],
+  " in the current notation - let's see if this still works:"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["teqnse = Simplify[teqnsd /. D->1/U]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakWithin->True,
+  GroupPageBreakWithin->True],
+
+Cell[BoxData[
+    \({\(-1\) + S\ \((1 + B - 1\/U - U)\) + B\ \((1\/U + U)\) == 
+        B\^3, \(B + \(\((\(-1\) + S)\)\ \((1 - U + U\^2)\)\)\/U\)\/S == 
+        B, \(U\ \((\(-1\) + U + B\ U - U\^2)\) - S\ \((1 + U\^2)\)\ \((1 - \
+\((1 + B)\)\ U + U\^2)\) + S\^2\ \((1 - U + U\^2 - U\^3 + U\^4)\)\)\/\(S\^2\ \
+U\^2\) == B\^3}\)], "Output"]
+}, Open  ]],
+
+Cell["Does this set have a solution?", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(provisionalsoln\  = \ Solve[teqnse, \ {U, S}]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(Solve::"svars" \( : \ \) 
+      "Equations may not give solutions for all \"solve\" variables."\)], 
+  "Message"],
+
+Cell[BoxData[
+    \({{S \[Rule] 1, 
+        U \[Rule] 
+          1\/2\ \((\(-\((\(-1\) - 
+                        B)\)\)\ B - \@\(\(-4\) + B\^2 + 2\ B\^3 + B\^4\))\)}, \
+{S \[Rule] 1, 
+        U \[Rule] 
+          1\/2\ \((\(-\((\(-1\) - 
+                        B)\)\)\ B + \@\(\(-4\) + B\^2 + 2\ B\^3 + B\^4\))\)}, \
+{U \[Rule] \(-I\)}, {U \[Rule] I}, {U \[Rule] 1}, {U \[Rule] 1}}\)], "Output"]
+}, Open  ]],
+
+Cell["The second of this lot looks promising:", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(trialsoln\  = provisionalsoln[\([2]\)]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({S \[Rule] 1, 
+      U \[Rule] 
+        1\/2\ \((\(-\((\(-1\) - 
+                      B)\)\)\ B + \@\(\(-4\) + B\^2 + 2\ B\^3 + B\^4\))\)}\)],
+   "Output"]
+}, Open  ]],
+
+Cell["Let's see if it really works:", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Simplify[teqnse\  /. \ trialsoln]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({True, True, True}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+It does! We have found a supersymmetric trinomial tree satisfying \
+all six symmetry conditions. We write the complete answer as follows:\
+\>", 
+  "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(U[\ b_]\  := \ 
+      1/2\ \((b*\((b + 1)\) + Sqrt[b^4\  + \ 2\ b^3\  + \ b^2\  - \ 4])\); \n
+    up[a_, \ b_]\  := \ a\ U[b]; \ 
+    down[a_, \ b_]\  := \ a\ /U[b]; \[IndentingNewLine]stay[a_, \ b_]\  := \ 
+      a; \np[a_, \ 
+        b_]\  := \ \(\((b - 1)\)/\((1 - U[b])\)\)/\((1/U[b]\  - \ U[b])\); \n
+    q[a_, \ b_]\  := \ \(\((b - 1)\)/\((1 - 1/U[b])\)\)/\((U[b]\  - \ 
+            1/U[b])\); \nr[a_, \ b_]\  := \ 1\  - \ p[1, b] - q[1, b]\)], 
+  "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Here is the full form of the up and down and \"stay\" multipliers - \
+note all three have a drift factor:\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(TraditionalForm[
+      up[Exp[\((r - q)\) \[CapitalDelta]t], \ 
+        Exp[\[Sigma]^2\ \[CapitalDelta]t]]]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`1\/2\ \[ExponentialE]\^\(\((r - q)\)\ \[CapitalDelta]t\
+\)\ \((\[ExponentialE]\^\(\[CapitalDelta]t\ \[Sigma]\^2\)\ \((1 + \
+\[ExponentialE]\^\(\[CapitalDelta]t\ \[Sigma]\^2\))\) + \@\(\(-4\) + \
+\[ExponentialE]\^\(2\ \[CapitalDelta]t\ \[Sigma]\^2\) + 2\ \
+\[ExponentialE]\^\(3\ \[CapitalDelta]t\ \[Sigma]\^2\) + \[ExponentialE]\^\(4\ \
+\[CapitalDelta]t\ \[Sigma]\^2\)\))\)\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(TraditionalForm[
+      down[Exp[\((r - q)\) \[CapitalDelta]t], \ 
+        Exp[\[Sigma]^2\ \[CapitalDelta]t]]]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(2\ \[ExponentialE]\^\(\((r - q)\)\ \
+\[CapitalDelta]t\)\)\/\(\[ExponentialE]\^\(\[CapitalDelta]t\ \[Sigma]\^2\)\ \
+\((1 + \[ExponentialE]\^\(\[CapitalDelta]t\ \[Sigma]\^2\))\) + \@\(\(-4\) + \
+\[ExponentialE]\^\(2\ \[CapitalDelta]t\ \[Sigma]\^2\) + 2\ \
+\[ExponentialE]\^\(3\ \[CapitalDelta]t\ \[Sigma]\^2\) + \[ExponentialE]\^\(4\ \
+\[CapitalDelta]t\ \[Sigma]\^2\)\)\)\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(TraditionalForm[
+      stay[Exp[\((r - q)\) \[CapitalDelta]t], \ 
+        Exp[\[Sigma]^2\ \[CapitalDelta]t]]]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[ExponentialE]\^\(\((r - q)\)\ \[CapitalDelta]t\)\)], 
+  "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "As in the binomial case, none of the weights/abscissas can become zero or \
+negative. The small-time behaviour of these functions is instructive - the \
+weights do tend to (1/6, 2/3, 1/6) as the time-step tends to zero, and the up \
+and down scale factors do look like those corresponding to ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[ExponentialE]\^\(\[Sigma]\ \@\(3  \[CapitalDelta]t\
+\)\)\)]],
+  ", and its inverse, multiplied by a drift correction."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(PowerExpand[
+      Series[up\ [Exp[\((r - q)\)\ t], \ Exp[\[Sigma]^2\ t]], \ {t, \ 0, \ 
+          1}]]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{
+      "1", "+", \(\@3\ \[Sigma]\ \@t\), 
+        "+", \(1\/2\ \((2\ \((\(-q\) + r)\) + 3\ \[Sigma]\^2)\)\ t\), "+", 
+        InterpretationBox[\(O[t]\^\(3/2\)\),
+          SeriesData[ t, 0, {}, 0, 3, 2]]}],
+      SeriesData[ t, 0, {1, 
+        Times[ 
+          Power[ 3, 
+            Rational[ 1, 2]], \[Sigma]], 
+        Times[ 
+          Rational[ 1, 2], 
+          Plus[ 
+            Times[ 2, 
+              Plus[ 
+                Times[ -1, q], r]], 
+            Times[ 3, 
+              Power[ \[Sigma], 2]]]]}, 0, 3, 2]]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(PowerExpand[
+      Series[down\ [Exp[\((r - q)\)\ t], \ Exp[\[Sigma]^2\ t]], \ {t, \ 0, \ 
+          1}]]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{
+      "1", "-", \(\@3\ \[Sigma]\ \@t\), 
+        "+", \(2\ \((1\/2\ \((\(-q\) + r)\) + \(3\ \[Sigma]\^2\)\/4)\)\ t\), 
+        "+", 
+        InterpretationBox[\(O[t]\^\(3/2\)\),
+          SeriesData[ t, 0, {}, 0, 3, 2]]}],
+      SeriesData[ t, 0, {1, 
+        Times[ -1, 
+          Power[ 3, 
+            Rational[ 1, 2]], \[Sigma]], 
+        Times[ 2, 
+          Plus[ 
+            Times[ 
+              Rational[ 1, 2], 
+              Plus[ 
+                Times[ -1, q], r]], 
+            Times[ 
+              Rational[ 3, 4], 
+              Power[ \[Sigma], 2]]]]}, 0, 3, 2]]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(PowerExpand[
+      Series[stay\ [Exp[\((r - q)\)\ t], \ Exp[\[Sigma]^2\ t]], \ {t, \ 0, \ 
+          1}]]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{"1", "+", \(\((\(-q\) + r)\)\ t\), "+", 
+        InterpretationBox[\(O[t]\^2\),
+          SeriesData[ t, 0, {}, 0, 2, 1]]}],
+      SeriesData[ t, 0, {1, 
+        Plus[ 
+          Times[ -1, q], r]}, 0, 2, 1]]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(PowerExpand[
+      Series[p\ [Exp[\((r - q)\)\ t], \ Exp[\[Sigma]^2\ t]], \ {t, \ 0, \ 
+          1}]]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  GroupPageBreakWithin->True],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{\(1\/6\), "-", \(\(\[Sigma]\ \@t\)\/\(4\ \@3\)\), 
+        "-", \(\(\[Sigma]\^2\ t\)\/18\), 
+        "+", \(\(7\ \[Sigma]\^3\ t\^\(3/2\)\)\/\(96\ \@3\)\), "+", 
+        InterpretationBox[\(O[t]\^2\),
+          SeriesData[ t, 0, {}, 0, 4, 2]]}],
+      SeriesData[ t, 0, {
+        Rational[ 1, 6], 
+        Times[ 
+          Rational[ -1, 4], 
+          Power[ 3, 
+            Rational[ -1, 2]], \[Sigma]], 
+        Times[ 
+          Rational[ -1, 18], 
+          Power[ \[Sigma], 2]], 
+        Times[ 
+          Rational[ 7, 96], 
+          Power[ 3, 
+            Rational[ -1, 2]], 
+          Power[ \[Sigma], 3]]}, 0, 4, 2]]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(PowerExpand[
+      Series[q\ [Exp[\((r - q)\)\ t], \ Exp[\[Sigma]^2\ t]], \ {t, \ 0, \ 
+          1}]]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{\(1\/6\), "+", \(\(\[Sigma]\ \@t\)\/\(4\ \@3\)\), 
+        "-", \(\(\[Sigma]\^2\ t\)\/18\), 
+        "-", \(\(7\ \[Sigma]\^3\ t\^\(3/2\)\)\/\(96\ \@3\)\), "+", 
+        InterpretationBox[\(O[t]\^2\),
+          SeriesData[ t, 0, {}, 0, 4, 2]]}],
+      SeriesData[ t, 0, {
+        Rational[ 1, 6], 
+        Times[ 
+          Rational[ 1, 4], 
+          Power[ 3, 
+            Rational[ -1, 2]], \[Sigma]], 
+        Times[ 
+          Rational[ -1, 18], 
+          Power[ \[Sigma], 2]], 
+        Times[ 
+          Rational[ -7, 96], 
+          Power[ 3, 
+            Rational[ -1, 2]], 
+          Power[ \[Sigma], 3]]}, 0, 4, 2]]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(PowerExpand[
+      Series[r\ [Exp[\((r - q)\) t], \ Exp[\[Sigma]^2\ t]], \ {t, \ 0, \ 
+          1}]]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{\(2\/3\), "+", \(\(\[Sigma]\^2\ t\)\/9\), "+", 
+        InterpretationBox[\(O[t]\^2\),
+          SeriesData[ t, 0, {}, 0, 4, 2]]}],
+      SeriesData[ t, 0, {
+        Rational[ 2, 3], 0, 
+        Times[ 
+          Rational[ 1, 9], 
+          Power[ \[Sigma], 2]]}, 0, 4, 2]]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Satisfaction of Neighbouring Symmetry Constraints", "Subsubsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+As in the binomial case, we can explore the extent to which other \
+neighbouring symmetries apply.\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(CheckSymmetry[u_, \ d_, s_, \ \ p_, \ q_, \ r_, \ n_, \ a_, \ 
+        b_]\  := \ 
+      Factor[Simplify[
+          p\ u^n\  + \ q\ d^n\  + \ r\ s^n - \ 
+            a^n\ b^\((\((n - 1)\) n/2)\)]]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "We leave it as an exercise for the reader to confirm that this function \
+yields zero for the cases ",
+  Cell[BoxData[
+      \(TraditionalForm\`n = \(-2\), \(-1\), 0, 1, 2, 3\)]],
+  ". As to neighbouring values:"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Series[\((CheckSymmetry[up[a, b], down[a, b], stay[a, b], p[a, b], 
+            q[a, b], r[a, b], 4, a, b] /. b -> 1 + x)\), {x, 0, 3}]\)], 
+  "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{\(-\(6\ a\^4\ x\^3\)\), "+", 
+        InterpretationBox[\(O[x]\^4\),
+          SeriesData[ x, 0, {}, 6, 8, 2]]}],
+      SeriesData[ x, 0, {
+        Times[ -6, 
+          Power[ a, 4]]}, 6, 8, 2]]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Series[\((CheckSymmetry[up[a, b], \ down[a, b], \ stay[a, b], \ 
+            p[a, b], \ q[a, b], \ r[a, b], \ \(-3\), \ a, \ b] /. \ 
+          b -> \ 1 + x)\), \ {x, \ 0, \ 3}]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  GroupPageBreakWithin->True],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{\(-\(\(6\ x\^3\)\/a\^3\)\), "+", 
+        InterpretationBox[\(O[x]\^4\),
+          SeriesData[ x, 0, {}, 6, 8, 2]]}],
+      SeriesData[ x, 0, {
+        Times[ -6, 
+          Power[ a, -3]]}, 6, 8, 2]]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Series[\((CheckSymmetry[up[a, b], \ down[a, b], \ stay[a, b], \ 
+            p[a, b], \ q[a, b], \ r[a, b], \ \(-4\), \ a, \ b] /. \ 
+          b -> \ 1 + x)\), \ {x, \ 0, \ 3}]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  GroupPageBreakWithin->True],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{\(-\(\(42\ x\^3\)\/a\^4\)\), "+", 
+        InterpretationBox[\(O[x]\^4\),
+          SeriesData[ x, 0, {}, 6, 8, 2]]}],
+      SeriesData[ x, 0, {
+        Times[ -42, 
+          Power[ a, -4]]}, 6, 8, 2]]], "Output"]
+}, Open  ]],
+
+Cell[BoxData[
+    FormBox["", TraditionalForm]], "Input"],
+
+Cell[TextData[{
+  "So the neighbouring symmetries are satisfied with an error that is of \
+order ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[CapitalDelta]\ t\^3\)]],
+  ". I conjecture that this is the best that can be done with a trinomial \
+system - six symmetry relations are preserved exactly and all others are \
+preserved with an error that is now ",
+  StyleBox["cubic",
+    FontSlant->"Italic"],
+  " in the time-step. The reader may wish to explore the solution of the \
+constraints arising from differentiation, rather than from integer powers."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Chapter 18 Bibliography", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Benninga, S., Steinmetz, R., and Stroughair, J., 1993, Implementing \
+numerical option pricing models, ",
+  StyleBox["Mathematica Journal",
+    FontSlant->"Italic"],
+  ", 3, issue 4, p. 66, 1993.\n\nCox, J., Ross, S. and Rubenstein, M., 1979, \
+Option pricing: a simplified approach. ",
+  StyleBox["Journal of Financial Economics,",
+    FontSlant->"Italic"],
+  " 7. p. 229. \n\nHull, J. , 1996, ",
+  StyleBox["Options, Futures and Other Derivatives",
+    FontSlant->"Italic"],
+  ", 3rd edition, Prentice-Hall.\n\nJarrow, R.A., and Rudd, A., 1983, ",
+  StyleBox["Option Pricing",
+    FontSlant->"Italic"],
+  ", Irwin.\n\nWilmott, P., Dewynne, J. and Howison, S., 1995, ",
+  StyleBox["The Mathematics of Financial Derivatives",
+    FontSlant->"Italic"],
+  ", Cambridge University Press. "
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]]
+},
+FrontEndVersion->"Macintosh 3.0",
+ScreenRectangle->{{0, 1152}, {0, 850}},
+AutoGeneratedPackage->None,
+WindowToolbars->{},
+CellGrouping->Automatic,
+WindowSize->{664, 612},
+WindowMargins->{{4, Automatic}, {Automatic, 1}},
+PrintingCopies->1,
+PrintingStartingPageNumber->344,
+PrintingPageRange->{1, Automatic},
+PageHeaders->{{Inherited, Inherited, Cell[ 
+        TextData[ {"18. Traditional and Supersymmetric Trees"}]]}, {Cell[ 
+        TextData[ {"18. Traditional and Supersymmetric Trees"}]], Inherited, 
+      Inherited}},
+PageFooters->{{Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}, {Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}},
+PrintingOptions->{"PrintingMargins"->{{0, 0}, {57, 57}},
+"PaperSize"->{439, 716},
+"PrintCellBrackets"->False,
+"PrintRegistrationMarks"->False,
+"PrintMultipleHorizontalPages"->False,
+"FirstPageHeader"->False,
+"FacingPages"->True},
+PrivateNotebookOptions->{"ColorPalette"->{RGBColor, 128}},
+ShowCellLabel->False,
+ShowCellTags->False,
+RenderingOptions->{"ObjectDithering"->True,
+"RasterDithering"->False},
+Magnification->1,
+StyleDefinitions -> "Default.nb",
+MacintoshSystemPageSetup->"\<\
+00<0004/0B`000003;T8`?n3ohP==PTh0fL5N`?P0080004/0B`000006G<AP001
+0000I00000400@4100800BL?00400@RoU?0000000000064/01T1T0000000@000
+00000000007oo@S20B3oo@001HL:kP00\>"
+]
+
+
+(***********************************************************************
+Cached data follows.  If you edit this Notebook file directly, not using
+Mathematica, you must remove the line containing CacheID at the top of 
+the file.  The cache data will then be recreated when you save this file 
+from within Mathematica.
+***********************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1731, 51, 227, 8, 174, "Title"],
+Cell[1961, 61, 226, 4, 64, "Subsubtitle"],
+
+Cell[CellGroupData[{
+Cell[2212, 69, 93, 1, 50, "Section"],
+Cell[2308, 72, 6052, 97, 919, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[8397, 174, 116, 1, 38, "Section"],
+Cell[8516, 177, 133, 1, 20, "Text"],
+Cell[8652, 180, 257, 4, 38, "NumberedEquation"],
+Cell[8912, 186, 596, 16, 40, "Text"],
+Cell[9511, 204, 305, 6, 20, "NumberedEquation"],
+
+Cell[CellGroupData[{
+Cell[9841, 214, 124, 1, 32, "Subsection"],
+Cell[9968, 217, 1131, 18, 117, "Text"],
+Cell[11102, 237, 302, 5, 30, "NumberedEquation"],
+Cell[11407, 244, 187, 6, 20, "Text"],
+Cell[11597, 252, 168, 3, 20, "NumberedEquation"],
+Cell[11768, 257, 256, 5, 29, "NumberedEquation"],
+Cell[12027, 264, 284, 5, 32, "NumberedEquation"],
+Cell[12314, 271, 219, 6, 20, "Text"],
+Cell[12536, 279, 284, 5, 29, "NumberedEquation"],
+Cell[12823, 286, 290, 5, 32, "NumberedEquation"],
+Cell[13116, 293, 422, 7, 52, "Text"],
+Cell[13541, 302, 265, 4, 22, "NumberedEquation"],
+Cell[13809, 308, 180, 6, 20, "Text"],
+Cell[13992, 316, 135, 2, 20, "NumberedEquation"],
+Cell[14130, 320, 217, 4, 20, "NumberedEquation"],
+Cell[14350, 326, 246, 4, 21, "NumberedEquation"],
+Cell[14599, 332, 234, 6, 20, "Text"],
+Cell[14836, 340, 236, 4, 29, "NumberedEquation"],
+Cell[15075, 346, 245, 4, 30, "NumberedEquation"],
+Cell[15323, 352, 868, 16, 106, "Text"],
+
+Cell[CellGroupData[{
+Cell[16216, 372, 109, 1, 28, "Subsubsection"],
+Cell[16328, 375, 96, 1, 20, "Text"],
+Cell[16427, 378, 140, 2, 29, "NumberedEquation"],
+Cell[16570, 382, 225, 5, 29, "Text"],
+Cell[16798, 389, 201, 4, 20, "NumberedEquation"],
+Cell[17002, 395, 223, 4, 20, "NumberedEquation"],
+Cell[17228, 401, 266, 7, 29, "Text"],
+Cell[17497, 410, 332, 7, 38, "Input"],
+Cell[17832, 419, 409, 11, 29, "Text"],
+Cell[18244, 432, 215, 6, 25, "Input"],
+Cell[18462, 440, 245, 4, 28, "NumberedEquation"],
+Cell[18710, 446, 155, 3, 25, "Input"],
+Cell[18868, 451, 245, 4, 28, "NumberedEquation"],
+Cell[19116, 457, 312, 7, 29, "Text"],
+Cell[19431, 466, 168, 3, 20, "NumberedEquation"],
+Cell[19602, 471, 334, 6, 40, "Text"],
+
+Cell[CellGroupData[{
+Cell[19961, 481, 109, 1, 25, "Input"],
+Cell[20073, 484, 219, 5, 37, "Output"]
+}, Open  ]],
+Cell[20307, 492, 80, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[20412, 497, 109, 1, 25, "Input"],
+Cell[20524, 500, 220, 5, 37, "Output"]
+}, Open  ]],
+Cell[20759, 508, 96, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[20880, 513, 109, 1, 25, "Input"],
+Cell[20992, 516, 219, 5, 37, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[21248, 526, 110, 1, 25, "Input"],
+Cell[21361, 529, 220, 5, 37, "Output"]
+}, Open  ]],
+Cell[21596, 537, 188, 4, 20, "Text"],
+Cell[21787, 543, 496, 8, 22, "NumberedEquation"],
+Cell[22286, 553, 526, 12, 52, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[22849, 570, 117, 1, 28, "Subsubsection"],
+Cell[22969, 573, 147, 4, 20, "Text"],
+Cell[23119, 579, 133, 2, 20, "NumberedEquation"],
+Cell[23255, 583, 117, 1, 20, "Text"],
+Cell[23375, 586, 224, 4, 20, "NumberedEquation"],
+Cell[23602, 592, 254, 4, 21, "NumberedEquation"],
+Cell[23859, 598, 277, 9, 20, "Text"],
+Cell[24139, 609, 305, 5, 40, "NumberedEquation"],
+Cell[24447, 616, 125, 1, 20, "Text"],
+Cell[24575, 619, 374, 5, 44, "NumberedEquation"],
+Cell[24952, 626, 233, 6, 20, "Text"],
+Cell[25188, 634, 280, 4, 22, "NumberedEquation"],
+Cell[25471, 640, 350, 7, 37, "Input"],
+Cell[25824, 649, 113, 2, 25, "Input"],
+
+Cell[CellGroupData[{
+Cell[25962, 655, 91, 2, 25, "Input"],
+Cell[26056, 659, 281, 4, 48, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[26374, 668, 91, 2, 25, "Input"],
+Cell[26468, 672, 281, 4, 48, "Output"]
+}, Open  ]],
+Cell[26764, 679, 232, 5, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[27021, 688, 160, 3, 25, "Input"],
+Cell[27184, 693, 191, 4, 48, "Output"]
+}, Open  ]],
+Cell[27390, 700, 257, 7, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[27672, 711, 256, 5, 37, "Input"],
+Cell[27931, 718, 191, 4, 48, "Output"]
+}, Open  ]],
+Cell[28137, 725, 1116, 18, 117, "Text"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[29314, 750, 104, 1, 38, "Section"],
+Cell[29421, 753, 1189, 21, 128, "Text"],
+Cell[30613, 776, 135, 2, 20, "NumberedEquation"],
+Cell[30751, 780, 217, 4, 20, "NumberedEquation"],
+Cell[30971, 786, 246, 4, 21, "NumberedEquation"],
+Cell[31220, 792, 236, 4, 29, "NumberedEquation"],
+Cell[31459, 798, 167, 6, 20, "Text"],
+Cell[31629, 806, 223, 4, 20, "NumberedEquation"],
+Cell[31855, 812, 252, 4, 21, "NumberedEquation"],
+Cell[32110, 818, 239, 4, 32, "NumberedEquation"],
+Cell[32352, 824, 204, 6, 20, "Text"],
+Cell[32559, 832, 464, 7, 36, "NumberedEquation"],
+Cell[33026, 841, 128, 1, 20, "Text"],
+Cell[33157, 844, 472, 7, 36, "NumberedEquation"],
+Cell[33632, 853, 131, 1, 20, "Text"],
+Cell[33766, 856, 428, 6, 34, "NumberedEquation"],
+Cell[34197, 864, 163, 4, 20, "Text"],
+Cell[34363, 870, 319, 5, 20, "NumberedEquation"],
+Cell[34685, 877, 148, 4, 20, "Text"],
+Cell[34836, 883, 312, 5, 20, "NumberedEquation"],
+Cell[35151, 890, 204, 4, 29, "Text"],
+Cell[35358, 896, 275, 5, 22, "NumberedEquation"],
+Cell[35636, 903, 204, 4, 20, "NumberedEquation"],
+Cell[35843, 909, 105, 1, 20, "Text"],
+Cell[35951, 912, 224, 4, 20, "NumberedEquation"],
+Cell[36178, 918, 164, 6, 20, "Text"],
+Cell[36345, 926, 206, 4, 20, "NumberedEquation"],
+Cell[36554, 932, 139, 2, 20, "NumberedEquation"],
+Cell[36696, 936, 406, 8, 40, "Text"],
+Cell[37105, 946, 198, 3, 22, "NumberedEquation"],
+Cell[37306, 951, 283, 5, 29, "Text"],
+Cell[37592, 958, 408, 6, 32, "NumberedEquation"],
+Cell[38003, 966, 405, 6, 32, "NumberedEquation"],
+Cell[38411, 974, 170, 4, 20, "Text"],
+Cell[38584, 980, 483, 11, 76, "NumberedEquation"],
+
+Cell[CellGroupData[{
+Cell[39092, 995, 109, 1, 28, "Subsubsection"],
+Cell[39204, 998, 575, 14, 84, "Text"],
+Cell[39782, 1014, 135, 3, 25, "Input"],
+
+Cell[CellGroupData[{
+Cell[39942, 1021, 108, 1, 25, "Input"],
+Cell[40053, 1024, 8325, 296, 128, 3288, 229, "GraphicsData", 
+"PostScript", "Graphics"]
+}, Open  ]],
+Cell[48393, 1323, 677, 18, 73, "Text"],
+Cell[49073, 1343, 136, 3, 25, "Input"],
+Cell[49212, 1348, 509, 14, 52, "Text"],
+Cell[49724, 1364, 188, 4, 36, "Input"],
+Cell[49915, 1370, 201, 6, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[50141, 1380, 97, 1, 25, "Input"],
+Cell[50241, 1383, 405, 10, 52, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[50683, 1398, 97, 1, 25, "Input"],
+Cell[50783, 1401, 404, 10, 52, "Output"]
+}, Open  ]],
+Cell[51202, 1414, 212, 4, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[51439, 1422, 104, 1, 25, "Input"],
+Cell[51546, 1425, 260, 6, 45, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[51843, 1436, 103, 1, 25, "Input"],
+Cell[51949, 1439, 261, 6, 45, "Output"]
+}, Open  ]],
+Cell[52225, 1448, 238, 6, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[52488, 1458, 106, 1, 25, "Input"],
+Cell[52597, 1461, 261, 6, 45, "Output"]
+}, Open  ]],
+Cell[52873, 1470, 1142, 20, 106, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[54064, 1496, 194, 6, 38, "Section"],
+Cell[54261, 1504, 145, 4, 20, "Text"],
+Cell[54409, 1510, 456, 8, 37, "NumberedEquation"],
+Cell[54868, 1520, 454, 13, 29, "Text"],
+Cell[55325, 1535, 252, 4, 50, "Input"],
+Cell[55580, 1541, 266, 7, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[55871, 1552, 257, 6, 37, "Input"],
+Cell[56131, 1560, 320, 5, 80, "Output"]
+}, Open  ]],
+Cell[56466, 1568, 190, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[56681, 1576, 123, 2, 25, "Input"],
+Cell[56807, 1580, 38, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[56882, 1586, 155, 3, 25, "Input"],
+Cell[57040, 1591, 35, 1, 36, "Output"]
+}, Open  ]],
+Cell[57090, 1595, 152, 4, 20, "Text"],
+Cell[57245, 1601, 292, 6, 37, "Input"],
+
+Cell[CellGroupData[{
+Cell[57562, 1611, 169, 3, 25, "Input"],
+Cell[57734, 1616, 77, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[57848, 1622, 169, 3, 25, "Input"],
+Cell[58020, 1627, 118, 2, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[58175, 1634, 174, 3, 25, "Input"],
+Cell[58352, 1639, 85, 1, 49, "Output"]
+}, Open  ]],
+Cell[58452, 1643, 634, 19, 40, "Text"],
+
+Cell[CellGroupData[{
+Cell[59111, 1666, 289, 5, 50, "Input"],
+Cell[59403, 1673, 3934, 107, 234, "Output"]
+}, Open  ]],
+Cell[63352, 1783, 930, 17, 84, "Text"],
+
+Cell[CellGroupData[{
+Cell[64307, 1804, 120, 1, 28, "Subsubsection"],
+Cell[64430, 1807, 467, 12, 40, "Text"],
+Cell[64900, 1821, 275, 5, 37, "Input"],
+Cell[65178, 1828, 611, 17, 40, "Text"],
+
+Cell[CellGroupData[{
+Cell[65814, 1849, 128, 2, 25, "Input"],
+Cell[65945, 1853, 48, 1, 36, "Output"]
+}, Open  ]],
+Cell[66008, 1857, 166, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[66199, 1865, 155, 3, 25, "Input"],
+Cell[66357, 1870, 112, 2, 52, "Output"]
+}, Open  ]],
+Cell[66484, 1875, 305, 6, 40, "Text"],
+
+Cell[CellGroupData[{
+Cell[66814, 1885, 160, 3, 25, "Input"],
+Cell[66977, 1890, 151, 2, 54, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[67165, 1897, 160, 3, 25, "Input"],
+Cell[67328, 1902, 190, 3, 54, "Output"]
+}, Open  ]],
+Cell[67533, 1908, 151, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[67709, 1916, 191, 3, 25, "Input"],
+Cell[67903, 1921, 318, 7, 48, "Output"]
+}, Open  ]],
+Cell[68236, 1931, 422, 7, 52, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[68707, 1944, 115, 1, 38, "Section"],
+Cell[68825, 1947, 338, 9, 29, "Text"],
+Cell[69166, 1958, 243, 8, 80, "Input"],
+Cell[69412, 1968, 207, 6, 20, "Text"],
+Cell[69622, 1976, 136, 2, 50, "Input"],
+Cell[69761, 1980, 94, 1, 20, "Text"],
+Cell[69858, 1983, 237, 8, 80, "Input"],
+Cell[70098, 1993, 383, 11, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[70506, 2008, 144, 2, 25, "Input"],
+Cell[70653, 2012, 286, 5, 77, "Output"]
+}, Open  ]],
+Cell[70954, 2020, 266, 9, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[71245, 2033, 123, 2, 25, "Input"],
+Cell[71371, 2037, 128, 2, 36, "Output"]
+}, Open  ]],
+Cell[71514, 2042, 101, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[71640, 2047, 151, 3, 25, "Input"],
+Cell[71794, 2052, 184, 3, 48, "Output"]
+}, Open  ]],
+Cell[71993, 2058, 215, 5, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[72233, 2067, 120, 1, 25, "Input"],
+Cell[72356, 2070, 393, 5, 92, "Output"]
+}, Open  ]],
+Cell[72764, 2078, 293, 7, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[73082, 2089, 164, 3, 25, "Input",
+  PageBreakWithin->True],
+Cell[73249, 2094, 338, 5, 100, "Output"]
+}, Open  ]],
+Cell[73602, 2102, 103, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[73730, 2107, 135, 2, 25, "Input"],
+Cell[73868, 2111, 133, 3, 32, "Message"],
+Cell[74004, 2116, 397, 9, 92, "Output"]
+}, Open  ]],
+Cell[74416, 2128, 112, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[74553, 2133, 128, 2, 25, "Input"],
+Cell[74684, 2137, 176, 5, 48, "Output"]
+}, Open  ]],
+Cell[74875, 2145, 102, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[75002, 2150, 123, 2, 25, "Input"],
+Cell[75128, 2154, 52, 1, 36, "Output"]
+}, Open  ]],
+Cell[75195, 2158, 221, 5, 29, "Text"],
+Cell[75419, 2165, 539, 10, 90, "Input"],
+Cell[75961, 2177, 186, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[76172, 2185, 197, 4, 25, "Input"],
+Cell[76372, 2191, 423, 6, 48, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[76832, 2202, 199, 4, 25, "Input"],
+Cell[77034, 2208, 422, 6, 54, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[77493, 2219, 199, 4, 25, "Input"],
+Cell[77695, 2225, 104, 2, 36, "Output"]
+}, Open  ]],
+Cell[77814, 2230, 544, 10, 53, "Text"],
+
+Cell[CellGroupData[{
+Cell[78383, 2244, 193, 4, 25, "Input"],
+Cell[78579, 2250, 592, 18, 48, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[79208, 2273, 195, 4, 25, "Input"],
+Cell[79406, 2279, 645, 20, 52, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[80088, 2304, 195, 4, 25, "Input"],
+Cell[80286, 2310, 271, 7, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[80594, 2322, 222, 5, 25, "Input"],
+Cell[80819, 2329, 688, 20, 56, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[81544, 2354, 192, 4, 25, "Input"],
+Cell[81739, 2360, 688, 20, 56, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[82464, 2385, 191, 4, 25, "Input"],
+Cell[82658, 2391, 336, 9, 38, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[83031, 2405, 131, 1, 30, "Subsubsection"],
+Cell[83165, 2408, 179, 4, 21, "Text"],
+Cell[83347, 2414, 286, 6, 20, "Input"],
+Cell[83636, 2422, 300, 7, 36, "Text"],
+
+Cell[CellGroupData[{
+Cell[83961, 2433, 228, 4, 20, "Input"],
+Cell[84192, 2439, 258, 7, 22, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[84487, 2451, 297, 5, 32, "Input"],
+Cell[84787, 2458, 263, 7, 38, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[85087, 2470, 297, 5, 32, "Input"],
+Cell[85387, 2477, 265, 7, 38, "Output"]
+}, Open  ]],
+Cell[85667, 2487, 57, 1, 20, "Input"],
+Cell[85727, 2490, 623, 13, 52, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[86399, 2509, 99, 1, 44, "Section"],
+Cell[86501, 2512, 874, 20, 152, "Text"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+
+(***********************************************************************
+End of Mathematica Notebook file.
+***********************************************************************)
+

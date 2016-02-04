@@ -1,0 +1,2393 @@
+(***********************************************************************
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used on any computer system with Mathematica 3.0,
+MathReader 3.0, or any compatible application. The data for the notebook 
+starts with the line of stars above.
+
+To get the notebook into a Mathematica-compatible application, do one of 
+the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing the 
+word CacheID, otherwise Mathematica-compatible applications may try to 
+use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+***********************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     55158,       1764]*)
+(*NotebookOutlinePosition[     56973,       1819]*)
+(*  CellTagsIndexPosition[     56929,       1815]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["\<\
+Chapter 22. 
+Basic Applications of Monte Carlo\
+\>", "Title",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  TextAlignment->Left,
+  TextJustification->0,
+  AspectRatioFixed->True],
+
+Cell["\<\
+The Dangers in the Simulation of Simple Path-Dependent Options\
+\>",
+   "Subsubtitle",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["22.1 Introduction", "Section",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "\nThis chapter presents some applications of the Monte Carlo method to the \
+simplest path-dependent options. It builds on the development given in the \
+previous chapter to explore the simulation treatment of some common \
+path-dependent options. All the options considered here actually have \
+closed-form solutions, but are readily adapted to more realistic problems \
+without closed-form descriptions. For those who may ask what the point is - \
+we need to develop an understanding of the problems of simulation, \
+particularly with regard to standard error control, and to demonstrate the \
+effectiveness of control variates. It turns out that although the computation \
+of path-dependent option values is conceptually trivial, practical issues \
+make it difficult to secure precise and accurate answers, especially when the \
+payoff involves extreme values along the path. Even in the case of options \
+involving the average there are interesting subtleties in the choice of \
+control variate. So our first applications of simulation will constitute \
+something of a warning about potential problems. \n\nWe do, however, wish \
+also to demonstrate the ease with which path-dependent options may be valued \
+by using ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  ". We merely generate paths and apply a payoff function. We begin by \
+summarizing the required material from Chapter 21."
+}], "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["22.2 Summary of Required Technology", "Section",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+First we load the Package for computing means and standard \
+errors:\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(Needs["\<Statistics`DescriptiveStatistics`\>"]; \)\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Next we define the function for sampling the normal distribution. \
+We use the version with antithetic pairs, and that makes the most efficient \
+use of the random number generator.\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(normpairat = \ 
+      Compile[{mu, \ sigma}, \ 
+        Module[{va, \ vb, \ rad\  = \ 2.0, \ den}, \n\t\t\tWhile[
+            rad\  >= 
+              1.00, \((va\  = \ 2.0*Random[]\  - \ 1.0; \n\t\t\t\t\tvb\  = \ 
+                2.0*Random[]\  - 1.0; 
+              rad\  = \ va*va + vb*vb)\)]; \n\t\t\tden\  = \ 
+            Sqrt[\(-2.0\)*Log[rad]/rad]; \n\t\t\t{mu + sigma*va*den, \ 
+            mu - sigma*va*den, \ mu + sigma*vb*den, \ 
+            mu - sigma*vb*den}]]; \)\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Now we recall our path-generation function suitable for coarse or \
+fine paths with clockwork sampling:\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+coarsepathpairat[s_, r_, q_, \[Sigma]_, t_, n_, navg_] :=
+Module[{mpath = N[(r-q-\[Sigma]^2/2)*t/(navg - 1)], spath = N[\[Sigma] \
+Sqrt[t/(navg - 1)]]},
+Flatten[Table[Transpose[
+NestList[# Exp[normpairat[mpath, spath]]&, {s, s, s, s}, navg - 1]], 
+{i, n}],1]];\
+\>", "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["\<\
+We shall use the latter for our experiments, though the reader may \
+wish to consider alternative simulations using fine paths and/or \
+non-antithetic pairs.\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["22.3 Monte Carlo Options on Extrema", "Section",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "In this section we define, as functions of the paths, valuation formulae \
+for the Call on maximum and Put on minimum. In each case the most efficient \
+variant using antithetic variables and both samples is the one actually used. \
+Note that in each case explicit provision is made for the existence of a \
+maximum or minimum between initiation and the valuation time. In each ",
+  Cell[BoxData[
+      \(TraditionalForm\`t\)]],
+  " is the time between valuation and expiry. The previous history serves \
+only to supply the max or min of the path between initiation and the time of \
+a re-valuation. "
+}], "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["The Call on Maximum", "Subsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "In this case the payoff is given by ",
+  Cell[BoxData[
+      \(TraditionalForm\`Max[0, \ Max[path]\  - \ strike]\)]],
+  ":"
+}], "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+MCCallOnMax[s_, smax_, k_, r_, q_, \[Sigma]_, t_, n_, navg_] :=
+(Exp[-t*r]*
+Map[Max[0, Max[Prepend[#, smax]] - k]&,
+coarsepathpairat[s, r, q, \[Sigma], t, n, navg]]) //
+{Mean[#], StandardErrorOfSampleMean[#]}&\
+\>", "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The Put on Minimum", "Subsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "In this case the payoff is given by ",
+  Cell[BoxData[
+      \(TraditionalForm\`Max[0, \ strike\  - \ Min[path]]\)]],
+  ":"
+}], "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+MCPutOnMin[s_, smin_, k_, r_, q_, \[Sigma]_, t_, n_, navg_] :=
+(Exp[-t*r]*
+Map[Max[0, k-Min[Prepend[#, smin]]]&,
+coarsepathpairat[s, r, q, \[Sigma], t, n, navg]]) //
+{Mean[#], StandardErrorOfSampleMean[#]}&\
+\>", "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["22.4 Monte Carlo Lookbacks ", "Section",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+Here we give the corresponding formulae for the standard Lookbacks, \
+but based on Monte Carlo.\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["Standard Lookback Call", "Subsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "In this case the payoff is given by",
+  Cell[BoxData[
+      \(TraditionalForm\`\(\ FinalValue[path]\  - \ \(Min[path] . \)\)\)]],
+  " "
+}], "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+MCLookBackCall[s_, smin_, r_, q_, \[Sigma]_, t_, n_, navg_] :=
+(Exp[-t*r]*
+Map[Last[#] - Min[Prepend[#, smin]]&,
+coarsepathpairat[s, r, q, \[Sigma], t, n, navg]]) //
+{Mean[#], StandardErrorOfSampleMean[#]}&\
+\>", "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Standard Lookback Put", "Subsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "In this case the payoff is given by ",
+  Cell[BoxData[
+      \(TraditionalForm\`Max[path]\  - \ FinalValue[Path]\)]],
+  ". "
+}], "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+MCLookBackPut[s_, smax_, r_, q_, \[Sigma]_, t_, n_, navg_] :=
+(Exp[-t*r]*
+Map[Max[Prepend[#, smax]]-Last[#]&,
+coarsepathpairat[s, r, q, \[Sigma], t, n, navg]]) //
+{Mean[#], StandardErrorOfSampleMean[#]}&\
+\>", "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["22.5 Monte Carlo Asian Options", "Section",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+To value an option based on paths, we simply introduce a payoff \
+function of the path. In the example of an Asian Call, we take the mean stock \
+price less the strike. The following formula does the case of the arithmetic \
+average, using the basic antithetic path technique. It is readily generalized \
+to treat the case of including an average to date, or to handle average \
+strike options. \
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+MCArithmeticAsianCall[s_, k_, r_, q_, \[Sigma]_, t_, n_, navg_] :=
+(Exp[-t*r]*
+Map[Max[0, Mean[#] - k]&, coarsepathpairat[s, r, q, \[Sigma], t, n, navg]]) \
+//
+{Mean[#], StandardErrorOfSampleMean[#]}&\
+\>", "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["We can do the geometric average by a similar route:", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+MCGeometricAsianCall[s_, k_, r_, q_, \[Sigma]_, t_, n_, navg_] :=
+(Exp[-t*r]*
+Map[Max[0, Exp[Mean[Log[#]]] - k]&,
+coarsepathpairat[s, r, q, \[Sigma], t, n, navg]]) //
+{Mean[#], StandardErrorOfSampleMean[#]}&\
+\>", "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["Similarly for the Puts:", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+MCArithmeticAsianPut[s_, k_, r_, q_, \[Sigma]_, t_, n_, navg_] :=
+(Exp[-t*r]*
+Map[Max[0, k-Mean[#]]&,
+coarsepathpairat[s, r, q, \[Sigma], t, n, navg]]) //
+{Mean[#], StandardErrorOfSampleMean[#]}&\
+\>", "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["\<\
+MCGeometricAsianPut[s_, k_, r_, q_, \[Sigma]_, t_, n_, navg_] :=
+(Exp[-t*r]*
+Map[Max[0, k-Exp[Mean[Log[#]]]]&,
+coarsepathpairat[s, r, q, \[Sigma], t, n, navg]]) //
+{Mean[#], StandardErrorOfSampleMean[#]}&\
+\>", "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["Control Variate Model of the Arithmetic Asian", "Subsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+As an introduction to the benefits of control variate methods, we \
+can also implement a function which gives the difference between the \
+arithmetic and geometric cases, evaluated on the same set of paths.\
+\>", 
+  "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+MCAriGeoCallCorrection[s_, k_, r_, q_, \[Sigma]_, t_, n_, navg_] :=
+(Exp[-t*r]*
+Map[(Max[0, Mean[#] - k]- Max[0, Exp[Mean[Log[#]]] - k])&,
+coarsepathpairat[s, r, q, \[Sigma], t, n, navg]]) //
+{Mean[#], StandardErrorOfSampleMean[#]}&\
+\>", "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["\<\
+MCAriGeoPutCorrection[s_, k_, r_, q_, \[Sigma]_, t_, n_, navg_] :=
+(Exp[-t*r]*
+Map[(Max[0, k-Mean[#]]- Max[0, k-Exp[Mean[Log[#]]]])&,
+coarsepathpairat[s, r, q, \[Sigma], t, n, navg]]) //
+{Mean[#], StandardErrorOfSampleMean[#]}&\
+\>", "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["\<\
+There will be interesting results arising from the choice of \
+precise implementation of such a control variate.\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["22.6 Verification Tests for Options Involving Extrema", "Section",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "We are now in a position to make some comparisons between the Monte Carlo \
+method and the exact solution technique. This follows a similar approach to \
+the one taken in Chapter 21, for the vanilla European options. However, with \
+path-dependent options there are additional complications. In a real-world \
+application, we may have the sampling frequency specified by the option \
+contract to be at certain discrete intervals. Clearly we can set the \
+parameter ",
+  StyleBox["navg",
+    FontFamily->"Courier",
+    FontWeight->"Bold"],
+  " to represent the desired sampling frequency as long as it is regular. \
+However, when we make comparisons with the continuous sampling limit, we face \
+two convergence issues simultaneously:\n\n(1) convergence rate controlled by \
+the parameter ",
+  StyleBox["n",
+    FontFamily->"Courier",
+    FontWeight->"Bold"],
+  " - the number of paths;\n(2) convergence rate controlled by the parameter \
+",
+  StyleBox["navg",
+    FontFamily->"Courier",
+    FontWeight->"Bold"],
+  " - the number of sample points on a path.\n\nIn the case of options \
+involving extrema, it is obvious that the sampling rate within a path plays a \
+critical role and can introduce a systematic bias. For example, the maximum \
+sampled daily is necessarily no greater than the maximum sampled \
+continuously.\n\nIn this section we shall make some basic comparisons between \
+the analytical models and the Monte Carlo models to illustrate some of the \
+convergence issues. We begin by re-examining the examples given in Chapter 9, \
+Sections 9.4-9.7, for various types of Lookback option."
+}], "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Standard Lookback Calls", "Subsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+We consider the example given in Section 9.4, and re-evaluate by \
+Monte Carlo methods. Recall that with the given parameters, the exact \
+solution for a Call, with minimum-to-date the same as the current price, was \
+8.6084. First we do an evaluation check with 10 paths and 10 time-steps per \
+path.\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCLookBackCall[50, \ 50, \ 0.05, \ 0, \ 0.2, \ 1, \ 10, 10]\)], "Input",\
+
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({8.04040238966695319`, 1.36975457335039529`}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+This has a very high standard error. Next we use 1000 paths, but \
+keep the number of time-steps per path at the very low figure of 10:\
+\>", 
+  "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCLookBackCall[50, \ 50, \ 0.05, \ 0, \ 0.2, \ 1, \ 1000, 10]\)], 
+  "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({7.19497097496428139`, 0.115549601075330987`}\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "Note that the answer has increased somewhat. Given the high standard error \
+of the first figure, this is a fluke. Note that if we continue to keep the \
+time-steps per path low, and increase the number of paths by a factor of 2, \
+we lower the standard error, by about ",
+  Cell[BoxData[
+      \(TraditionalForm\`1/\@2\)]],
+  ", but the answer is no better!"
+}], "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCLookBackCall[50, \ 50, \ 0.05, \ 0, \ 0.2, \ 1, \ 2000, 10]\)], 
+  "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({7.15410475026283432`, 0.0810066275907858468`}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Now we keep the number of paths at 2000, and raise the number of \
+time-steps to 100:\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCLookBackCall[50, \ 50, \ 0.05, \ 0, \ 0.2, \ 1, \ 2000, 100]\)], 
+  "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({8.0555485811395453`, 0.079285905431033381`}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Note that the standard error is about the same as the previous \
+case, as one should expect, and the answer is higher, but still some way \
+below the continuously sampled case. The minimum sampled 100 times per year \
+is rather higher than the minimum sampled continuously, so that the payoff \
+sampled at this discrete rate is rather lower.
+
+This very simple example demonstrates some important points:
+
+(a) a low standard error is no guarantee of an accurate result;
+(b) the Monte Carlo valuation of options involving extrema requires a very \
+large random sample to be used.\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+So we see that although the method is conceptually trivial, the \
+process of getting a good answer may require of the order of millions of \
+samples to be taken! The only exceptions to this are when the result is in \
+fact dominated by the effect of a low minimum-to-date, or if the contract \
+itself specifies low-frequency observation of the price. Recall that if the \
+minimum-to-date was lowered to 40, the continuously sampled answer was \
+12.6849. If we repeat our analysis using 1000 paths of length 10, we obtain\
+\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCLookBackCall[50, \ 40, \ 0.05, \ 0, \ 0.2, \ 1, \ 1000, 10]\)], 
+  "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({12.4065058005398021`, 0.146315672255908442`}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Which is a much better answer, but only because the answer is \
+dominated by having a strike which for many paths will be 40.\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Standard Lookback Puts", "Subsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+We consider the example given in Section 9.5, and re-evaluate by \
+Monte Carlo methods. Recall that with the given parameters, the exact \
+solution for a Put, with minimum-to-date the same as the current price, was \
+7.14528. First we do an evaluation check with 10 paths and 10 time-steps per \
+path.\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCLookBackPut[50, \ 50, \ 0.05, \ 0, \ 0.2, \ 1, \ 10, 10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({4.8604606142756932`, 0.719000372027611156`}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+This has a very high standard error. Next we use 1000 paths, but \
+keep the number of time-steps per path at the very low figure of 10:\
+\>", 
+  "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCLookBackPut[50, \ 50, \ 0.05, \ 0, \ 0.2, \ 1, \ 1000, 10]\)], "Input",\
+
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({5.27054400879730788`, 0.0783570262230104841`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCLookBackPut[50, \ 50, \ 0.05, \ 0, \ 0.2, \ 1, \ 2000, 10]\)], "Input",\
+
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({5.19474167843805023`, 0.0545072288997438647`}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+As before, we keep the number of paths at 2000, and raise the \
+number of time-steps to 100:\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCLookBackPut[50, \ 50, \ 0.05, \ 0, \ 0.2, \ 1, \ 2000, 100]\)], 
+  "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({6.52941041526197807`, 0.0552325813546390786`}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+We are led to the same conclusions as for the Lookback Call. \
+\>", 
+  "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Call on Maximum", "Subsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell["\<\
+We consider the example given in Section 9.6, and re-evaluate by \
+Monte Carlo methods. Recall that with the given parameters, the exact \
+solution for an at-the-money Call with maximum-to-date the same as the \
+current price was 9.58381. First we do an evaluation check with 10 paths and \
+10 time-steps per path.\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCCallOnMax[50, \ 50, \ 50, 0.05, \ 0, \ 0.2, \ 1, \ 10, 10]\)], "Input",\
+
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({8.36808634969867348`, 1.33234960434023452`}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+This has a very high standard error. Next we use 1000 paths, but \
+keep the number of time-steps per path at 10:\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCCallOnMax[50, \ 50, 50, \ 0.05, \ 0, \ 0.2, \ 1, \ 1000, 10]\)], 
+  "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({7.61404335596054693`, 0.118182975804824131`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCCallOnMax[50, \ 50, \ 50, \ 0.05, \ 0, \ 0.2, \ 1, \ 2000, 10]\)], 
+  "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({7.59607738055191816`, 0.0826022796348992294`}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+As before, we keep the number of paths at 2000, and raise the \
+number of time-steps to 100:\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCCallOnMax[50, \ 50, \ 50, \ 0.05, \ 0, \ 0.2, \ 1, \ 2000, 100]\)], 
+  "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({8.94623673843723921`, 0.0856108970044955519`}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+We are led to the same conclusions as for the Lookback Call and \
+Put. \
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Put on Minimum", "Subsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+We consider the example given in Section 9.7, and re-evaluate by \
+Monte Carlo methods. Recall that with the given parameters, the exact \
+solution for an at-the-money Put with minimum-to-date the same as the current \
+price was 6.16987. First we do an evaluation check with 10 paths and 10 \
+time-steps per path.\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCPutOnMin[50, \ 50, \ 50, 0.05, \ 0, \ 0.2, \ 1, \ 10, 10]\)], "Input",\
+
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({4.59279537953104455`, 0.743311826743541548`}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Next we use 1000 paths, but keep the number of time-steps per path \
+at 10:\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCPutOnMin[50, \ 50, 50, \ 0.05, \ 0, \ 0.2, \ 1, \ 1000, 10]\)], 
+  "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({4.72630651645233079`, 0.0717800898636865358`}\)], "Output",
+  PageBreakAbove->False]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCPutOnMin[50, \ 50, \ 50, \ 0.05, \ 0, \ 0.2, \ 1, \ 2000, 10]\)], 
+  "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[BoxData[
+    \({4.71935142171755472`, 0.0503521212790627981`}\)], "Output",
+  PageBreakAbove->False]
+}, Open  ]],
+
+Cell["\<\
+As before, we keep the number of paths at 2000, and raise the \
+number of time-steps to 100:\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCPutOnMin[50, \ 50, \ 50, \ 0.05, \ 0, \ 0.2, \ 1, \ 2000, 100]\)], 
+  "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[BoxData[
+    \({5.69914179826664657`, 0.0496796790238043772`}\)], "Output",
+  PageBreakAbove->False]
+}, Open  ]],
+
+Cell[TextData[{
+  "We are led to the same conclusions as for the previous three cases - when \
+the option payoffs involve extrema the convergence to the continuously \
+sampled limit is slow, and is controlled by the parameter ",
+  StyleBox["navg",
+    FontFamily->"Courier",
+    FontWeight->"Bold"],
+  " giving the number of time-steps per path. The size of the standard error \
+is a separate matter and is controlled by the number of paths, given here by \
+",
+  StyleBox["n",
+    FontFamily->"Courier",
+    FontWeight->"Bold"],
+  ". The poor convergence to the continuously sampled limit is less of an \
+issue when the contract specifies discrete sampling of the extrema, but, for \
+example, with daily sampling, does require of the order of millions of total \
+samples to obtain an accurate answer with a low standard error."
+}], "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["22.7 Verification Tests for Options Involving Averages", "Section",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "We can repeat our testing of the Monte Carlo method for the computation of \
+values for arithmetic and geometric Asian options. The testing of such \
+options offers a richer set of possibilities, as we can investigate:\n\n(1) \
+decrease in standard error as a function of ",
+  StyleBox["n",
+    FontFamily->"Courier",
+    FontWeight->"Bold"],
+  ";\n(2) accuracy as a function of ",
+  StyleBox["navg",
+    FontFamily->"Courier",
+    FontWeight->"Bold"],
+  ";\n(3) verification against the exact solution for the discretely sampled \
+geometric case;\n(4) influence of control variate on the standard error.\n\n\
+The reader is also referred to the work by Fu ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " (1997), which describes extensive results, also, as here, using the \
+Geman-Yor formula, as discussed in Chapter 10. Let's define a standard \
+working example, with the following fixed parameters:\n\nCall;  strike, ",
+  Cell[BoxData[
+      \(TraditionalForm\`K\)]],
+  " = 2;\nvolatility, \[Sigma] = 0.5;\nrisk-free rate,",
+  Cell[BoxData[
+      FormBox[
+        RowBox[{" ", 
+          RowBox[{
+            FormBox["r",
+              "TraditionalForm"], " ", "=", " ", "0.5"}]}], 
+        TraditionalForm]]],
+  ";\nyield,",
+  Cell[BoxData[
+      FormBox[
+        RowBox[{" ", 
+          RowBox[{
+            FormBox["q",
+              "TraditionalForm"], " ", "=", " ", "0"}]}], TraditionalForm]]],
+  ";\ntime to expiry, ",
+  Cell[BoxData[
+      \(TraditionalForm\`T\  = \ 1\)]],
+  ";\noption valued at initiation, no average to date.\n\nWe consider three \
+price cases, ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\  = \ 1.9, \ 2.0, \ 2.1\)]],
+  " (out, at, in, the money), and the following situations, for which exact \
+formulae are available:\n\n(A) continuously sampled geometric averaging;\n(B) \
+discretely sampled geometric averaging;\n(C) continuously sampled arithmetic \
+averaging."
+}], "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}},
+  PageBreakWithin->True],
+
+Cell[CellGroupData[{
+
+Cell["Case (A)", "Subsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+First we do the analytical valuations for the three price cases - \
+we begin by loading the functions defined in Chapter 10 - here just the \
+result of a query check is shown:\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?GeoAsianPriceCall\)\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \("Global`GeoAsianPriceCall"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      StyleBox[\(GeoAsianPriceCall[p_, \ k_, \ \[Sigma]_, \ r_, \ q_, \ 
+            t_]\  := \ 
+          BlackScholesCall[p, \ k, \ VolEff[\[Sigma]], \ r, \ 
+            QEff[r, \ q, \ \[Sigma]], \ t]\),
+        ShowStringCharacters->True,
+        NumberMarks->True],
+      InputForm[ 
+        Definition[ GeoAsianPriceCall]],
+      Editable->True,
+      AutoDelete->True]], "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(TableForm[
+      Table[{S, \ 
+          GeoAsianPriceCall[S, \ 2.0, \ 0.5, \ 0.05, \ 0, \ 1]}, \n\t\t{S, \ 
+          1.9, \ 2.1, \ 0.1}]]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    TagBox[GridBox[{
+          {
+            StyleBox["1.9`",
+              StyleBoxAutoDelete->True,
+              PrintPrecision->2], "0.172339914571902337`"},
+          {"2.`", "0.222787931610056499`"},
+          {"2.10000000000000008`", "0.27974266392421665`"}
+          },
+        RowSpacings->1,
+        ColumnSpacings->3,
+        RowAlignments->Baseline,
+        ColumnAlignments->{Left}],
+      (TableForm[ #]&)]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["10 Paths with 10 Time-Steps", "Subsubsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[1.9, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.182523937262683677`, 0.0688137556991534982`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[2.0, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.207093835008917315`, 0.0571148897949571665`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[2.1, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.286382318270016753`, 0.0640290958340136739`}\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["1000 Paths with 10 Time-Steps", "Subsubsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[1.9, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.160650597810942707`, 0.00516917786890151731`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[2.0, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.216129345078975898`, 0.00579545633574314145`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[2.1, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.265237672631221244`, 0.00669172671948070085`}\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["1000 Paths with 100 Time-Steps", "Subsubsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[1.9, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      100]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.174927182090111283`, 0.00531080625272898743`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[2.0, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      100]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.218006048928207629`, 0.00592822319148109766`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[2.1, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      100]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.2800437326695973`, 0.00683811450578116541`}\)], "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Case (B)", "Subsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+First we do the analytical valuations for the three price cases - \
+we begin by loading the functions defined in Section 10.6 - here just the \
+result of a query check is shown:\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(?DiscreteGeoAsianPriceCall\)\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \("Global`DiscreteGeoAsianPriceCall"\)], "Print"],
+
+Cell[BoxData[
+    InterpretationBox[
+      StyleBox[\(DiscreteGeoAsianPriceCall[p_, \ k_, \ \[Sigma]_, \ r_, \ 
+            q_, \ ts_, \ T_, \ N_]\  := \ 
+          BlackScholesCall[p, \ k, \ VolEffD[\[Sigma], \ ts, \ T, \ N], \ 
+            r, \ QEffD[r, \ q, \ \[Sigma], \ ts, \ T, \ N], \ T]\),
+        ShowStringCharacters->True,
+        NumberMarks->True],
+      InputForm[ 
+        Definition[ DiscreteGeoAsianPriceCall]],
+      Editable->True,
+      AutoDelete->True]], "Print"]
+}, Open  ]],
+
+Cell["\<\
+Let's explore the result of doing the averaging at 13 equally \
+spaced points starting at initiation - so this is monthly sampling with \
+equally spaced months.\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(TableForm[
+      Table[{S, \ 
+          DiscreteGeoAsianPriceCall[S, \ 2.0, \ 0.5, \ 0.05, \ 0, \ 0, \ 1, \ 
+            13]}, \n\t\t{S, \ 1.9, \ 2.1, \ 0.1}]]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    TagBox[GridBox[{
+          {
+            StyleBox["1.9`",
+              StyleBoxAutoDelete->True,
+              PrintPrecision->2], "0.166861190468114433`"},
+          {"2.`", "0.216852089419326432`"},
+          {"2.10000000000000008`", "0.273475558589867517`"}
+          },
+        RowSpacings->1,
+        ColumnSpacings->3,
+        RowAlignments->Baseline,
+        ColumnAlignments->{Left}],
+      (TableForm[ #]&)]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["10 Paths with 12 Time-Steps", "Subsubsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[1.9, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10, \ 
+      13]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.14009581861139968`, 0.0421259165196580109`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[2.0, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10, \ 
+      13]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.212814399149531174`, 0.0549731707192197305`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[2.1, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10, \ 
+      13]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.343834278869170351`, 0.0909439241402908393`}\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["1000 Paths with 12 Time-Steps", "Subsubsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[1.9, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      13]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.157608131075768342`, 0.00501740893669115006`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[2.0, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      13]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.212613146431595945`, 0.00586081638403878812`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[2.1, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      13]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.277019914670080469`, 0.00692060355840709018`}\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["10000 Paths with 12 Time-Steps", "Subsubsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[1.9, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10000, \ 
+      13]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.167102004636604046`, 0.00162602204878497236`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[2.0, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10000, \ 
+      13]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.213315983016576815`, 0.00185765948158707097`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCGeometricAsianCall[2.1, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10000, \ 
+      13]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.272539201874297143`, 0.00211113460611213898`}\)], "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Case (C) ", "Subsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+For the case of arithmetic averaging and continuous sampling the \
+results are as given in Section 10.5, where we obtained the values of \
+0.193174, 0.246417, 0.306223 for the three cases. First we review the results \
+for the arithmetic Asian with no control variate, for the two cruder of the \
+three sample schemes:\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["10 Paths with 10 Time-Steps", "Subsubsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCArithmeticAsianCall[1.9, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.216182645016577712`, 0.09752898301502956`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCArithmeticAsianCall[2.0, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.278736258019061455`, 0.0642441378969688781`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCArithmeticAsianCall[2.1, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.294880870745116396`, 0.0642692637233940722`}\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["1000 Paths with 10 Time-Steps", "Subsubsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCArithmeticAsianCall[1.9, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.185845253134622758`, 0.00593817048926505908`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCArithmeticAsianCall[2.0, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.241876923281721367`, 0.00653948498855486004`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCArithmeticAsianCall[2.1, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.300381869175166915`, 0.00739763413108802225`}\)], "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Addition of Control Variate", "Subsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The addition of a control variate ought to make matters better. However, \
+there are interesting complications that arise from whether one makes the \
+choice of an unbiased control variate (these things are supposed to be zero \
+mean!) using the discretely sampled geometric Asian, or the biased control \
+variate arising from subtraction of the continuously sampled limit. Such a \
+comparison has been made by Fu ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " (1997), and the simple simulations below give credence to their view that \
+the use of the unbiased control variate is allowing the accurate computation \
+of the discretely sampled arithmetic Asian (which we cannot confirm in the \
+absence of an exact solution), whereas the use of the biased control variate, \
+somewhat obscurely, gives a better approximation to the value of the \
+continuously sampled Asian."
+}], "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["10 Paths with 10 Time-Steps", "Subsubsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCAriGeoCallCorrection[1.9, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.0242513950763822005`, 0.00769200802526722959`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(%[\([1]\)] + {DiscreteGeoAsianPriceCall[1.9, \ 2.0, \ 0.5, \ 0.05, \ 
+          0, \ 0, \ 1, \ 10], \n
+        DiscreteGeoAsianPriceCall[1.9, \ 2.0, \ 0.5, \ 0.05, \ 0, \ 0, \ 1, \ 
+          Infinity]}\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.189457875260990888`, 0.196591309648284529`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCAriGeoCallCorrection[2.0, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.0292901399373670301`, 0.00899000791548636968`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(%[\([1]\)] + {DiscreteGeoAsianPriceCall[2.0, \ 2.0, \ 0.5, \ 0.05, \ 
+          0, \ 0, \ 1, \ 10], \n
+        DiscreteGeoAsianPriceCall[2.0, \ 2.0, \ 0.5, \ 0.05, \ 0, \ 0, \ 1, \ 
+          Infinity]}\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.244347850567652935`, 0.252078071547423521`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCAriGeoCallCorrection[2.1, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.0293425981515706002`, 0.00622787186418828664`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(%[\([1]\)] + {DiscreteGeoAsianPriceCall[2.1, \ 2.0, \ 0.5, \ 0.05, \ 
+          0, \ 0, \ 1, \ 10], \n
+        DiscreteGeoAsianPriceCall[2.1, \ 2.0, \ 0.5, \ 0.05, \ 0, \ 0, \ 1, \ 
+          Infinity]}\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.300923312959312383`, 0.309085262075787259`}\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["1000 Paths with 10 Time-Steps", "Subsubsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCAriGeoCallCorrection[1.9, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.0222768209884172652`, 0.000776598154632949011`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(%[\([1]\)] + {DiscreteGeoAsianPriceCall[1.9, \ 2.0, \ 0.5, \ 0.05, \ 
+          0, \ 0, \ 1, \ 10], \n
+        DiscreteGeoAsianPriceCall[1.9, \ 2.0, \ 0.5, \ 0.05, \ 0, \ 0, \ 1, \ 
+          Infinity]}\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.187483301173025971`, 0.194616735560319611`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCAriGeoCallCorrection[2.0, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.0254162529620607813`, 0.000793243687239255557`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(%[\([1]\)] + {DiscreteGeoAsianPriceCall[2.0, \ 2.0, \ 0.5, \ 0.05, \ 
+          0, \ 0, \ 1, \ 10], \n
+        DiscreteGeoAsianPriceCall[2.0, \ 2.0, \ 0.5, \ 0.05, \ 0, \ 0, \ 1, \ 
+          Infinity]}\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.240473963592346695`, 0.248204184572117281`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCAriGeoCallCorrection[2.1, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.0297659399366362329`, 0.000886578966492219144`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(%[\([1]\)] + {DiscreteGeoAsianPriceCall[2.1, \ 2.0, \ 0.5, \ 0.05, \ 
+          0, \ 0, \ 1, \ 10], \n
+        DiscreteGeoAsianPriceCall[2.1, \ 2.0, \ 0.5, \ 0.05, \ 0, \ 0, \ 1, \ 
+          Infinity]}\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.301346654744378028`, 0.309508603860852904`}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+We remind the reader that the continuously sampled values to 4 \
+significant figures are 0.1932, 0.2464, 0.3062 for the three cases. With 1000 \
+paths the unbiased control variate gives results of 0.188, 0.240, 0.301 with \
+standard error of about 0.001. The biased control variate gives results of \
+0.195, 0.248, 0.319 with the same standard error. So the biased control \
+variate is doing a better job of recovering the continuously sampled exact \
+solution!
+
+Finally let's take a look at what happens when we (a) increase the number of \
+time steps keeping the number of paths fixed, and (b) increase the number of \
+paths keeping the time-steps fixed.\
+\>", "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["1000 Paths with 100 Time-Steps", "Subsubsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCAriGeoCallCorrection[1.9, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      100]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.0211872383341028225`, 0.000714149565611323744`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(%[\([1]\)] + {DiscreteGeoAsianPriceCall[1.9, \ 2.0, \ 0.5, \ 0.05, \ 
+          0, \ 0, \ 1, \ 100], \n
+        DiscreteGeoAsianPriceCall[1.9, \ 2.0, \ 0.5, \ 0.05, \ 0, \ 0, \ 1, \ 
+          Infinity]}\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.192818062339986191`, 0.193527152906005177`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCAriGeoCallCorrection[2.0, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      100]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.0239402214330627582`, 0.00079185993188180781`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(%[\([1]\)] + {DiscreteGeoAsianPriceCall[2.0, \ 2.0, \ 0.5, \ 0.05, \ 
+          0, \ 0, \ 1, \ 100], \n
+        DiscreteGeoAsianPriceCall[2.0, \ 2.0, \ 0.5, \ 0.05, \ 0, \ 0, \ 1, \ 
+          Infinity]}\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.245960346886695369`, 0.246728153043119258`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCAriGeoCallCorrection[2.1, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 1000, \ 
+      100]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.0276019284468559522`, 0.000809628786473369288`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(%[\([1]\)] + {DiscreteGeoAsianPriceCall[2.1, \ 2.0, \ 0.5, \ 0.05, \ 
+          0, \ 0, \ 1, \ 100], \n
+        DiscreteGeoAsianPriceCall[2.1, \ 2.0, \ 0.5, \ 0.05, \ 0, \ 0, \ 1, \ 
+          Infinity]}\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.306534027624138172`, 0.307344592371072611`}\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["10000 Paths with 10 Time-Steps", "Subsubsection",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCAriGeoCallCorrection[1.9, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10000, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.0226184044728837641`, 0.000255897879530918359`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(%[\([1]\)] + {DiscreteGeoAsianPriceCall[1.9, \ 2.0, \ 0.5, \ 0.05, \ 
+          0, \ 0, \ 1, \ 10], \n
+        DiscreteGeoAsianPriceCall[1.9, \ 2.0, \ 0.5, \ 0.05, \ 0, \ 0, \ 1, \ 
+          Infinity]}\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.187824884657492479`, 0.194958319044786101`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCAriGeoCallCorrection[2.0, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10000, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.0259545213108151617`, 0.000272289716215661137`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(%[\([1]\)] + {DiscreteGeoAsianPriceCall[2.0, \ 2.0, \ 0.5, \ 0.05, \ 
+          0, \ 0, \ 1, \ 10], \n
+        DiscreteGeoAsianPriceCall[2.0, \ 2.0, \ 0.5, \ 0.05, \ 0, \ 0, \ 1, \ 
+          Infinity]}\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.24101223194110104`, 0.24874245292087167`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MCAriGeoCallCorrection[2.1, \ 2, \ 0.05, \ 0.0, \ 0.5, \ 1, \ 10000, \ 
+      10]\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.0293193346596947712`, 0.000291625840838319483`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(%[\([1]\)] + {DiscreteGeoAsianPriceCall[2.1, \ 2.0, \ 0.5, \ 0.05, \ 
+          0, \ 0, \ 1, \ 10], \n
+        DiscreteGeoAsianPriceCall[2.1, \ 2.0, \ 0.5, \ 0.05, \ 0, \ 0, \ 1, \ 
+          Infinity]}\)], "Input",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.300900049467436581`, 0.309061998583911412`}\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "These results suggest that not only can control variates assist with \
+variance reduction, but if chosen to be suitably biased, they may also assist \
+in remedying discretization errors. For further details see Fu ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " (1997).\n\nIn summary, we see that it is very easy to value a wide range \
+of path-dependent options using ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  ", since payoffs that are functions of paths are easily written down. We \
+also see, however, given ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  "'s ability to deal with exact analytical solutions with equal ease, that \
+it is easy to expose the basic difficulties that arise with Monte Carlo \
+sampling. We have already noted that a low standard error may be no guarantee \
+of accuracy, due to the nature of the discretization error. \
+Time-discretization introduces biases, especially into options involving \
+extrema when making comparisons with continuous sampling. However, when \
+valuing contracts where the sampling of extrema or averages is required to be \
+discrete, Monte Carlo sampling is a good method to use. The standard error \
+may be reduced substantially by the introduction of a suitable control \
+variate, but as our example with arithmetic Asians demonstrates, care is \
+required in the choice of control variates."
+}], "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Chapter 22 Bibliography", "Section",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Fu, M.C., Madan, D.B. and Wang, T. ",
+  StyleBox[
+  "Pricing Asian Options: a Comparison of Analytical and Monte Carlo Methods",
+    
+    FontSlant->"Italic"],
+  ", University of Maryland College of Business and Management preprint, \
+March 1997."
+}], "Text",
+  CellMargins->{{7, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]]
+},
+FrontEndVersion->"Macintosh 3.0",
+ScreenRectangle->{{0, 1152}, {0, 850}},
+AutoGeneratedPackage->None,
+WindowToolbars->{},
+CellGrouping->Automatic,
+WindowSize->{552, 660},
+WindowMargins->{{15, Automatic}, {Automatic, 0}},
+PrintingCopies->1,
+PrintingStartingPageNumber->420,
+PrintingPageRange->{1, Automatic},
+PageHeaders->{{Inherited, Inherited, Cell[ 
+        TextData[ {"22. Applied Monte Carlo"}]]}, {Cell[ 
+        TextData[ {"22. Applied Monte Carlo"}]], Inherited, Inherited}},
+PageFooters->{{Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}, {Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}},
+PrintingOptions->{"PrintingMargins"->{{0, 0}, {57, 57}},
+"PaperSize"->{439, 716},
+"PrintCellBrackets"->False,
+"PrintRegistrationMarks"->False,
+"PrintMultipleHorizontalPages"->False,
+"FirstPageHeader"->False,
+"FacingPages"->True},
+PrivateNotebookOptions->{"ColorPalette"->{RGBColor, 128}},
+ShowCellLabel->False,
+ShowCellTags->False,
+RenderingOptions->{"ObjectDithering"->True,
+"RasterDithering"->False},
+Magnification->1,
+StyleDefinitions -> "Default.nb",
+MacintoshSystemPageSetup->"\<\
+00<0004/0B`000003;T8`?n3ohP==PTh0b85N`?P0080004/0B`000006G<AP001
+0000I00000400@4100800BL?00400@S0S@0000000000064/01T1T00000000000
+00000000007oo@S2ld3oo@001HL:kP00\>"
+]
+
+
+(***********************************************************************
+Cached data follows.  If you edit this Notebook file directly, not using
+Mathematica, you must remove the line containing CacheID at the top of 
+the file.  The cache data will then be recreated when you save this file 
+from within Mathematica.
+***********************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1731, 51, 223, 8, 174, "Title"],
+Cell[1957, 61, 153, 4, 47, "Subsubtitle"],
+
+Cell[CellGroupData[{
+Cell[2135, 69, 141, 3, 50, "Section"],
+Cell[2279, 74, 1537, 25, 271, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3853, 104, 111, 1, 50, "Section"],
+Cell[3967, 107, 149, 4, 30, "Text"],
+Cell[4119, 113, 142, 2, 26, "Input"],
+Cell[4264, 117, 262, 5, 45, "Text"],
+Cell[4529, 124, 570, 11, 100, "Input"],
+Cell[5102, 137, 184, 4, 29, "Text"],
+Cell[5289, 143, 396, 10, 96, "Input",
+  InitializationCell->True],
+Cell[5688, 155, 238, 5, 29, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5963, 165, 159, 3, 38, "Section"],
+Cell[6125, 170, 737, 14, 73, "Text"],
+
+Cell[CellGroupData[{
+Cell[6887, 188, 146, 3, 32, "Subsection"],
+Cell[7036, 193, 259, 8, 20, "Text"],
+Cell[7298, 203, 345, 9, 68, "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[7680, 217, 145, 3, 32, "Subsection"],
+Cell[7828, 222, 259, 8, 20, "Text"],
+Cell[8090, 232, 342, 9, 68, "Input",
+  InitializationCell->True]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[8481, 247, 151, 3, 38, "Section"],
+Cell[8635, 252, 224, 6, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[8884, 262, 149, 3, 32, "Subsection"],
+Cell[9036, 267, 271, 8, 20, "Text"],
+Cell[9310, 277, 342, 9, 68, "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[9689, 291, 148, 3, 32, "Subsection"],
+Cell[9840, 296, 260, 8, 20, "Text"],
+Cell[10103, 306, 339, 9, 68, "Input",
+  InitializationCell->True]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[10491, 321, 154, 3, 38, "Section"],
+Cell[10648, 326, 524, 10, 52, "Text"],
+Cell[11175, 338, 336, 9, 57, "Input",
+  InitializationCell->True],
+Cell[11514, 349, 172, 3, 20, "Text"],
+Cell[11689, 354, 343, 9, 68, "Input",
+  InitializationCell->True],
+Cell[12035, 365, 96, 1, 20, "Text"],
+Cell[12134, 368, 331, 9, 68, "Input",
+  InitializationCell->True],
+Cell[12468, 379, 340, 9, 68, "Input",
+  InitializationCell->True],
+
+Cell[CellGroupData[{
+Cell[12833, 392, 124, 1, 32, "Subsection"],
+Cell[12960, 395, 290, 6, 29, "Text"],
+Cell[13253, 403, 368, 9, 68, "Input",
+  InitializationCell->True],
+Cell[13624, 414, 363, 9, 68, "Input",
+  InitializationCell->True],
+Cell[13990, 425, 193, 4, 29, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[14232, 435, 129, 1, 38, "Section"],
+Cell[14364, 438, 1691, 32, 205, "Text"],
+
+Cell[CellGroupData[{
+Cell[16080, 474, 102, 1, 32, "Subsection"],
+Cell[16185, 477, 382, 7, 40, "Text"],
+
+Cell[CellGroupData[{
+Cell[16592, 488, 151, 3, 25, "Input"],
+Cell[16746, 493, 78, 1, 36, "Output"]
+}, Open  ]],
+Cell[16839, 497, 219, 5, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[17083, 506, 154, 3, 25, "Input"],
+Cell[17240, 511, 79, 1, 36, "Output"]
+}, Open  ]],
+Cell[17334, 515, 447, 9, 42, "Text"],
+
+Cell[CellGroupData[{
+Cell[17806, 528, 154, 3, 25, "Input"],
+Cell[17963, 533, 80, 1, 36, "Output"]
+}, Open  ]],
+Cell[18058, 537, 166, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[18249, 545, 155, 3, 25, "Input"],
+Cell[18407, 550, 78, 1, 36, "Output"]
+}, Open  ]],
+Cell[18500, 554, 658, 13, 117, "Text"],
+Cell[19161, 569, 603, 10, 62, "Text"],
+
+Cell[CellGroupData[{
+Cell[19789, 583, 154, 3, 25, "Input"],
+Cell[19946, 588, 79, 1, 36, "Output"]
+}, Open  ]],
+Cell[20040, 592, 206, 4, 29, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[20283, 601, 101, 1, 32, "Subsection"],
+Cell[20387, 604, 382, 7, 40, "Text"],
+
+Cell[CellGroupData[{
+Cell[20794, 615, 148, 2, 25, "Input"],
+Cell[20945, 619, 78, 1, 36, "Output"]
+}, Open  ]],
+Cell[21038, 623, 219, 5, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[21282, 632, 152, 3, 25, "Input"],
+Cell[21437, 637, 80, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[21554, 643, 152, 3, 25, "Input"],
+Cell[21709, 648, 80, 1, 36, "Output"]
+}, Open  ]],
+Cell[21804, 652, 173, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[22002, 660, 154, 3, 25, "Input"],
+Cell[22159, 665, 80, 1, 36, "Output"]
+}, Open  ]],
+Cell[22254, 669, 145, 4, 20, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[22436, 678, 123, 2, 32, "Subsection",
+  PageBreakAbove->Automatic],
+Cell[22562, 682, 395, 7, 40, "Text"],
+
+Cell[CellGroupData[{
+Cell[22982, 693, 152, 3, 25, "Input"],
+Cell[23137, 698, 78, 1, 36, "Output"]
+}, Open  ]],
+Cell[23230, 702, 193, 4, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[23448, 710, 155, 3, 25, "Input"],
+Cell[23606, 715, 79, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[23722, 721, 157, 3, 25, "Input"],
+Cell[23882, 726, 80, 1, 36, "Output"]
+}, Open  ]],
+Cell[23977, 730, 173, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[24175, 738, 158, 3, 25, "Input"],
+Cell[24336, 743, 80, 1, 36, "Output"]
+}, Open  ]],
+Cell[24431, 747, 152, 4, 20, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[24620, 756, 93, 1, 32, "Subsection"],
+Cell[24716, 759, 394, 7, 40, "Text"],
+
+Cell[CellGroupData[{
+Cell[25135, 770, 151, 3, 25, "Input"],
+Cell[25289, 775, 79, 1, 36, "Output"]
+}, Open  ]],
+Cell[25383, 779, 156, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[25564, 787, 154, 3, 25, "Input"],
+Cell[25721, 792, 105, 2, 36, "Output",
+  PageBreakAbove->False]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[25863, 799, 181, 4, 25, "Input",
+  PageBreakAbove->False],
+Cell[26047, 805, 105, 2, 36, "Output",
+  PageBreakAbove->False]
+}, Open  ]],
+Cell[26167, 810, 198, 5, 20, "Text",
+  PageBreakAbove->False],
+
+Cell[CellGroupData[{
+Cell[26390, 819, 182, 4, 25, "Input",
+  PageBreakAbove->False],
+Cell[26575, 825, 105, 2, 36, "Output",
+  PageBreakAbove->False]
+}, Open  ]],
+Cell[26695, 830, 921, 19, 84, "Text",
+  PageBreakAbove->False]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[27665, 855, 130, 1, 38, "Section"],
+Cell[27798, 858, 2016, 50, 293, "Text",
+  PageBreakWithin->True],
+
+Cell[CellGroupData[{
+Cell[29839, 912, 87, 1, 32, "Subsection"],
+Cell[29929, 915, 256, 5, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[30210, 924, 112, 2, 25, "Input"],
+Cell[30325, 928, 59, 1, 20, "Print"],
+Cell[30387, 931, 422, 11, 32, "Print"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[30846, 947, 228, 5, 37, "Input"],
+Cell[31077, 954, 446, 13, 61, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[31560, 972, 109, 1, 28, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[31694, 977, 166, 3, 25, "Input"],
+Cell[31863, 982, 81, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[31981, 988, 166, 3, 25, "Input"],
+Cell[32150, 993, 81, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[32268, 999, 166, 3, 25, "Input"],
+Cell[32437, 1004, 81, 1, 36, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[32567, 1011, 111, 1, 28, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[32703, 1016, 168, 3, 25, "Input"],
+Cell[32874, 1021, 82, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[32993, 1027, 168, 3, 25, "Input"],
+Cell[33164, 1032, 82, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[33283, 1038, 168, 3, 25, "Input"],
+Cell[33454, 1043, 82, 1, 36, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[33585, 1050, 112, 1, 28, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[33722, 1055, 169, 3, 25, "Input"],
+Cell[33894, 1060, 82, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[34013, 1066, 169, 3, 25, "Input"],
+Cell[34185, 1071, 82, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[34304, 1077, 169, 3, 25, "Input"],
+Cell[34476, 1082, 80, 1, 36, "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[34617, 1090, 87, 1, 32, "Subsection"],
+Cell[34707, 1093, 258, 5, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[34990, 1102, 120, 2, 25, "Input"],
+Cell[35113, 1106, 67, 1, 20, "Print"],
+Cell[35183, 1109, 485, 11, 44, "Print"]
+}, Open  ]],
+Cell[35683, 1123, 241, 5, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[35949, 1132, 249, 5, 50, "Input"],
+Cell[36201, 1139, 447, 13, 61, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[36685, 1157, 109, 1, 28, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[36819, 1162, 166, 3, 25, "Input"],
+Cell[36988, 1167, 80, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[37105, 1173, 166, 3, 25, "Input"],
+Cell[37274, 1178, 81, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[37392, 1184, 166, 3, 25, "Input"],
+Cell[37561, 1189, 81, 1, 36, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[37691, 1196, 111, 1, 28, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[37827, 1201, 168, 3, 25, "Input"],
+Cell[37998, 1206, 82, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[38117, 1212, 168, 3, 25, "Input"],
+Cell[38288, 1217, 82, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[38407, 1223, 168, 3, 25, "Input"],
+Cell[38578, 1228, 82, 1, 36, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[38709, 1235, 112, 1, 28, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[38846, 1240, 169, 3, 25, "Input"],
+Cell[39018, 1245, 82, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[39137, 1251, 169, 3, 25, "Input"],
+Cell[39309, 1256, 82, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[39428, 1262, 169, 3, 25, "Input"],
+Cell[39600, 1267, 82, 1, 36, "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[39743, 1275, 88, 1, 32, "Subsection"],
+Cell[39834, 1278, 399, 7, 40, "Text"],
+
+Cell[CellGroupData[{
+Cell[40258, 1289, 109, 1, 28, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[40392, 1294, 167, 3, 25, "Input"],
+Cell[40562, 1299, 79, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[40678, 1305, 167, 3, 25, "Input"],
+Cell[40848, 1310, 81, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[40966, 1316, 167, 3, 25, "Input"],
+Cell[41136, 1321, 81, 1, 36, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[41266, 1328, 111, 1, 28, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[41402, 1333, 169, 3, 25, "Input"],
+Cell[41574, 1338, 82, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[41693, 1344, 169, 3, 25, "Input"],
+Cell[41865, 1349, 82, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[41984, 1355, 169, 3, 25, "Input"],
+Cell[42156, 1360, 82, 1, 36, "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[42299, 1368, 106, 1, 32, "Subsection"],
+Cell[42408, 1371, 966, 16, 96, "Text"],
+
+Cell[CellGroupData[{
+Cell[43399, 1391, 109, 1, 28, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[43533, 1396, 168, 3, 25, "Input"],
+Cell[43704, 1401, 83, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[43824, 1407, 292, 5, 37, "Input"],
+Cell[44119, 1414, 80, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[44236, 1420, 168, 3, 25, "Input"],
+Cell[44407, 1425, 83, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[44527, 1431, 292, 5, 37, "Input"],
+Cell[44822, 1438, 80, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[44939, 1444, 168, 3, 25, "Input"],
+Cell[45110, 1449, 83, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[45230, 1455, 292, 5, 37, "Input"],
+Cell[45525, 1462, 80, 1, 36, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[45654, 1469, 111, 1, 28, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[45790, 1474, 170, 3, 25, "Input"],
+Cell[45963, 1479, 84, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[46084, 1485, 292, 5, 37, "Input"],
+Cell[46379, 1492, 80, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[46496, 1498, 170, 3, 25, "Input"],
+Cell[46669, 1503, 84, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[46790, 1509, 292, 5, 37, "Input"],
+Cell[47085, 1516, 80, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[47202, 1522, 170, 3, 25, "Input"],
+Cell[47375, 1527, 84, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[47496, 1533, 292, 5, 37, "Input"],
+Cell[47791, 1540, 80, 1, 36, "Output"]
+}, Open  ]],
+Cell[47886, 1544, 737, 13, 96, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[48660, 1562, 112, 1, 28, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[48797, 1567, 171, 3, 25, "Input"],
+Cell[48971, 1572, 84, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[49092, 1578, 293, 5, 50, "Input"],
+Cell[49388, 1585, 80, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[49505, 1591, 171, 3, 25, "Input"],
+Cell[49679, 1596, 83, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[49799, 1602, 293, 5, 50, "Input"],
+Cell[50095, 1609, 80, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[50212, 1615, 171, 3, 25, "Input"],
+Cell[50386, 1620, 84, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[50507, 1626, 293, 5, 50, "Input"],
+Cell[50803, 1633, 80, 1, 36, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[50932, 1640, 112, 1, 28, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[51069, 1645, 171, 3, 25, "Input"],
+Cell[51243, 1650, 84, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[51364, 1656, 292, 5, 37, "Input"],
+Cell[51659, 1663, 80, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[51776, 1669, 171, 3, 25, "Input"],
+Cell[51950, 1674, 84, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[52071, 1680, 292, 5, 37, "Input"],
+Cell[52366, 1687, 78, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[52481, 1693, 171, 3, 25, "Input"],
+Cell[52655, 1698, 84, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[52776, 1704, 292, 5, 37, "Input"],
+Cell[53071, 1711, 80, 1, 36, "Output"]
+}, Open  ]],
+Cell[53166, 1715, 1466, 26, 164, "Text"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[54693, 1748, 99, 1, 44, "Section"],
+Cell[54795, 1751, 335, 9, 36, "Text"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+
+(***********************************************************************
+End of Mathematica Notebook file.
+***********************************************************************)
+

@@ -1,0 +1,1533 @@
+(***********************************************************************
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used on any computer system with Mathematica 3.0,
+MathReader 3.0, or any compatible application. The data for the notebook 
+starts with the line of stars above.
+
+To get the notebook into a Mathematica-compatible application, do one of 
+the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing the 
+word CacheID, otherwise Mathematica-compatible applications may try to 
+use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+***********************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     34317,       1161]*)
+(*NotebookOutlinePosition[     36134,       1217]*)
+(*  CellTagsIndexPosition[     36090,       1213]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["\<\
+Chapter 9. 
+Analytical Models of Lookbacks\
+\>", "Title",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  TextAlignment->Left,
+  TextJustification->0,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["9.1 Introduction", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "Here we take our first look at some path-dependent options, where the ",
+  StyleBox[
+  "payoff depends on the maximum or minimum value attained along the path",
+    FontSlant->"Italic"],
+  ". There are other types of path-dependence, based on average values along \
+the path, that will be considered in Chapter 10. Our first task is to \
+establish some unambiguous terminology, as follows, by considering the option \
+payoff as a function of the path taken by the stock price between initiation \
+of the option and expiry."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Standard Lookback Call", "Subsubsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "Payoff is\n\n",
+  Cell[BoxData[
+      \(TraditionalForm\`\(\ S[expiry]\  - \ Min[S[path]]\)\)]]
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Standard Lookback Put", "Subsubsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "Payoff is\n\n",
+  Cell[BoxData[
+      \(TraditionalForm\`Max[S[path]]\  - \ S[expiry]\)]]
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Lookback Call on Maximum", "Subsubsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "Payoff is\n\n",
+  Cell[BoxData[
+      \(TraditionalForm\`Max[Max[S[path]]\  - \ K, \ \ \ 0]\)]]
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Lookback Put on Minimum", "Subsubsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "Payoff is\n\n",
+  Cell[BoxData[
+      \(TraditionalForm\`Max[0, \ \ \ \ K\  - \ Min[S[path]]]\)]]
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "\nFor standard Lookback options, we have used\n\n(a) Section 18.1 of the \
+3rd edition of J. Hull's book and the original research by Goldman, Sosin and \
+Gatto (1979),\n(b) A research paper by  Conze and Viswanathan \"Path \
+dependent options\" (1991).\n\nFor other lookbacks, notably the Call on \
+maximum and Put on minimum, we have also used Conze and Viswanathan. All of \
+these models will be re-visited later from the point of view of Monte Carlo \
+simulation, as will the Asian options considered in the next chapter. By now \
+the reader may have got the message regarding analytical models - you can \
+literally just pour formulae into ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " and get on with it. We have made a point of giving a chapter devoted to \
+Lookbacks because the Monte Carlo simulation of such options is highly \
+problematic, and we need an analytical model to do the verification in order \
+to get things straight."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Some Warnings on Issues Regarding Lookbacks.", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "For lookback options, whether they are of the standard lookback call/put \
+variety or the Call on Max/Put on Min variety, there is at least the \
+potential for confusion in the literature about terminology. The analytical \
+valuation formulae for these options use both the current underlying price \
+and its \"historical min/max\" or \"maximum-to-date\". It is important to \
+realize that this is the min/max achieved between the time since the option \
+was initiated and the present valuation time. Historical max or min achieved \
+prior to the initiation is irrelevant. At the time of initiation, we must set \
+Smin = ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " or Smax = ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  "; otherwise wrong results will be obtained."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+  "9.2 Analytical Models of Lookbacks 1 - Goldman ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  "/Hull"
+}], "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "Here we give the analytical valuation formulae for the standard Lookback \
+Call/Put as given by\nGoldman ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  ", in the form presented by Hull."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["Loading the Standard Euro-options Package", "Subsubsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+The Lookback options involve some of the auxiliary functions used \
+in Black-Scholes - we load the Package to treat this first.\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["Needs[\"Derivatives`BlackScholes`\"]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Additional Auxiliary Functions for Use in Lookbacks", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["Notation is as used by Hull:", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+aone[p_, pmin_, sd_, r_, q_, t_] := 
+(Log[p/pmin]+(r - q + sd^2/2)*t)/(sd*Sqrt[t]);
+atwo[p_, pmin_, sd_, r_, q_, t_] := 
+aone[p,pmin,sd,r,q,t] - sd*Sqrt[t];
+athree[p_, pmin_, sd_, r_, q_, t_] := 
+(Log[p/pmin]+(q - r + sd^2/2)*t)/(sd*Sqrt[t]);
+yone[p_, pmin_, sd_, r_, q_] := 
+-2*(r - q - sd^2/2)*Log[p/pmin]/sd^2;\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["\<\
+bone[p_, pmax_, sd_, r_, q_, t_] := 
+(Log[pmax/p]+(-r + q + sd^2/2)*t)/(sd*Sqrt[t]);
+btwo[p_, pmax_, sd_, r_, q_, t_] := 
+bone[p,pmax,sd,r,q,t] - sd*Sqrt[t];
+bthree[p_, pmax_, sd_, r_, q_, t_] := 
+(Log[pmax/p]+(r - q - sd^2/2)*t)/(sd*Sqrt[t]);
+ytwo[p_, pmax_, sd_, r_, q_] := 
+2*(r - q - sd^2/2)*Log[pmax/p]/sd^2;\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The Lookback Call", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["First we introduce the value function:", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+LookBackCall[p_, pmin_, sd_, r_, q_, t_] := 
+p*Exp[-q*t]*Norm[aone[p, pmin, sd, r, q, t]] -
+p*Exp[-q*t]*sd^2*Norm[-aone[p, pmin, sd, r, q, t]]/(2*(r-q)) -
+pmin*Exp[-r*t]*(Norm[atwo[p, pmin, sd, r, q, t]]-
+sd^2*Exp[yone[p, pmin, sd, r, q]]*Norm[-athree[p,pmin,sd,r,q,t]]/(2*(r-q)))\
+\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["Now we compute the sensitivities by differentiation:", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+LookBackCallDelta[p_, pmin_, sd_, r_, q_, t_] = 
+D[LookBackCall[p, pmin, sd, r, q, t], p];\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["\<\
+LookBackCallGamma[p_, pmin_, sd_, r_, q_, t_] = 
+D[LookBackCall[p, pmin, sd, r, q, t], {p,2}];\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["\<\
+LookBackCallTheta[p_, pmin_, sd_, r_, q_, t_] = 
+D[-LookBackCall[p, pmin, sd, r, q, t], t];\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["\<\
+LookBackCallVega[p_, pmin_, sd_, r_, q_, t_] = 
+D[LookBackCall[p, pmin, sd, r, q, t], sd];\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["\<\
+LookBackCallRho[p_, pmin_, sd_, r_, q_, t_] = 
+D[LookBackCall[p, pmin, sd, r, q, t], r];\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Lookback Put", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["First we introduce the value and sensitivity functions:", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+LookBackPut[p_, pmax_, sd_, r_, q_, t_] := 
+-p*Exp[-q*t]*Norm[btwo[p, pmax, sd, r, q, t]] +
+p*Exp[-q*t]*sd^2*Norm[-btwo[p, pmax, sd, r, q, t]]/(2*(r-q)) +
+pmax*Exp[-r*t]*(Norm[bone[p, pmax, sd, r, q, t]]-
+sd^2*Exp[ytwo[p, pmax, sd, r, q]]*Norm[-bthree[p,pmax,sd,r,q,t]]/(2*(r-q)))\
+\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["\<\
+LookBackPutDelta[p_, pmax_, sd_, r_, q_, t_] = 
+D[LookBackPut[p, pmax, sd, r, q, t], p];\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["\<\
+LookBackPutGamma[p_, pmax_, sd_, r_, q_, t_] = 
+D[LookBackPut[p, pmax, sd, r, q, t], {p,2}];\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["\<\
+LookBackPutTheta[p_, pmax_, sd_, r_, q_, t_] = 
+D[-LookBackPut[p, pmax, sd, r, q, t], t];\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["\<\
+LookBackPutVega[p_, pmax_, sd_, r_, q_, t_] = 
+D[LookBackPut[p, pmax, sd, r, q, t], sd];\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["\<\
+LookBackPutRho[p_, pmax_, sd_, r_, q_, t_] = 
+D[LookBackPut[p, pmax, sd, r, q, t], r];\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["9.3 Analytical Models of Lookbacks 2 - Conze-Viswanathan", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+In this section we provide analytical functions for all four \
+Lookbacks that we are considering, including the standard Lookbacks \
+considered above, and also the Call on max and Put on min not considered \
+previously. These can be generalized to allow for non-zero yield, and \
+differentiated to get the sensitivity parameters, just as was the case for \
+Barriers.\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["Details of Auxiliary Functions", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "This is all based on Conze-Viswanathan and ",
+  StyleBox["hence uses zero q",
+    FontSlant->"Italic"],
+  " (it is ignored but added as an argument so as to facilitate easy \
+generalizations)."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+dzero[p_, k_, sd_, r_, q_, t_] := 
+(Log[p/k] + (r + sd^2/2)*t)/(sd*Sqrt[t]);
+done[p_, pmax_, sd_, r_, q_, t_] := dzero[p, pmax, sd, r, q, t];
+dtwo[p_, pmin_, sd_, r_, q_, t_] := dzero[p, pmin, sd, r, q, t];\
+\>", "Input",\
+
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The Lookback Call", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+CVLookBackCall[p_, pmin_, sd_, r_, q_, t_] :=
+p*Norm[dtwo[p, pmin, sd, r, q, t]] - 
+Exp[-r*t]*pmin*Norm[dtwo[p, pmin, sd, r, q, t] - sd*Sqrt[t]] + 
+Exp[-r*t]*(sd^2/(2*r))*p*(
+(p/pmin)^(-2*r/sd^2)*Norm[-dtwo[p, pmin, sd, r, q, t] + 2*r*Sqrt[t]/sd] -
+Exp[r*t]*Norm[-dtwo[p, pmin, sd, r, q, t]])\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The Lookback Put", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  PageBreakAbove->True,
+  AspectRatioFixed->True],
+
+Cell["\<\
+CVLookBackPut[p_, pmax_, sd_, r_, q_, t_] :=
+-p*Norm[-done[p, pmax, sd, r, q, t]] + 
+Exp[-r*t]*pmax*Norm[-done[p, pmax, sd, r, q, t] + sd*Sqrt[t]] + 
+Exp[-r*t]*(sd^2/(2*r))*p*(
+-(p/pmax)^(-2*r/sd^2)*Norm[done[p, pmax, sd, r, q, t] - 2*r*Sqrt[t]/sd] +
+Exp[r*t]*Norm[done[p, pmax, sd, r, q, t]])\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The Call on Maximum", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+CVCallOnMax[p_, pmax_, k_, sd_, r_, q_, t_] :=
+If[k >= pmax,
+p*Norm[dzero[p, k, sd, r, q, t]] - 
+Exp[-r*t]*k*Norm[dzero[p, k, sd, r, q, t] - sd*Sqrt[t]] + 
+Exp[-r*t]*(sd^2/(2*r))*p*(
+-(p/k)^(-2*r/sd^2)*Norm[dzero[p, k, sd, r, q, t] - 2*r*Sqrt[t]/sd] + 
+Exp[r*t]*Norm[dzero[p, k, sd, r, q, t]]),
+Exp[-r*t]*(pmax - k) + 
+p*Norm[done[p, pmax, sd, r, q, t]] - 
+Exp[-r*t]*pmax*Norm[done[p, pmax, sd, r, q, t] - sd*Sqrt[t]] + 
+Exp[-r*t]*(sd^2/(2*r))*p*(-(p/pmax)^(-2*r/sd^2)*Norm[done[p, pmax, sd, r, q, \
+t]
+- 2*r*Sqrt[t]/sd] + 
+Exp[r*t]*Norm[done[p, pmax, sd, r, q, t]])]\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The Put on Minimum", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+CVPutOnMin[p_, pmin_, k_, sd_, r_, q_, t_] :=
+If[k <= pmin,
+-p*Norm[-dzero[p, k, sd, r, q, t]] + 
+Exp[-r*t]*k*Norm[-dzero[p, k, sd, r, q, t] + sd*Sqrt[t]] + 
+Exp[-r*t]*(sd^2/(2*r))*p*(
+(p/k)^(-2r/sd^2)*Norm[-dzero[p, k, sd, r, q, t] + 2*r*Sqrt[t]/sd] - 
+Exp[r*t]*Norm[-dzero[p, k, sd, r, q, t]]),
+Exp[-r*t]*(k - pmin) - 
+p*Norm[-dtwo[p, pmin, sd, r, q, t]] + 
+Exp[-r*t]*pmin*Norm[-dtwo[p, pmin, sd, r, q, t] + sd*Sqrt[t]] + 
+Exp[-r*t]*(sd^2/(2*r))*p*(
+(p/pmin)^(-2r/sd^2)*Norm[-dtwo[p, pmin, sd, r, q, t] + 2*r*Sqrt[t]/sd] - 
+Exp[r*t]*Norm[-dtwo[p, pmin, sd, r, q, t]])]\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["9.4 A Brief Investigation of Standard Lookback Calls", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  PageBreakAbove->True,
+  AspectRatioFixed->True],
+
+Cell["In this section we evaluate the two analytical functions", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["CVLookBackCall[p,pmin,sd,r,q,t]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell["  LookBackCall[p,pmin,sd,r,q,t]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell["\<\
+and show that the results are numerically consistent, provided that \
+pmin is the minimum price between option initiation and valuation, which \
+further implies that we set p = pmin at initiation. You could also \
+investigate this symbolically.\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  Cell[BoxData[
+      \(TraditionalForm\`p\  = \ \(pmin\  = \ 50\)\)]],
+  ";\n",
+  Cell[BoxData[
+      \(TraditionalForm\`sd\  = \ 20\)]],
+  "%\n",
+  Cell[BoxData[
+      \(TraditionalForm\`t\  = \ 1\)]],
+  ";\n",
+  Cell[BoxData[
+      \(TraditionalForm\`r\  = \ 5\)]],
+  "%;\n",
+  Cell[BoxData[
+      \(TraditionalForm\`q\  = \ 0\)]],
+  "."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[Cell[BoxData[
+    \(TraditionalForm\`p\  = \ pmin\)]]], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["CVLookBackCall[50., 50., 0.2, 0.05, 0, 1]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(8.60840111868043322`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["LookBackCall[50., 50., 0.2, 0.05, 0, 1]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(8.60840111868043322`\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[Cell[BoxData[
+    \(TraditionalForm\`pmin\  < \ p\)]]], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["CVLookBackCall[50., 40., 0.2, 0.05, 0, 1]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(12.6868572361206211`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["LookBackCall[50., 40., 0.2, 0.05, 0, 1]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(12.6868572361206233`\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["9.5 A Brief Investigation of Standard Lookback Puts", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["In this section we evaluate the two analytical functions", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["CVLookBackPut[p,pmax,sd,r,q,t]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell["  LookBackPut[p,pmax,st,r,q,t]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "and show that the results are numerically consistent, provided that pmax \
+is the maximum price between option initiation and valuation, which further \
+implies that we set ",
+  Cell[BoxData[
+      \(TraditionalForm\`p\  = \ pmax\)]],
+  " at initiation. "
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[Cell[BoxData[{
+    \(TraditionalForm\`p\  = \ \(pmax\  = \ 
+        50\); \ \[IndentingNewLine]sd\  = \ 20  %\ \), 
+    \(TraditionalForm\`t\  = \ 1; \[IndentingNewLine]\ 
+    r\  = \ 5  %; \ \[IndentingNewLine]\ q\  = \ 0. \)}]]], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[Cell[BoxData[
+    \(TraditionalForm\`p\  = \ pmax\)]]], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["CVLookBackPut[50, 50, 0.2, 0.05, 0, 1]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(7.14528385370185681`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["LookBackPut[50, 50, 0.2, 0.05, 0, 1]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(7.14528385370185503`\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[Cell[BoxData[
+    \(TraditionalForm\`p\  < \ pmax\)]]], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["CVLookBackPut[50, 60., 0.2, 0.05, 0, 1]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(10.1136643613577925`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["LookBackPut[50, 60., 0.2, 0.05, 0, 1]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(10.1136643613577992`\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["9.6. A Brief Investigation of the Call on Maximum", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["In this section we explore the CV analytical formula:", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["CVCallOnMax[p,pmax,k,sd,r,q,t] ", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  Cell[BoxData[
+      \(TraditionalForm\`\(p\  = \ \(pmax\  = \ 50\); \)\)]],
+  "\n",
+  Cell[BoxData[
+      \(TraditionalForm\`sd\  = \ 20  %\)]],
+  "\n",
+  Cell[BoxData[
+      \(TraditionalForm\`\(t\  = \ 1; \)\)]],
+  "\n",
+  Cell[BoxData[
+      \(TraditionalForm\`\(r\  = \ 5  %; \)\)]],
+  "\n",
+  Cell[BoxData[
+      \(TraditionalForm\`q\  = \ 0. \)]]
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[Cell[BoxData[
+    \(TraditionalForm\`p\  = \ pmax\)]]], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["CVCallOnMax[50, 50, 50, 0.2, 0.05, 0, 1]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(9.58381262866615379`\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[Cell[BoxData[
+    \(TraditionalForm\`pmax\  > \ p\)]]], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["CVCallOnMax[50., 60., 50., 0.2, 0.05, 0, 1]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(12.5521931363220895`\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[Cell[BoxData[
+    \(TraditionalForm\`K\  > \ pmax\  > \ p\)]]], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["CVCallOnMax[50., 60., 70., 0.2, 0.05, 0, 1]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(0.744136791937559927`\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["9.7. A Brief Investigation of the Put on Minimum", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+In this section we explore the analytical functions given by the \
+formulae\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["CVPutOnMin[p,pmin,k,sd,r,q,t] ", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["Option at Initiation ", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  Cell[BoxData[
+      \(TraditionalForm\`\(p\  = \ \(pmin\  = \ 50\); \)\)]],
+  "\n",
+  Cell[BoxData[
+      \(TraditionalForm\`sd\  = \ 20  %\)]],
+  "\n",
+  Cell[BoxData[
+      \(TraditionalForm\`\(t\  = \ 1; \)\)]],
+  "\n",
+  Cell[BoxData[
+      \(TraditionalForm\`\(r\  = \ 5  %; \)\)]],
+  "\n",
+  Cell[BoxData[
+      \(TraditionalForm\`q\  = \ 0. \)]]
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[Cell[BoxData[
+    \(TraditionalForm\`p\  = \ pmin\)]]], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["CVPutOnMin[50, 50, 50, 0.2, 0.05, 0, 1]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(6.16987234371613624`\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  " ",
+  Cell[BoxData[
+      \(TraditionalForm\`K\  < \ pmin\  < \ p\)]]
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["CVPutOnMin[50., 45., 40., 0.2, 0.05, 0, 1]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.736034216149183517`\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[Cell[BoxData[
+    \(TraditionalForm\`K\  > \ pmin\  < \ p\)]]], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["CVPutOnMin[50., 45., 60., 0.2, 0.05, 0, 1]", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(16.780445416129992`\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["9.8 A Brief Look at Ladders", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+There is an interesting variation on this general type of \
+path-dependent option that generalizes the Lookback Call on maximum. Rather \
+than use the maximum value of the price over the entire path, we lock in \
+gains associated with the rungs of a ladder, and work with a payoff\
+\>", 
+  "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm
+    \`\(Max[S\_T - K, L\_1 - K, L\_2 - K, \( ...  . \), \ 0]\ \)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The ",
+  Cell[BoxData[
+      \(TraditionalForm\`L\_i\)]],
+  " are the rungs of the ladder, and are predetermined, and ordered: ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(L\_1 < \ L\_2 < \  ... \)\  < \ L\_n\)]],
+  ". If the stock price reaches ",
+  Cell[BoxData[
+      \(TraditionalForm\`L\_1\)]],
+  ", but not ",
+  Cell[BoxData[
+      \(TraditionalForm\`L\_2\)]],
+  ", over the life of the option, the payoff based on ",
+  Cell[BoxData[
+      \(TraditionalForm\`L\_2\)]],
+  " and higher ladders is not applied. This was priced by Street by an \
+ingenious argument involving a package consisting of a standard Call, a Put, \
+and a package of Knock-out Puts (Street, 1992). We can build such options \
+very easily by using our existing results. In the following it is assumed \
+that the functions defined in Chapter 8 have been loaded."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Triple-Rung Ladder Option Value Functions", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "Here is Street's model based on three rungs - it uses a value of ",
+  StyleBox["pmax",
+    FontFamily->"Courier",
+    FontWeight->"Bold"],
+  " to describe the maximum value attained since initiation, and also \
+properly knocks out the options:"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell["\<\
+ThreeRungPathDep[p_, pmax_, k_, runga_, rungb_, rungc_, sd_, r_, \
+q_, t_] :=
+Module[{newpmax},
+newpmax = Max[p, pmax];
+Which[
+newpmax <= runga,
+(BlackScholesCall[p, k, sd, r, q, t] - 
+BlackScholesPut[p, k, sd, r, q, t] + 
+BlackScholesPut[p, rungc, sd, r, q, t] +
+UpAndOutPut[0, p, k, runga, sd, r, q, t] - 
+UpAndOutPut[0, p, runga, runga, sd, r, q, t] + 
+UpAndOutPut[0, p, runga, rungb, sd, r, q, t] - 
+UpAndOutPut[0, p, rungb, rungb, sd, r, q, t] + 
+UpAndOutPut[0, p, rungb, rungc, sd, r, q, t] - 
+UpAndOutPut[0, p, rungc, rungc, sd, r, q, t]),
+newpmax <= rungb,
+(BlackScholesCall[p, k, sd, r, q, t] - 
+BlackScholesPut[p, k, sd, r, q, t] + 
+BlackScholesPut[p, rungc, sd, r, q, t] +
+UpAndOutPut[0, p, runga, rungb, sd, r, q, t] - 
+UpAndOutPut[0, p, rungb, rungb, sd, r, q, t] + 
+UpAndOutPut[0, p, rungb, rungc, sd, r, q, t] - 
+UpAndOutPut[0, p, rungc, rungc, sd, r, q, t]),
+newpmax <= rungc,
+(BlackScholesCall[p, k, sd, r, q, t] - 
+BlackScholesPut[p, k, sd, r, q, t] + 
+BlackScholesPut[p, rungc, sd, r, q, t] +
+UpAndOutPut[0, p, rungb, rungc, sd, r, q, t] - 
+UpAndOutPut[0, p, rungc, rungc, sd, r, q, t]),
+True,
+(BlackScholesCall[p, k, sd, r, q, t] - 
+BlackScholesPut[p, k, sd, r, q, t] + 
+BlackScholesPut[p, rungc, sd, r, q, t])
+]]\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakWithin->True,
+  InitializationCell->True,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Examples - Price at Revaluation below Bottom Rung", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["Max since Existence below Bottom Rung", "Subsubsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+ThreeRungPathDep[50., 55., 50., 60., 70., 
+80., 0.4, 0.1, 0, 0.25]\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(5.7793325733077836`\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Max since Existence above Bottom Rung and below Next Rung", 
+  "Subsubsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+ThreeRungPathDep[50., 65., 50., 60., 70., 
+80., 0.4, 0.1, 0, 0.25]\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(11.346963226928779`\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+Max since Existence above Next to Top Rung and below Top Rung\
+\>", 
+  "Subsubsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+ThreeRungPathDep[50., 75., 50., 60., 70., 
+80., 0.4, 0.1, 0, 0.25]\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(19.8488704131894735`\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Max since Existence above Top Rung", "Subsubsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  PageBreakAbove->True,
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+ThreeRungPathDep[50., 85., 50., 60., 70., 
+80., 0.4, 0.1, 0, 0.25]\
+\>", "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(29.3159074138437958`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Ladder option values can also be calculated by Monte Carlo \
+simulation.\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Chapter 9 Bibliography", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Conze, A. and Viswanathan, R., 1991, Path dependent options: the case of \
+lookback options, ",
+  StyleBox["Journal of Finance",
+    FontSlant->"Italic"],
+  ", 46, p. 1893.\n\nGoldman, M.B., Sosin, H.B.  and Gatto, M.A., 1979,  \
+Path-dependent options: buy at the low, sell at the high, ",
+  StyleBox["Journal of Finance",
+    FontSlant->"Italic"],
+  ", 34, p. 1111.\n\nStreet, A., 1992, Stuck up a ladder, ",
+  StyleBox["RISK Magazine",
+    FontSlant->"Italic"],
+  ", May."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]]
+},
+FrontEndVersion->"Macintosh 3.0",
+ScreenRectangle->{{0, 1152}, {0, 850}},
+AutoGeneratedPackage->None,
+WindowToolbars->{},
+CellGrouping->Automatic,
+WindowSize->{635, 734},
+WindowMargins->{{11, Automatic}, {Automatic, 0}},
+PrintingCopies->1,
+PrintingStartingPageNumber->189,
+PrintingPageRange->{1, Automatic},
+PageHeaders->{{Inherited, Inherited, Cell[ 
+        TextData[ {"9. Lookbacks"}]]}, {Cell[ 
+        TextData[ {"9. Lookbacks"}]], Inherited, Inherited}},
+PageFooters->{{Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}, {Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}},
+PrintingOptions->{"PrintingMargins"->{{0, 0}, {57, 57}},
+"PaperSize"->{439, 716},
+"PrintCellBrackets"->False,
+"PrintRegistrationMarks"->False,
+"PrintMultipleHorizontalPages"->False,
+"FirstPageHeader"->False,
+"FacingPages"->True,
+"FirstPageFace"->Right},
+PrivateNotebookOptions->{"ColorPalette"->{RGBColor, 128}},
+ShowCellLabel->False,
+ShowCellTags->False,
+RenderingOptions->{"ObjectDithering"->True,
+"RasterDithering"->False},
+Magnification->1,
+StyleDefinitions -> "Default.nb",
+MacintoshSystemPageSetup->"\<\
+00<0004/0B`000003;T8^on3ohP==PTc0b85N`?N0080004/0B`000006G<AMP01
+0000I00000400@4100800BL?00400@RoSD0000000000064/01T1T00000000000
+00000000007oo@RoVK3oo@001HL:kP00\>"
+]
+
+
+(***********************************************************************
+Cached data follows.  If you edit this Notebook file directly, not using
+Mathematica, you must remove the line containing CacheID at the top of 
+the file.  The cache data will then be recreated when you save this file 
+from within Mathematica.
+***********************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1731, 51, 219, 8, 136, "Title"],
+
+Cell[CellGroupData[{
+Cell[1975, 63, 140, 3, 50, "Section"],
+Cell[2118, 68, 611, 11, 80, "Text"],
+
+Cell[CellGroupData[{
+Cell[2754, 83, 152, 3, 41, "Subsubsection"],
+Cell[2909, 88, 231, 7, 58, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3177, 100, 151, 3, 41, "Subsubsection"],
+Cell[3331, 105, 225, 7, 58, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[3593, 117, 154, 3, 41, "Subsubsection"],
+Cell[3750, 122, 231, 7, 58, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4018, 134, 153, 3, 41, "Subsubsection"],
+Cell[4174, 139, 233, 7, 58, "Text"],
+Cell[4410, 148, 1090, 19, 207, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5537, 172, 171, 3, 34, "Subsection"],
+Cell[5711, 177, 920, 19, 92, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[6680, 202, 244, 8, 44, "Section"],
+Cell[6927, 212, 326, 9, 36, "Text"],
+
+Cell[CellGroupData[{
+Cell[7278, 225, 171, 3, 30, "Subsubsection"],
+Cell[7452, 230, 256, 6, 36, "Text"],
+Cell[7711, 238, 164, 3, 20, "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[7912, 246, 178, 3, 34, "Subsection"],
+Cell[8093, 251, 149, 3, 21, "Text"],
+Cell[8245, 256, 449, 12, 104, "Input",
+  InitializationCell->True],
+Cell[8697, 270, 449, 12, 104, "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[9183, 287, 144, 3, 34, "Subsection"],
+Cell[9330, 292, 159, 3, 21, "Text"],
+Cell[9492, 297, 418, 10, 68, "Input",
+  InitializationCell->True],
+Cell[9913, 309, 173, 3, 21, "Text"],
+Cell[10089, 314, 226, 6, 32, "Input",
+  InitializationCell->True],
+Cell[10318, 322, 230, 6, 32, "Input",
+  InitializationCell->True],
+Cell[10551, 330, 227, 6, 32, "Input",
+  InitializationCell->True],
+Cell[10781, 338, 226, 6, 32, "Input",
+  InitializationCell->True],
+Cell[11010, 346, 224, 6, 32, "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[11271, 357, 139, 3, 34, "Subsection"],
+Cell[11413, 362, 176, 3, 21, "Text"],
+Cell[11592, 367, 418, 10, 68, "Input",
+  InitializationCell->True],
+Cell[12013, 379, 224, 6, 32, "Input",
+  InitializationCell->True],
+Cell[12240, 387, 228, 6, 32, "Input",
+  InitializationCell->True],
+Cell[12471, 395, 225, 6, 32, "Input",
+  InitializationCell->True],
+Cell[12699, 403, 224, 6, 32, "Input",
+  InitializationCell->True],
+Cell[12926, 411, 222, 6, 32, "Input",
+  InitializationCell->True]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[13197, 423, 180, 3, 44, "Section"],
+Cell[13380, 428, 495, 10, 49, "Text"],
+
+Cell[CellGroupData[{
+Cell[13900, 442, 157, 3, 34, "Subsection"],
+Cell[14060, 447, 329, 9, 36, "Text"],
+Cell[14392, 458, 344, 9, 56, "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[14773, 472, 144, 3, 34, "Subsection"],
+Cell[14920, 477, 428, 10, 80, "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[15385, 492, 167, 4, 34, "Subsection",
+  PageBreakAbove->True],
+Cell[15555, 498, 429, 10, 80, "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[16021, 513, 146, 3, 34, "Subsection"],
+Cell[16170, 518, 703, 18, 164, "Input",
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[16910, 541, 145, 3, 34, "Subsection"],
+Cell[17058, 546, 706, 17, 164, "Input",
+  InitializationCell->True]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[17813, 569, 200, 4, 44, "Section",
+  PageBreakAbove->True],
+Cell[18016, 575, 177, 3, 21, "Text"],
+Cell[18196, 580, 131, 2, 20, "Input"],
+Cell[18330, 584, 131, 2, 20, "Input"],
+Cell[18464, 588, 373, 8, 36, "Text"],
+Cell[18840, 598, 473, 19, 77, "Text"],
+Cell[19316, 619, 182, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[19523, 627, 141, 2, 20, "Input"],
+Cell[19667, 631, 54, 1, 20, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[19758, 637, 139, 2, 20, "Input"],
+Cell[19900, 641, 54, 1, 20, "Output"]
+}, Open  ]],
+Cell[19969, 645, 182, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[20176, 653, 141, 2, 20, "Input"],
+Cell[20320, 657, 54, 1, 20, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[20411, 663, 139, 2, 20, "Input"],
+Cell[20553, 667, 54, 1, 20, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[20656, 674, 175, 3, 44, "Section"],
+Cell[20834, 679, 177, 3, 21, "Text"],
+Cell[21014, 684, 130, 2, 20, "Input"],
+Cell[21147, 688, 130, 2, 20, "Input"],
+Cell[21280, 692, 391, 10, 36, "Text"],
+Cell[21674, 704, 358, 7, 80, "Text"],
+Cell[22035, 713, 182, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[22242, 721, 138, 2, 20, "Input"],
+Cell[22383, 725, 54, 1, 20, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[22474, 731, 136, 2, 20, "Input"],
+Cell[22613, 735, 54, 1, 20, "Output"]
+}, Open  ]],
+Cell[22682, 739, 182, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[22889, 747, 139, 2, 20, "Input"],
+Cell[23031, 751, 54, 1, 20, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[23122, 757, 137, 2, 20, "Input"],
+Cell[23262, 761, 54, 1, 20, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[23365, 768, 173, 3, 44, "Section"],
+Cell[23541, 773, 174, 3, 21, "Text"],
+Cell[23718, 778, 131, 2, 20, "Input"],
+Cell[23852, 782, 487, 18, 68, "Text"],
+Cell[24342, 802, 182, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[24549, 810, 140, 2, 20, "Input"],
+Cell[24692, 814, 54, 1, 20, "Output"]
+}, Open  ]],
+Cell[24761, 818, 182, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[24968, 826, 143, 2, 20, "Input"],
+Cell[25114, 830, 54, 1, 20, "Output"]
+}, Open  ]],
+Cell[25183, 834, 190, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[25398, 842, 143, 2, 20, "Input"],
+Cell[25544, 846, 55, 1, 20, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[25648, 853, 124, 1, 44, "Section"],
+Cell[25775, 856, 156, 4, 21, "Text"],
+Cell[25934, 862, 104, 1, 20, "Input"],
+Cell[26041, 865, 94, 1, 21, "Text"],
+Cell[26138, 868, 439, 16, 68, "Text"],
+Cell[26580, 886, 134, 2, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[26739, 892, 113, 1, 25, "Input"],
+Cell[26855, 895, 54, 1, 36, "Output"]
+}, Open  ]],
+Cell[26924, 899, 157, 5, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[27106, 908, 116, 1, 25, "Input"],
+Cell[27225, 911, 55, 1, 36, "Output"]
+}, Open  ]],
+Cell[27295, 915, 142, 2, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[27462, 921, 116, 1, 25, "Input"],
+Cell[27581, 924, 53, 1, 36, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[27683, 931, 103, 1, 38, "Section"],
+Cell[27789, 934, 364, 7, 40, "Text"],
+Cell[28156, 943, 184, 4, 20, "NumberedEquation"],
+Cell[28343, 949, 926, 22, 73, "Text"],
+
+Cell[CellGroupData[{
+Cell[29294, 975, 168, 3, 32, "Subsection"],
+Cell[29465, 980, 380, 10, 29, "Text"],
+Cell[29848, 992, 1394, 39, 404, "Input",
+  PageBreakWithin->True,
+  InitializationCell->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[31279, 1036, 176, 3, 34, "Subsection"],
+
+Cell[CellGroupData[{
+Cell[31480, 1043, 167, 3, 30, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[31672, 1050, 174, 5, 32, "Input"],
+Cell[31849, 1057, 53, 1, 20, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[31951, 1064, 190, 4, 30, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[32166, 1072, 174, 5, 32, "Input"],
+Cell[32343, 1079, 53, 1, 20, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[32445, 1086, 202, 6, 30, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[32672, 1096, 174, 5, 32, "Input"],
+Cell[32849, 1103, 54, 1, 20, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[32952, 1110, 188, 4, 30, "Subsubsection",
+  PageBreakAbove->True],
+
+Cell[CellGroupData[{
+Cell[33165, 1118, 174, 5, 32, "Input"],
+Cell[33342, 1125, 54, 1, 20, "Output"]
+}, Open  ]],
+Cell[33411, 1129, 153, 4, 21, "Text"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[33625, 1140, 98, 1, 38, "Section"],
+Cell[33726, 1143, 563, 14, 84, "Text"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+
+(***********************************************************************
+End of Mathematica Notebook file.
+***********************************************************************)
+

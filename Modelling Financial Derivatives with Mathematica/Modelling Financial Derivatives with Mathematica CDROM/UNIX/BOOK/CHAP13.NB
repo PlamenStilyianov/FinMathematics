@@ -1,0 +1,1270 @@
+(***********************************************************************
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used on any computer system with Mathematica 3.0,
+MathReader 3.0, or any compatible application. The data for the notebook 
+starts with the line of stars above.
+
+To get the notebook into a Mathematica-compatible application, do one of 
+the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing the 
+word CacheID, otherwise Mathematica-compatible applications may try to 
+use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+***********************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     37682,       1027]*)
+(*NotebookOutlinePosition[     39566,       1084]*)
+(*  CellTagsIndexPosition[     39522,       1080]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["\<\
+Chapter 13.
+The Discipline of the Greeks and Overview of Finite-Difference Schemes \
+\>", 
+  "Title",
+  CellFrame->False,
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  TextAlignment->Left,
+  TextJustification->0,
+  AspectRatioFixed->True],
+
+Cell["\<\
+Error Magnification and an Overview of Simple Difference \
+Schemes\
+\>", "Subsubtitle",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["13.1 A Reminder from Basic Analysis", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  TextAlignment->Left,
+  TextJustification->0],
+
+Cell["\<\
+When we value derivatives, we usually need to establish the value \
+of not just a function of many variables, but also several of its first and \
+second derivatives. The complications and additional discipline that the \
+computation of such \"Greeks\" imposes seem not to be widely appreciated. To \
+appreciate what is happening it is a good idea to temporarily forget all \
+about financial derivatives and remind ourselves of some results from basic \
+analysis. \
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  TextAlignment->Left,
+  TextJustification->1],
+
+Cell[CellGroupData[{
+
+Cell["Non-uniform Convergence 101", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Suppose we have a sequence of functions ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(\(f\_n\)(x), \)\)]],
+  " ",
+  Cell[BoxData[
+      \(TraditionalForm\`n = 1, 2, 3,  ... , \)]],
+  " with the property that for each ",
+  Cell[BoxData[
+      \(TraditionalForm\`x\)]],
+  ", "
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(f\_n\)(x) \[Rule] 0\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["as", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`n \[Rule] \[Infinity]\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "In this case a (mathematical!) analyst would say that ",
+  Cell[BoxData[
+      \(TraditionalForm\`f\)]],
+  " ",
+  StyleBox["converges pointwise to zero",
+    FontSlant->"Italic"],
+  ". The question arises what happens to the derivative of ",
+  Cell[BoxData[
+      \(TraditionalForm\`f\_n\)]],
+  " as ",
+  Cell[BoxData[
+      \(TraditionalForm\`n\)]],
+  " becomes large. Naively one might expect that also becomes small as the \
+function becomes small. Indeed, many functions satisfy this requirement, such \
+as, for ",
+  Cell[BoxData[
+      \(TraditionalForm\`x\)]],
+  " in some finite interval,"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`x\^m\/n\ \ \ \ \ \ \ \ \ \(sin(x)\)\/n\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Unfortunately, it is not always true. The following classic example \
+makes this clear. We consider the function\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`f(x, n) = \(sin(n\ x)\)\/n\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["Its first derivative, or \"Delta\", is then", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        FractionBox[\(\[PartialD]\(f \((x, n)\)\)\), \(\[PartialD]x\),
+          MultilineFunction->None], "=", " ", \(cos \((n\ x)\)\)}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["Its second derivative, or \"gamma\", is then", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        FractionBox[\(\[PartialD]\^2\( f \((x, n)\)\)\), \(\[PartialD]x\^2\),
+          MultilineFunction->None], "=", 
+        " ", \(\(-n\)\ \(sin \((n\ x)\)\)\)}], TraditionalForm]], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "So we have the situation where although the function goes to zero, its \
+Delta remains of ",
+  Cell[BoxData[
+      \(TraditionalForm\`O(1)\)]],
+  ", and its Gamma is ",
+  Cell[BoxData[
+      \(TraditionalForm\`O(n)\)]],
+  " and tends to infinity. This is important to us when we regard ",
+  Cell[BoxData[
+      \(TraditionalForm\`f\)]],
+  " as the error arising in some numerical scheme. In other words, the \
+following situation is perfectly possible:\n\nSmall error in function \
+\[DoubleRightArrow] possible moderate error in first derivative \[Delta] \
+\[DoubleRightArrow] possible huge error in second derivative \[CapitalGamma].\
+\n\nThere are other strange things that can happen with sequences of \
+functions, although the issue with differentiation is of the most importance \
+to derivatives modelling. There is a type of convergence called uniform \
+convergence, which places stringent limits on the behaviour of functions \
+which ensure that derivatives are as controlled as the function value itself. \
+\n\nFor our purposes it is more important to appreciate when we consider the \
+function ",
+  Cell[BoxData[
+      \(TraditionalForm\`f\)]],
+  " to represent the errors in some numerical scheme, where ",
+  Cell[BoxData[
+      \(TraditionalForm\`n\)]],
+  " is related to some grid or tree parameter, there may be substantial \
+errors in our Greeks even when a close inspection of the valuation suggests \
+all is well. "
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+  "The Key Utility of ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " "
+}], "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The power of ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " as an investigative tool becomes clear in this context. We can define a \
+series of test problems and use the special-function capabilities of ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " to characterize the solution exactly, using ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  "'s infinite-precision arithmetic to get the results with as much accuracy \
+as we desire. Next we use ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  "'s symbolic calculus capabilities to define the Greeks by differentiation. \
+Then we make a comparison, within ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  ", between these analytical forms and the numerical solution. The latter is \
+obtained using compiled forms of tridiagonal, SOR and PSOR solvers, where the \
+enhancements of ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " version 3.0 are used to optimize the numerics. "
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["13.2 Overview of Difference Schemes ", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Two-Time-Level Schemes for the Diffusion Equation", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Our initial goal is to derive a family of difference schemes for \
+investigation. A discussion of difference schemes is given in many good books \
+on numerical PDEs. For option-pricing practitioners perhaps the most \
+accessible texts are the excellent pair by Wilmott",
+  StyleBox[" et al",
+    FontSlant->"Italic"],
+  " (1993, 1995), but they are also described in the classic survey by \
+Richtmyer and Morton (1957). The more recent and more widely available Oxford \
+text by Smith (1985) also gives an excellent discussion. Perhaps the cleanest \
+derivation of an entire family of schemes involving two time-levels is given \
+by Mitchell and Griffiths (1980), and in what follows we present an argument \
+that borrows heavily from their approach. \n\nWe assume that one way or the \
+other, our option-pricing problem has been reduced to the diffusion \
+equation:"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[PartialD]u\/\[PartialD]\[Tau] = \[PartialD]\^2 u\/\
+\[PartialD]x\^2\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "We shall describe in detail how this may be done for various types of \
+option later - for now it is much more useful to study this problem in \
+isolation, and we shall also do so numerically for a test problem in Chapter \
+14.  We introduce a discrete grid with steps ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[CapitalDelta]\[Tau], \ \[CapitalDelta]\ x, \)]],
+  " where ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[CapitalDelta]\ x\)]],
+  " is the grid step for the (log) stock price, and \[CapitalDelta]\[Tau] is \
+the grid step for the time, and set"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_n\%m = 
+      u(m\ \[CapitalDelta]\[Tau], n\ \[CapitalDelta]\ x)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+All the difference schemes involve a parameter \[Alpha] that is \
+given by\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[Alpha] = \[CapitalDelta]\[Tau]\/\(\[CapitalDelta]\ x\
+\^2\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The Operator Approach", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "We introduce the operators ",
+  Cell[BoxData[
+      \(TraditionalForm\`L\)]],
+  ", ",
+  Cell[BoxData[
+      \(TraditionalForm\`D\)]],
+  ", given by"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(L\ f\), "=", 
+        RowBox[{
+          RowBox[{
+            FractionBox[\(\[PartialD]f\), \(\[PartialD]t\),
+              MultilineFunction->None], "          ", "D", " ", "f"}], "=", 
+          FractionBox[\(\[PartialD]f\), \(\[PartialD]x\),
+            MultilineFunction->None]}]}], TraditionalForm]], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "So the diffusion equation is just ",
+  Cell[BoxData[
+      \(TraditionalForm\`L\ f\  = \ \(D\^2\) f\)]],
+  ". Assuming that the Taylor series expansion holds, we can write"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u(\[Tau] + \[CapitalDelta]\ \[Tau], 
+        x) = \[ExponentialE]\^\(\[CapitalDelta]\[Tau]\ L\)\ \(u(\[Tau], 
+          x)\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["In other words", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_n\%\(m + 1\) = \(\[ExponentialE]\^\(\[CapitalDelta]\
+\[Tau]\ L\)\ u\_n\%m = \ \[ExponentialE]\^\(\[CapitalDelta]\[Tau]\ D\^2\)\ \
+u\_n\%m\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "More generally, if we consider the value, ",
+  Cell[BoxData[
+      \(TraditionalForm\`u\_\[Theta]\)]],
+  " of ",
+  Cell[BoxData[
+      \(TraditionalForm\`u\)]],
+  " at ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(x = n\ \[CapitalDelta]\ x\ \)\)]],
+  ", and ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Tau]\  = \ \[Theta]\ n\ \[CapitalDelta]\[Tau] + \ \
+\((1 - \[Theta])\) \((n + 1)\) \[CapitalDelta]\[Tau]\)]],
+  ", we can write it in two ways. First, by using a forwards Taylor \
+expansion, we have"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_\[Theta] = \(\[ExponentialE]\^\(\[CapitalDelta]\
+\[Tau]\ \((1 - \[Theta])\)\ L\)\ u\_n\%m = \[ExponentialE]\^\(\[CapitalDelta]\
+\[Tau]\ \((1 - \[Theta])\)\ D\^2\)\ u\_n\%m\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+By considering a Taylor series backwards from the next time-level, \
+we can also say that\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_\[Theta] = \(\[ExponentialE]\^\(\(-\[CapitalDelta]\
+\[Tau]\)\ \[Theta]\ L\)\ u\_n\%\(m + 1\) = \[ExponentialE]\^\(\(-\
+\[CapitalDelta]\[Tau]\)\ \[Theta]\ D\^2\)\ u\_n\%\(m + 1\)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+So on the assumption that we have such Taylor series, we can equate \
+the two to obtain\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[ExponentialE]\^\(\(-\[CapitalDelta]\[Tau]\)\ \
+\[Theta]\ D\^2\)\ u\_n\%\(m + 1\) = \[ExponentialE]\^\(\[CapitalDelta]\[Tau]\ \
+\((1 - \[Theta])\)\ D\^2\)\ u\_n\%m\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["Note that no approximations have been made. ", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The Difference Operators", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Now we define the difference operator ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(\[Delta]\_x\ \)\)]],
+  "by"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[Delta]\_x\ u\_n\%m = 
+      u\_\(n + 1\/2\)\%m - u\_\(n - 1\/2\)\%m\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["Its square is", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[Delta]\_x\%2\ u\_n\%m = \ 
+      u\_\(n + 1\)\%m + u\_\(n - 1\)\%m - 2\ u\_n\%m\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "It can be shown that there is an ",
+  StyleBox["exact",
+    FontSlant->"Italic"],
+  " relationship (see e.g. Hildebrand, 1956) of the form"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`D = \(2\ \(\(sinh\^\(-1\)\)(\[Delta]\_x\/2)\)\)\/\(\
+\[CapitalDelta]\ x\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Now our diffusion equation (15) involves \[CapitalDelta]\[Tau] ",
+  Cell[BoxData[
+      \(TraditionalForm\`D\^2\)]],
+  ", which, after some algebra, we can expand out as "
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[Alpha]\ \((\[Delta]\_x\%2 - \[Delta]\_x\%4\/12 + \
+\[Delta]\_x\%6\/90 + \  ... )\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This can be confirmed and extended using ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  ":"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(g[x_]\  := \ 2\ ArcSinh[x/2]; \)\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Series[\((g[x])\)^2, \ {x, \ 0, \ 10}]\)], "Input",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    InterpretationBox[
+      RowBox[{\(x\^2\), "-", \(x\^4\/12\), "+", \(x\^6\/90\), 
+        "-", \(x\^8\/560\), "+", \(x\^10\/3150\), "+", 
+        InterpretationBox[\(O[x]\^11\),
+          SeriesData[ x, 0, {}, 2, 11, 1]]}],
+      SeriesData[ x, 0, {1, 0, 
+        Rational[ -1, 12], 0, 
+        Rational[ 1, 90], 0, 
+        Rational[ -1, 560], 0, 
+        Rational[ 1, 3150]}, 2, 11, 1]]], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+General High Order Difference Versions of the Diffusion \
+Equation\
+\>", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "We can combine our exact diffusion equation (15) with the series expansion \
+of the operators contained within it (19) to obtain a description of the \
+problem to any desired order. Keeping all terms up to order ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Delta]\_x\%6\)]],
+  ", and performing some tedious simplifications, the combination of (15) and \
+(19) becomes, neglecting eighth and higher order differences"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_n\%\(m + 1\) - \[Alpha]\ \[Theta]\ \[Delta]\_x\%2\ \
+u\_n\%\(m + 1\) + 
+        1\/2\ \[Theta]\ \[Alpha]\ \((\[Alpha]\ \[Theta] + 
+              1\/6)\)\ \[Delta]\_x\%4\ u\_n\%\(m + 1\) - \[Alpha]\ \[Theta]\ \
+\((\(\[Theta]\^2\ \[Alpha]\^2\)\/6 + \(\[Theta]\ \[Alpha]\)\/12 + 
+              1\/90)\)\ \[Delta]\_x\%6\ u\_n\%\(m + 1\) = \n\t
+      u\_n\%m + \[Alpha]\ \((1 - \[Theta])\)\ \[Delta]\_x\%2\ u\_n\%m + \ \ \
+\((1\/2\ \((1 - \[Theta])\)\^2\ \[Alpha]\^2 - 
+              1\/12\ \((1 - \[Theta])\)\ \[Alpha])\)\ \[Delta]\_x\%4\ u\_n\%m\
+\[IndentingNewLine]\t + \ \((1\/6\ \(\(\[Alpha]\^2\)(1 - \[Theta])\)\^2 - 
+              1\/12\ \[Alpha]\ \((1 - \[Theta])\) + 
+              1\/90)\)\ \[Alpha]\ \((1 - \[Theta])\)\ \[Delta]\_x\%6\ u\_n\%m\
+\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This in general is a matrix equation, and can be represented in terms of a \
+difference matrix, ",
+  Cell[BoxData[
+      \(TraditionalForm\`A\)]],
+  ", that governs the mapping from one time level to the next. All such \
+schemes can be written in the form ",
+  Cell[BoxData[
+      \(TraditionalForm\`u\^\(m + 1\) = A\ u\^m\)]],
+  " for a suitable difference matrix ",
+  Cell[BoxData[
+      \(TraditionalForm\`A\)]],
+  "."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Explicit Schemes", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "These are obtained by setting \[Theta] = ",
+  Cell[BoxData[
+      \(TraditionalForm\`0\)]],
+  ", thereby obtaining, to sixth order,"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_n\%\(m + 1\) = 
+      u\_n\%m + \[Alpha]\ \ \[Delta]\_x\%2\ u\_n\%m + \ \ \(\[Alpha]\/2\) \((\
+\ \[Alpha] - 
+              1\/6\ )\)\ \[Delta]\_x\%4\ u\_n\%m + \[Alpha]\/6\ \((\ \[Alpha]\
+\^2 - 1\/2\ \[Alpha] + 1\/15)\)\ \ \ \[Delta]\_x\%6\ u\_n\%m\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Second Order Explicit and Binomial Schemes", "Subsubsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["If we keep terms to second order we obtain", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_n\%\(m + 1\) = 
+      u\_n\%m + \[Alpha]\ \ \[Delta]\_x\%2\ u\_n\%m\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The choice ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Alpha] = 1/2\)]],
+  " gives the scheme embodied by the binomial model (if a tree-shaped grid is \
+used instead of a rectangular grid)."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Fourth Order Explicit and Pentanomial/Trinomial Schemes", 
+  "Subsubsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+If we keep terms to fourth order we obtain the family of \
+pentanomial schemes\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_n\%\(m + 1\) = 
+      u\_n\%m + \[Alpha]\ \ \[Delta]\_x\%2\ u\_n\%m + \ \(\[Alpha]\/2\) \((\ \
+\[Alpha] - 1\/6\ )\)\ \[Delta]\_x\%4\ u\_n\%m\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The choice ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Alpha] = 1/6\)]],
+  " gives the scheme embodied by the trinomial model (if a tree-shaped grid \
+is used instead of a rectangular grid) - the fourth order terms then vanish \
+identically, and we have a simple scheme but with high order accuracy. "
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Implicit Crank-Nicholson and Douglas Schemes", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Working to second order, the choice ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Theta] = 1/2\)]],
+  " gives the scheme known as the Crank-Nicholson scheme. If we write it out \
+it becomes"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_n\%\(m + 1\) - 
+        1\/2\ \[Alpha]\ \((u\_\(n - 1\)\%\(m + 1\) + 
+              u\_\(n + 1\)\%\(m + 1\) - 2\ u\_n\%\(m + 1\))\) = 
+      u\_n\%m + 
+        1\/2\ \[Alpha]\ \((u\_\(n - 1\)\%m + u\_\(n + 1\)\%m - 
+              2\ u\_n\%m)\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Another interesting set of schemes can be derived by taking the general \
+high order scheme with ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Theta] = 1/2\)]],
+  ", and multiplying both sides by "
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`1 + \ \[Mu]\ \[Delta]\_x\%2 - \[Lambda]\ \
+\[Delta]\_x\%4\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The choice ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Mu] = 1/12, \ \[Lambda] = \[Alpha]\^2/8\)]],
+  " leads to a very interesting equation where the fourth order terms \
+disappear:"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_n\%\(m + 1\) - \((1/12 - \[Alpha]/
+                2)\)\ \ \[Delta]\_x\%2\ u\_n\%\(m + 1\) + 
+        O(\ \[Delta]\_x\%6\ u\_n\%\(m + 1\)) = \t
+      u\_n\%m + \((1/12 + \[Alpha]/2)\)\ \[Delta]\_x\%2\ u\_n\%m + \ 
+        O(\ \[Delta]\_x\%6\ u\_n\%m)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["The second order truncated form, i.e.", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_n\%\(m + 1\) - \((1/12 - \[Alpha]/
+                2)\)\ \ \[Delta]\_x\%2\ u\_n\%\(m + 1\) = \t
+      u\_n\%m + \((1/12 + \[Alpha]/2)\)\ \[Delta]\_x\%2\ u\_n\%m\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "is called the ",
+  StyleBox["Douglas", "NumberedEquation",
+    FontSlant->"Italic"],
+  " scheme. It is very important due to the fact that it is exact to order ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Delta]\_x\%4\)]],
+  ", even though it contains terms only of order ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Delta]\_x\%2\)]],
+  "."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The \[Theta]-Method Family", "Subsection",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Theta]\)]],
+  "-method schemes are given by just keeping the second order terms in the \
+general scheme. Writing it out, we have\[AutoOperand]"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`u\_n\%\(m + 1\) - \[Theta]\[Alpha]\ \((u\_\(n - \
+1\)\%\(m + 1\) + u\_\(n + 1\)\%\(m + 1\) - 2  u\_n\%\(m + 1\))\) = 
+      u\_n\%m + \[Alpha]\ \((1 - \[Theta])\)\ \((u\_\(n - 1\)\%m + 
+              u\_\(n + 1\)\%m - 2  u\_n\%m)\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The explicit scheme is given by ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Theta] = 0\)]],
+  ", and fully implicit is given by ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Theta] = 1\)]],
+  ". Crank-Nicholson is given by the choice ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Theta]\  = \ 1/2\)]],
+  ". A point of interest is that Wilmott ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " remark that it is not particularly sensible to use the \[Theta] method \
+for values of ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Theta]\  < \ 1/2\)]],
+  ", since \"this involves all the complications of solving implicit sets of \
+equations without any great improvement in stability over the explicit \
+method.\" This unfortunately conceals a powerful improvement over ordinary \
+Crank-Nicholson schemes. The ",
+  StyleBox["Douglas",
+    FontSlant->"Italic"],
+  " scheme can now be seen to correspond to a special value of \[Theta] given \
+by"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[Theta] = 1\/2 - 1\/\(12  \[Alpha]\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+and is in fact unconditionally stable (see the remarks later on \
+stability). It is therefore highly desirable to use this particular value of \
+\[Theta], even though it is less than 1/2. This will be seen from our \
+discussion of a test problem in Chapter 14, but there are more fundamental \
+reasons. These can be seen by writing down the truncation errors for each \
+scheme. These have been defined and given by Richtmyer and Morton.\
+\>", 
+  "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell["\tTruncation errors:", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[BoxData[
+    \(TraditionalForm\`Explicit : \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ O(\
+\[CapitalDelta]\[Tau]) + O(\((\[CapitalDelta]\ x)\)\^2)\)], "NumberedEquation",\
+
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[BoxData[
+    \(TraditionalForm\`Fully\ \(implicit : \ \ \ O(\[CapitalDelta]\[Tau]) + 
+          O(\((\[CapitalDelta]\ x)\)\^2)\)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[BoxData[
+    \(TraditionalForm\`CN : \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+O(\[CapitalDelta]\[Tau]\^2) + O(\((\[CapitalDelta]\ x)\)\^2)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[BoxData[
+    \(TraditionalForm\`Douglas : \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+O(\[CapitalDelta]\[Tau]\^2) + O(\((\[CapitalDelta]\ x)\)\^4)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell["\<\
+Although we eventually want to use the implicit schemes with high \
+\[Alpha], we note that the Douglas scheme has an optimal \[Alpha] where the \
+truncation error is minimized. This is \
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[Alpha] = 1\/\@20\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell["\<\
+but this is rather small to be of practical use. It can, however, \
+produce amazing error reduction - see Section 14.10.\
+\>", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["13.3 Reminder on Binomial and Trinomial Trees", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The following links may be helpful in appreciating the importance of the \
+Douglas scheme, and its relationship to the explicit schemes that are common \
+to FD models and binomial/trinomial tree models.\n\n(1) When \[Theta] = 0 and \
+\[Alpha] = 1/2, our schemes, as noted already, become the same difference \
+rule as in a binomial tree, but on a rectangular grid in standard \
+coordinates.\n\n(2) When we use a Douglas scheme with \[Alpha] = 1/6, so that \
+equation (29) gives \[Theta] = 0, we obtain a highly accurate explicit \
+scheme. This is none other than the trinomial tree model, but on a \
+rectangular grid. So the Douglas scheme is the natural implicit form of the \
+trinomial model. We have already seen that this case also corresponds to a \
+special case of a high order explicit scheme based on five points (the \
+pentanomial scheme).  \n\nThe relationship to standard tree models may be \
+made clearer if we state up front the simplest form of the change of \
+variables used to reduce an option-pricing problem to the diffusion equation. \
+For a problem with a flat term-structure parametrized by a variable ",
+  Cell[BoxData[
+      \(TraditionalForm\`K\)]],
+  " (e.g. strike or barrier) the change of coordinates being used here is, \
+for an underlying ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  ", time variable ",
+  Cell[BoxData[
+      \(TraditionalForm\`T\)]],
+  ", volatility ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Sigma]\)]],
+  ","
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakWithin->True],
+
+Cell[BoxData[
+    \(TraditionalForm\`x = log(S\/K)\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[Tau] = \(\[Sigma]\^2\ T\)\/2\)], "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell["so that", "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[CapitalDelta]\ S = 
+      S\ \[Sigma]\ \@\(\(\[CapitalDelta]\ T\)\/\(2  \[Alpha]\)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[TextData[{
+  "In these coordinates the relationship between FD schemes with \[Alpha] = \
+1/2, 1/6 and binomial, trinomial trees becomes clear. To practitioners, we \
+emphasize the following:\n\n",
+  StyleBox[
+  "The two-time-level Douglas scheme is the natural implicit generalization \
+of the trinomial tree",
+    FontSlant->"Italic"],
+  "."
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["13.4 Stability and Non-smooth Initial Conditions", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Unfortunately this is far from the end to the story as far as option \
+pricing is concerned. Matters are more complicated when the initial condition \
+(\"payoff\") is an option-like payoff function. In Chapter 15 we will \
+consider first a simple Put payoff. When we use smaller time-steps, the \
+Douglas method gives slightly more accurate results than Crank-Nicholson, and \
+both are more accurate than explicit or fully implicit. However, as the \
+time-step is increased, both the Crank-Nicholson method and the Douglas \
+scheme start to exhibit bad behaviour in a neighbourhood of the strike, and \
+the accuracy of both is compromised.\n\nThis effect is actually quite well \
+known and is understood in theoretical terms. Both Richtmyer and Morton, and \
+the book by Smith, point out that non-smooth initial data, or other \
+discontinuities between boundary conditions and initial conditions, can \
+induce slowly decaying oscillations in otherwise \"stable\" models. The \
+Crank-Nicholson scheme has long been understood to be vulnerable to this. \
+Smith explains how the diffusion equation can be discretized using the notion \
+of Pad\[EAcute] approximations. This gives a family of schemes labelled ",
+  Cell[BoxData[
+      \(TraditionalForm\`P(s, t)\)]],
+  ", for ",
+  Cell[BoxData[
+      \(TraditionalForm\`s\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`t\)]],
+  " integers, and an associated notion of ",
+  StyleBox["strong stability",
+    FontSlant->"Italic"],
+  ", which is satisfied if",
+  Cell[BoxData[
+      \(TraditionalForm\`\(\ \ s\  > \ t\)\)]],
+  ". The Crank-Nicholson scheme fails this test as it is a ",
+  Cell[BoxData[
+      \(TraditionalForm\`P(1, 1)\)]],
+  " scheme. In fact, fully implicit is a ",
+  Cell[BoxData[
+      \(TraditionalForm\`P(1, 0)\)]],
+  " scheme, so does not suffer from the oscillation problem, but it is not \
+generally accurate enough because the truncation error is only ",
+  Cell[BoxData[
+      \(TraditionalForm\`O(\[CapitalDelta]\ t)\)]],
+  ". \n\nThis leaves us with a problem. We can either look at implementations \
+of Pad\[EAcute] ",
+  Cell[BoxData[
+      \(TraditionalForm\`\((2, 0)\)\)]],
+  " or ",
+  Cell[BoxData[
+      \(TraditionalForm\`\((2, 1)\)\)]],
+  " schemes, or at extrapolations of the Pad\[EAcute] ",
+  Cell[BoxData[
+      \(TraditionalForm\`\((1, 0)\)\)]],
+  " scheme, or try something else. Richtmyer and Morton have a family of \
+suggestions for combining stability with large time step, with the \
+elimination of oscillatory terms while retaining reasonable accuracy. These \
+are based on three-time-level schemes. Both Richtmyer and Morton, and Smith \
+give three-time-level analogues of Crank-Nicholson and Douglas, and state \
+they are the best schemes to use when the initial data are non-smooth. We \
+shall look at these in Chapter 15, where we shall aim to give our final view \
+on a \"benchmark\" finite-difference scheme.\n\nThe choice of a good scheme \
+is closely related to various notions of stability. It is beyond the scope of \
+this text to supply a critique of the various notions of stability and supply \
+a catalogue of what schemes are stable in each sense. Each of the texts in \
+the bibliography contains some form of discussion, and the reader is referred \
+to these, and Smith in particular, for a theoretical discussion. For our \
+purposes, it would take a substantial amount of theory to get to our final \
+conclusions. We shall reach our view instead by doing some numerical \
+experiments with ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " that reveal the very practical issues that arise in the option-pricing \
+context. These suggest that given our desire for accurate estimates of both a \
+function and its derivatives, only the strongest notion of stability, as \
+discussed by Smith, is actually useful. Other notions of stability, in \
+particular, those associated with merely requiring that the eigenvalues of \
+the difference matrix are less than unity in magnitude, are not sufficient, \
+though they are certainly necessary. "
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}},
+  PageBreakWithin->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Chapter 13 Bibliography", "Section",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "\nHildebrand, F.B., 1956, ",
+  StyleBox["Introduction to Numerical Analysis",
+    FontSlant->"Italic"],
+  ", McGraw-Hill.\n\nMitchell, A.R. and Griffiths, D.F., 1980, ",
+  StyleBox["The Finite Difference Method in Partial Differential Equations",
+    FontSlant->"Italic"],
+  ", John Wiley  (Corrected reprinted edition, 1994).\n\nRichtmyer, R.D. and \
+Morton, K.W., 1957, ",
+  StyleBox["Difference Methods for Initial Value Problems",
+    FontSlant->"Italic"],
+  ", Krieger reprint, 1994, reprinted from the Wiley 1957/1967 original.\n \n\
+Smith, G.D., 1985, ",
+  StyleBox[
+  "Numerical Solution of Partial Differential Equations: Finite Difference \
+Methods",
+    FontSlant->"Italic"],
+  ", Oxford University Press.\n\nWilmott, P., Dewynne, J. and Howison, S., \
+1993, ",
+  StyleBox["Option Pricing - Mathematical Models and Computation",
+    FontSlant->"Italic"],
+  ", Oxford Financial Press.\n\nWilmott, P., Dewynne, J. and Howison, S., \
+1995, ",
+  StyleBox["The Mathematics of Financial Derivatives",
+    FontSlant->"Italic"],
+  ", Cambridge University Press. \n"
+}], "Text",
+  CellMargins->{{5, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]]
+},
+FrontEndVersion->"Macintosh 3.0",
+ScreenRectangle->{{0, 1152}, {0, 850}},
+AutoGeneratedPackage->None,
+ShowPageBreaks->True,
+WindowToolbars->{"RulerBar", "EditBar"},
+CellGrouping->Automatic,
+WindowSize->{622, 748},
+WindowMargins->{{4, Automatic}, {Automatic, 1}},
+PrintingCopies->1,
+PrintingStartingPageNumber->258,
+PrintingPageRange->{1, Automatic},
+PageHeaders->{{Inherited, Inherited, Cell[ 
+        TextData[ {"13. Greeks and Finite-Differences"}]]}, {Cell[ 
+        TextData[ {"13. Greeks and Finite-Differences"}]], Inherited, 
+      Inherited}},
+PageFooters->{{Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}, {Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}},
+PrintingOptions->{"PrintingMargins"->{{0, 0}, {57, 57}},
+"PaperSize"->{439, 716},
+"PrintCellBrackets"->False,
+"PrintRegistrationMarks"->False,
+"PrintMultipleHorizontalPages"->False,
+"FirstPageHeader"->False,
+"FacingPages"->True},
+PrivateNotebookOptions->{"ColorPalette"->{RGBColor, 128}},
+ShowCellLabel->False,
+ShowCellTags->False,
+RenderingOptions->{"ObjectDithering"->True,
+"RasterDithering"->False},
+Magnification->1,
+StyleDefinitions -> "Default.nb",
+MacintoshSystemPageSetup->"\<\
+00<0004/0B`000003;T8^on3ohP==PTc0b85N`?N0080004/0B`000006G<AMP01
+0000I00000400@4100800BL?00400@S<[40000000000064/01T1T00000000000
+00000000007oo@S=gQ3oo@001HL:kP00\>"
+]
+
+
+(***********************************************************************
+Cached data follows.  If you edit this Notebook file directly, not using
+Mathematica, you must remove the line containing CacheID at the top of 
+the file.  The cache data will then be recreated when you save this file 
+from within Mathematica.
+***********************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1731, 51, 283, 10, 120, "Title"],
+Cell[2017, 63, 154, 4, 33, "Subsubtitle"],
+
+Cell[CellGroupData[{
+Cell[2196, 71, 158, 3, 44, "Section"],
+Cell[2357, 76, 591, 11, 64, "Text"],
+
+Cell[CellGroupData[{
+Cell[2973, 91, 106, 1, 42, "Subsection"],
+Cell[3082, 94, 362, 12, 25, "Text"],
+Cell[3447, 108, 139, 2, 20, "NumberedEquation"],
+Cell[3589, 112, 75, 1, 25, "Text"],
+Cell[3667, 115, 139, 2, 20, "NumberedEquation"],
+Cell[3809, 119, 684, 20, 51, "Text"],
+Cell[4496, 141, 159, 3, 30, "NumberedEquation"],
+Cell[4658, 146, 193, 4, 25, "Text"],
+Cell[4854, 152, 144, 2, 30, "NumberedEquation"],
+Cell[5001, 156, 116, 1, 25, "Text"],
+Cell[5120, 159, 283, 6, 31, "NumberedEquation"],
+Cell[5406, 167, 117, 1, 25, "Text"],
+Cell[5526, 170, 307, 7, 32, "NumberedEquation"],
+Cell[5836, 179, 1519, 31, 181, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[7392, 215, 173, 6, 42, "Subsection"],
+Cell[7568, 223, 1073, 26, 90, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[8690, 255, 112, 1, 44, "Section"],
+
+Cell[CellGroupData[{
+Cell[8827, 260, 128, 1, 42, "Subsection"],
+Cell[8958, 263, 955, 16, 116, "Text"],
+Cell[9916, 281, 187, 3, 32, "NumberedEquation"],
+Cell[10106, 286, 645, 13, 51, "Text"],
+Cell[10754, 301, 188, 4, 20, "NumberedEquation"],
+Cell[10945, 307, 155, 4, 25, "Text"],
+Cell[11103, 313, 179, 3, 30, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[11319, 321, 100, 1, 42, "Subsection"],
+Cell[11422, 324, 236, 9, 25, "Text"],
+Cell[11661, 335, 428, 10, 31, "NumberedEquation"],
+Cell[12092, 347, 260, 6, 25, "Text"],
+Cell[12355, 355, 242, 4, 20, "NumberedEquation"],
+Cell[12600, 361, 87, 1, 25, "Text"],
+Cell[12690, 364, 260, 4, 22, "NumberedEquation"],
+Cell[12953, 370, 591, 17, 38, "Text"],
+Cell[13547, 389, 294, 4, 22, "NumberedEquation"],
+Cell[13844, 395, 170, 4, 25, "Text"],
+Cell[14017, 401, 303, 5, 22, "NumberedEquation"],
+Cell[14323, 408, 168, 4, 25, "Text"],
+Cell[14494, 414, 282, 4, 22, "NumberedEquation"],
+Cell[14779, 420, 117, 1, 25, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[14933, 426, 103, 1, 42, "Subsection"],
+Cell[15039, 429, 199, 6, 25, "Text"],
+Cell[15241, 437, 187, 3, 24, "NumberedEquation"],
+Cell[15431, 442, 86, 1, 25, "Text"],
+Cell[15520, 445, 199, 3, 21, "NumberedEquation"],
+Cell[15722, 450, 227, 6, 25, "Text"],
+Cell[15952, 458, 191, 3, 34, "NumberedEquation"],
+Cell[16146, 463, 259, 6, 25, "Text"],
+Cell[16408, 471, 202, 3, 33, "NumberedEquation"],
+Cell[16613, 476, 189, 6, 25, "Text"],
+Cell[16805, 484, 124, 2, 22, "Input"],
+
+Cell[CellGroupData[{
+Cell[16954, 490, 128, 2, 22, "Input"],
+Cell[17085, 494, 418, 10, 29, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[17552, 510, 153, 4, 42, "Subsection"],
+Cell[17708, 516, 505, 9, 51, "Text"],
+Cell[18216, 527, 872, 14, 86, "NumberedEquation"],
+Cell[19091, 543, 509, 14, 38, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[19637, 562, 95, 1, 42, "Subsection"],
+Cell[19735, 565, 220, 6, 25, "Text"],
+Cell[19958, 573, 372, 7, 30, "NumberedEquation"],
+
+Cell[CellGroupData[{
+Cell[20355, 584, 124, 1, 33, "Subsubsection"],
+Cell[20482, 587, 115, 1, 25, "Text"],
+Cell[20600, 590, 188, 3, 21, "NumberedEquation"],
+Cell[20791, 595, 280, 7, 25, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[21108, 607, 140, 2, 33, "Subsubsection"],
+Cell[21251, 611, 159, 4, 25, "Text"],
+Cell[21413, 617, 261, 4, 30, "NumberedEquation"],
+Cell[21677, 623, 391, 8, 38, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[22117, 637, 123, 1, 42, "Subsection"],
+Cell[22243, 640, 278, 7, 25, "Text"],
+Cell[22524, 649, 364, 7, 30, "NumberedEquation"],
+Cell[22891, 658, 285, 7, 25, "Text"],
+Cell[23179, 667, 175, 3, 21, "NumberedEquation"],
+Cell[23357, 672, 273, 7, 25, "Text"],
+Cell[23633, 681, 371, 6, 21, "NumberedEquation"],
+Cell[24007, 689, 110, 1, 25, "Text"],
+Cell[24120, 692, 284, 5, 21, "NumberedEquation"],
+Cell[24407, 699, 430, 12, 25, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[24874, 716, 105, 1, 42, "Subsection"],
+Cell[24982, 719, 281, 7, 25, "Text"],
+Cell[25266, 728, 349, 5, 21, "NumberedEquation"],
+Cell[25618, 735, 1033, 26, 77, "Text"],
+Cell[26654, 763, 158, 3, 30, "NumberedEquation"],
+Cell[26815, 768, 545, 10, 51, "Text",
+  PageBreakAbove->False],
+Cell[27363, 780, 118, 2, 25, "Text",
+  PageBreakAbove->False],
+Cell[27484, 784, 245, 5, 21, "NumberedEquation",
+  PageBreakAbove->False],
+Cell[27732, 791, 239, 4, 21, "NumberedEquation",
+  PageBreakAbove->False],
+Cell[27974, 797, 263, 5, 21, "NumberedEquation",
+  PageBreakAbove->False],
+Cell[28240, 804, 246, 5, 21, "NumberedEquation",
+  PageBreakAbove->False],
+Cell[28489, 811, 291, 6, 38, "Text",
+  PageBreakAbove->False],
+Cell[28783, 819, 161, 3, 34, "NumberedEquation",
+  PageBreakAbove->False],
+Cell[28947, 824, 226, 5, 25, "Text",
+  PageBreakAbove->False]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[29222, 835, 121, 1, 44, "Section"],
+Cell[29346, 838, 1582, 31, 194, "Text",
+  PageBreakWithin->True],
+Cell[30931, 871, 131, 2, 30, "NumberedEquation"],
+Cell[31065, 875, 173, 3, 32, "NumberedEquation",
+  PageBreakAbove->False],
+Cell[31241, 880, 105, 2, 25, "Text",
+  PageBreakAbove->False],
+Cell[31349, 884, 232, 5, 39, "NumberedEquation",
+  PageBreakAbove->False],
+Cell[31584, 891, 441, 11, 64, "Text",
+  PageBreakAbove->False]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[32062, 907, 124, 1, 44, "Section"],
+Cell[32189, 910, 4170, 78, 389, "Text",
+  PageBreakWithin->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[36396, 993, 99, 1, 44, "Section"],
+Cell[36498, 996, 1156, 27, 207, "Text"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+
+(***********************************************************************
+End of Mathematica Notebook file.
+***********************************************************************)
+

@@ -1,0 +1,3286 @@
+(***********************************************************************
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used on any computer system with Mathematica 3.0,
+MathReader 3.0, or any compatible application. The data for the notebook 
+starts with the line of stars above.
+
+To get the notebook into a Mathematica-compatible application, do one of 
+the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing the 
+word CacheID, otherwise Mathematica-compatible applications may try to 
+use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+***********************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[    109202,       2859]*)
+(*NotebookOutlinePosition[    111095,       2916]*)
+(*  CellTagsIndexPosition[    111051,       2912]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["\<\
+Chapter 3. 
+Mathematical Finance Preliminaries\
+\>", "Title",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  TextAlignment->Left,
+  TextJustification->0,
+  AspectRatioFixed->True],
+
+Cell["It\[OHat]'s Lemma and the Principles of Dynamic Hedging", "Subsubtitle",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["3.1 Introduction", "Section",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "\nThis chapter presents a sketch of the foundations in mathematical \
+finance for what follows. In deciding the content of this chapter, the author \
+has borne in mind several points. First, there exist a number of texts which \
+already do an excellent job of laying the foundations, within various \
+conceptual frameworks (tree, martingale, PDE). Second, and perhaps \
+unfortunately, the existing literature is unfortunately highly factionalized \
+into the writings of those who prefer to regard martingales as fundamental, \
+those who regard the partial differential equations and inequalities as \
+fundamental, and those who regard a decision tree as fundamental. Finally, \
+none of these texts addresses, in a comprehensive fashion, many of the \
+practicalities of implementation. Proponents of the simulation method go \
+rather quiet when asked to price American options accurately, and proponents \
+of the PDE approach are pushed to highly awkward schemes when asked to price \
+path-dependent European options. Hopefully this text, at least when it comes \
+to implementation, will bridge some of the gaps.\n\nThat leaves the author \
+with the sensitive task of picking a conceptual framework for setting out \
+basic theory, without annoying anyone, and with something new to say. This is \
+almost certainly impossible, so I have decided instead to pick the approach I \
+understand best, and try to develop it rather more than is commonplace. The \
+approach taken here will be based on dynamic hedging arguments, leading to \
+partial differential equations. I get my apologies in to martingale fanatics \
+right away, and hope that the discussion on practical issues involved in \
+simulation contained later in this text will appease them. I make no \
+apologies to fans of trees for suppressing them as a mainstream approach - \
+the view of the author is that the analytical structure of American-style \
+options has all too often been obscured by their routine presentation through \
+a tree argument, and that there are many cases where anomalous values can be \
+obtained by tree methods that are readily avoided by a more appropriate \
+numerical scheme. In this text, the binomial and trinomial trees are largely \
+relegated to being a very special case of the explicit finite-difference \
+method, when the grid is taken to be triangular. Suitably chosen implicit \
+schemes are both more efficient and more accurate than tree models. I shall \
+nevertheless explore tree models within ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  ", for completeness. It must also be recognized that when one moves beyond \
+the confines of traditional equity derivative analysis, there may be cases \
+where it is difficult to set up a PDE approach, whereas a tree argument may \
+be a valuable place to start. My own perspective is really that tree models \
+have in the past been somewhat over-hyped as an algorithm for problem \
+solution, since carefully posed finite-difference methods are often more \
+appropriate and more accurate. This is not to say that trees are not a useful \
+conceptual framework for developing new difficult models. \n\nFor those who \
+prefer a more reasoned ",
+  StyleBox["financial",
+    FontSlant->"Italic"],
+  " discussion, I can make no better reference than to the classic text by \
+John Hull, now in its third edition (Hull, 1996). For those who prefer a \
+martingale approach, I heartily recommend the excellent text by Baxter and \
+Rennie (1996), who also explain the link between the martingale approach and \
+the PDE approach. An extensive and complementary discussion of the PDE \
+formalism is given by Wilmott, Dewynne and Howison, in their original (1993) \
+and student (1996) texts. The discussion here will attempt to complement that \
+given in other texts by making, in addition to the basic arguments, a clear \
+presentation of the dynamic hedging arguments that apply to options linked \
+simultaneously to assets and foreign exchange rates. This provides a unified \
+theory, from which domestic options, foreign options, FX options, composites, \
+Quantos all emerge naturally with the right parameters as special cases, but \
+are embedded in a general two-factor description. The material described here \
+in terms of similarity solutions of a two-factor PDE was summarized by the \
+author in the article by Ghassemieh ",
+  StyleBox["et al ",
+    FontSlant->"Italic"],
+  "(1997). The two-factor PDE description given by Levy (1996) is entirely \
+consistent with the one given here, provided one is careful with notational \
+conventions.\n\nHaving said all this, this discussion is intended to be \
+complete, even if it borrows heavily from elsewhere for results. It is \
+oriented towards equity derivatives, with possible FX involvement. \
+Essentially, we present It\[OHat]'s Lemma and get on with it!"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["3.2 Simple Stochastic Processes and It\[OHat]'s Lemma", "Section",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "For asset prices, indicated by a variable ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  ", we shall assume a traditional type of random walk, where the fractional \
+change in ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  ", ",
+  Cell[BoxData[
+      \(TraditionalForm\`d\ S/S\)]],
+  ", in a small time interval, ",
+  Cell[BoxData[
+      \(TraditionalForm\`d\ t\)]],
+  ", is given by a relation of the form"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(\(d\ S\)\/S = \[Mu]\ d\ t\  + \[Sigma]\ d\ X\ \)\)], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Mu]\)]],
+  " is a mean drift rate parameter and \[Sigma] is a volatility parameter. \
+The term ",
+  Cell[BoxData[
+      \(TraditionalForm\`d\ X\)]],
+  " describes the randomness of the process, and satisfies two conditions:\n\n\
+(a) ",
+  Cell[BoxData[
+      \(TraditionalForm\`d\ X\)]],
+  " is a zero-mean normally-distributed random variable;\n(b) ",
+  Cell[BoxData[
+      \(TraditionalForm\`E[d\ X\^2]\  = \ d\ t\)]],
+  ".\n\nWithin these assumptions, it is a simple matter to state It\[OHat]'s \
+Lemma:\n\nLet ",
+  Cell[BoxData[
+      \(TraditionalForm\`f(S, \ t)\)]],
+  " be a differentiable function of ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`t\)]],
+  ". Then, up to and including terms of order ",
+  Cell[BoxData[
+      \(TraditionalForm\`d\ t\)]],
+  ","
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(d\ f\), "=", 
+        RowBox[{
+          RowBox[{"\[Sigma]", " ", "S", " ", "d", " ", "X", 
+            FractionBox[\(\[PartialD]f\), \(\[PartialD]S\),
+              MultilineFunction->None]}], "+", 
+          RowBox[{"d", " ", "t", " ", 
+            RowBox[{"(", 
+              RowBox[{
+                FractionBox[\(\[PartialD]f\), \(\[PartialD]t\),
+                  MultilineFunction->None], "+", " ", 
+                RowBox[{\(1\/2\), "  ", \(\[Sigma]\^2\), \(S\^2\), " ", 
+                  FractionBox[\(\[PartialD]\^2 f\), \(\[PartialD]S\^2\),
+                    MultilineFunction->None]}], "+", 
+                RowBox[{"\[Mu]", " ", "S", "  ", 
+                  FractionBox[\(\[PartialD]f\), \(\[PartialD]S\),
+                    MultilineFunction->None]}]}], ")"}]}]}]}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "For a rigorous discussion of what lies behind this formula, see Schuss \
+(1980).  Informal discussions at various levels of sophistication are given \
+in several of the texts in the bibliography to this chapter. In this text we \
+shall not be addressing the issue of how to use ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " to use It\[OHat]'s Lemma directly in various applications, including the \
+derivation of PDEs for option pricing.  For one approach see the delightful \
+discussion by Kendall (1993)."
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["3.3 Dynamic Hedging and the Black-Scholes PDE", "Section",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Under the simplest assumptions for ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  ", we assume that"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(\(d\ S\)\/S = \[Mu]\ d\ t\  + \[Sigma]\ d\ X\ \)\)], 
+  "NumberedEquation",
+  CellMargins->{{6.25, 18}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "and we write down a portfolio consisting of an instrument ",
+  Cell[BoxData[
+      \(TraditionalForm\`V\)]],
+  " depending on ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`t\)]],
+  ","
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`P = V - \[CapitalDelta]\ S\)], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Application of Ito's Lemma to ",
+  Cell[BoxData[
+      \(TraditionalForm\`V\)]],
+  " gives, for a change in ",
+  Cell[BoxData[
+      \(TraditionalForm\`P\)]],
+  ","
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(d\ P\), "=", " ", 
+        RowBox[{
+          RowBox[{"d", " ", "t", " ", 
+            RowBox[{"(", 
+              RowBox[{\(\(-D\)\ \[CapitalDelta]\), "+", 
+                RowBox[{"S", " ", "\[Mu]", " ", 
+                  RowBox[{"(", 
+                    RowBox[{
+                      FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+                        MultilineFunction->None], "-", "\[CapitalDelta]"}], 
+                    ")"}]}], "+", 
+                FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+                  MultilineFunction->None], "+", 
+                RowBox[{\(1\/2\), " ", \(\[Sigma]\^2\), " ", \(S\^2\), " ", 
+                  FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]S\^2\),
+                    MultilineFunction->None]}]}], ")"}]}], "+", 
+          RowBox[{"d", " ", "X", " ", "S", " ", 
+            RowBox[{"(", 
+              RowBox[{
+                FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+                  MultilineFunction->None], "-", "\[CapitalDelta]"}], ")"}], 
+            " ", "\[Sigma]"}]}]}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where ",
+  Cell[BoxData[
+      \(TraditionalForm\`D\)]],
+  " is the dividend rate, i.e., the income generated by holding ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " over a time interval ",
+  Cell[BoxData[
+      \(TraditionalForm\`d\ t\)]],
+  ". To eliminate the risk associated with the ",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  "-process, i.e., to eliminate the random component, we set "
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"\[CapitalDelta]", "=", 
+        FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+          MultilineFunction->None]}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["If this is done, we obtain", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(d\ P\), "=", " ", 
+        RowBox[{"d", " ", "t", " ", 
+          RowBox[{"(", 
+            RowBox[{
+              RowBox[{\(-D\), " ", 
+                FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+                  MultilineFunction->None]}], "+", 
+              FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+                MultilineFunction->None], "+", 
+              RowBox[{\(1\/2\), " ", \(\[Sigma]\^2\), " ", \(S\^2\), " ", 
+                FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]S\^2\),
+                  MultilineFunction->None]}]}], ")"}]}]}], TraditionalForm]], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+This is a deterministic change process. The absence of arbitrage \
+opportunities implies that we can equate this to the growth in a portfolio \
+obtained by depositing an equivalent sum of cash in the bank. Under this \
+assumption, the portfolio grows by an amount\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(d\ P\), " ", "=", " ", 
+        RowBox[{\(r\ P\ d\ t\), "=", 
+          RowBox[{"r", " ", 
+            RowBox[{"(", 
+              RowBox[{"V", "-", 
+                RowBox[{"S", " ", 
+                  FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+                    MultilineFunction->None]}]}], ")"}], " ", "d", " ", 
+            "t"}]}]}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "in time ",
+  Cell[BoxData[
+      \(TraditionalForm\`d\ t\)]],
+  ". Equating these two measures for ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(d\ P\ \)\)]],
+  " yields the following partial differential equation for ",
+  Cell[BoxData[
+      \(TraditionalForm\`V\)]],
+  ". "
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{\((r\ S - D)\), " ", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+              MultilineFunction->None]}], "+", 
+          RowBox[{\(1\/2\), " ", \(\[Sigma]\^2\), " ", \(S\^2\), " ", 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]S\^2\),
+              MultilineFunction->None]}], "-", \(r\ V\)}], "=", " ", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This is one form of the Black-Scholes partial differential equation. It is \
+sometimes written in terms of the yield variable ",
+  Cell[BoxData[
+      \(TraditionalForm\`q\  = \ D/S\)]],
+  ", as"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{"S", " ", \((r - q)\), " ", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+              MultilineFunction->None]}], "+", 
+          RowBox[{\(1\/2\), " ", \(\[Sigma]\^2\), " ", \(S\^2\), " ", 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]S\^2\),
+              MultilineFunction->None]}], "-", \(r\ V\)}], "=", " ", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["The Risk-Neutral World and Simulation", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+By introducing a dynamic hedge we have eliminated instantaneous \
+stochastic risk from the portfolio. This can all be re-interpreted by \
+considering a new random walk based on the scheme:\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(\(d\ s\)\/s = \((r - q)\) d\ t\  + \ \[Sigma]\ d\ X\ 
+    \)\)], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This is referred to as the \"risk-neutral\" random walk associated with \
+the asset. Let's consider the new quantity, assuming ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\)]],
+  " is constant."
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`v = \[ExponentialE]\^\(\(-r\)\ t\)\ V\)], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "as a function of the variables ",
+  Cell[BoxData[
+      \(TraditionalForm\`s, \ t\)]],
+  ". If we apply It\[OHat]'s Lemma to this case, we obtain"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(d\ v\), "=", 
+        RowBox[{\(\[ExponentialE]\^\(\(-r\)\ t\)\), 
+          RowBox[{"(", 
+            RowBox[{
+              RowBox[{"\[Sigma]", " ", "s", " ", "d", " ", "X", 
+                FractionBox[\(\[PartialD]V\), \(\[PartialD]s\),
+                  MultilineFunction->None]}], "+", 
+              RowBox[{"d", " ", "t", " ", 
+                RowBox[{"(", 
+                  RowBox[{
+                    FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+                      MultilineFunction->None], "-", \(r\ V\), "+", " ", 
+                    RowBox[{\(1\/2\), "  ", \(\[Sigma]\^2\), \(s\^2\), " ", 
+                      FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]s\^2\),
+                        MultilineFunction->None]}], "+", 
+                    RowBox[{\((r - q)\), " ", "s", "  ", 
+                      FractionBox[\(\[PartialD]V\), \(\[PartialD]s\),
+                        MultilineFunction->None]}]}], ")"}]}]}], ")"}]}]}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Applying expectations to this result gives, by virtue of the BSPDE,\
+\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`d\ E[v] = 0\)], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "It follows that the Black-Scholes PDE is telling us we can value an option \
+by assuming a risk-neutral random walk on an \"asset\" ",
+  Cell[BoxData[
+      \(TraditionalForm\`s\)]],
+  ", and value the option by taking expectations of ",
+  Cell[BoxData[
+      \(TraditionalForm\`V\)]],
+  " under many different realizations of the risk-neutral random walk, and \
+discounting back to the present by the discount factor ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[ExponentialE]\^\(\(-r\)\ t\)\)]],
+  ". This is the theoretical basis for Monte Carlo or simulation-based \
+valuation. So we have two valuation techniques:\n\n(a) solve the BSPDE;\n(b) \
+simulate risk-neutralized asset-price paths and take discounted expectations.\
+\n\nThe argument we have given shows that these are equivalent, at least for \
+the simple case we have considered. We now turn to computing the forms of the \
+PDEs associated with some more interesting cases. These include, but in real \
+life are not limited to,\n\n(a) coupon payments, as apply to convertible \
+bonds,\n(b) risk that is not dynamically hedgeable, such as may apply in \
+cases of default or volatility risk,\n(c) foreign-exchange risk, in the case \
+of foreign assets and an option paid in domestic currency."
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["3.4 Simple Convertible Bonds and a Simple Model of Default", "Section",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell["\<\
+There are a host of complications involved in the valuation of \
+real-world convertible bonds. For our immediate purposes it will be \
+sufficient to consider a financial instrument similar to the ones already \
+considered but with a few extra complications. In addition to incorporating a \
+more appropriate time-dependent model of interest rates, the payment of \
+coupons and the possibility of default have to be modelled, even before one \
+gets into a consideration of scheduled early exercise, and embedded calls, \
+puts and refixes. Here we shall look briefly at coupons and default in a \
+scheme where the dominant stochastic factor is the asset-price random walk - \
+interest rates are here deterministic but time-dependent.
+
+There are several different ways of defining a risk of default associated \
+with a bond or CB. One can write down various schemes such as:\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+(a) default will occur if the stock price drops to a certain value;
+(b) there is a running probability of default, which may be either or both of \
+time-dependent and price-dependent;
+(c) the probability of default is a random process correlated with either the \
+stock-price process or the interest-rate process.\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The argument presented here is a simple view of approach (b), which is \
+probably the simplest. The idea is to go back to first principles and build a \
+hedge position for the CB, which although it cannot be made risk-neutral, in \
+the presence of default, is assumed to be risk-neutral on average, given a \
+model of the probability of default. The approach is based on an old model of \
+a jump diffusion process for the stock price in valuing an ordinary \
+derivative given by Merton (as described by Jarrow and Rudd (1983, Ch. 12)), \
+except that here we consider jumps in the CB value, not the underlying, \
+modelled as a continuous time Poisson process. With certain auxiliary \
+assumptions, this approach leads in a very clear way to a model with a \
+spread-adjustment to the interest rate used for discounting, but with \
+risk-neutral growth given by the usual formula. It is therefore consistent \
+with what I believe to be common practice, of growing or drifting the \
+underlying at ",
+  Cell[BoxData[
+      \(TraditionalForm\`\((r - q)\)\)]],
+  ", but discounting using ",
+  Cell[BoxData[
+      \(TraditionalForm\`\((r + spread)\)\)]],
+  ". \n\nSo suppose that we have a derivative instrument ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(V(S, \ t, \ Y), \)\)]],
+  " where ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " is the underlying, ",
+  Cell[BoxData[
+      \(TraditionalForm\`t\)]],
+  " is the time and ",
+  Cell[BoxData[
+      \(TraditionalForm\`Y\)]],
+  " is the default status, with ",
+  Cell[BoxData[
+      \(TraditionalForm\`Y = 0\)]],
+  " for no default, ",
+  Cell[BoxData[
+      \(TraditionalForm\`Y = 1\)]],
+  " for default. We assume that ",
+  Cell[BoxData[
+      \(TraditionalForm\`Y\)]],
+  " follows a Poisson process of the form"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[{
+    \(TraditionalForm
+    \`P(Y = \(1\ at\ \((t + d\ t)\) | Y = 0\ at\ \ t\)) = \[Lambda]\ d\ t\), 
+    \(TraditionalForm
+    \`P(Y = \(0\ at\ \((t + d\ t)\) | Y = 0\ at\ \ t\)) = 
+      1 - \[Lambda]\ d\ t\), 
+    \(TraditionalForm
+    \`P(Y = \(1\ at\ \((t + d\ t)\) | Y = 1\ at\ \ t\)) = 1\)}], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Under the usual assumptions for ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  ", we assume that"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(d\ S\)\/S = d\ t\ \[Mu] + d\ X\ \[Sigma]\)], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["and we write down a portfolio:", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`P = V - \[CapitalDelta]\ S\)], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Application of Ito's Lemma to ",
+  Cell[BoxData[
+      \(TraditionalForm\`V\)]],
+  " gives, for a change in ",
+  Cell[BoxData[
+      \(TraditionalForm\`P\)]],
+  " for a bond:"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(d\ P\), "=", " ", 
+        RowBox[{
+          RowBox[{"d", " ", "t", " ", 
+            RowBox[{"(", 
+              RowBox[{"K", "-", \(D\ \[CapitalDelta]\), "+", 
+                RowBox[{"S", " ", "\[Mu]", " ", 
+                  RowBox[{"(", 
+                    RowBox[{
+                      FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+                        MultilineFunction->None], "-", "\[CapitalDelta]"}], 
+                    ")"}]}], "+", 
+                FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+                  MultilineFunction->None], "+", 
+                RowBox[{\(1\/2\), " ", \(\[Sigma]\^2\), " ", \(S\^2\), " ", 
+                  FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]S\^2\),
+                    MultilineFunction->None]}]}], ")"}]}], "+", 
+          RowBox[{"d", " ", "X", " ", "S", " ", 
+            RowBox[{"(", 
+              RowBox[{
+                FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+                  MultilineFunction->None], "-", "\[CapitalDelta]"}], ")"}], 
+            " ", "\[Sigma]"}], "\n", "             ", "+", 
+          \(d\ Y\ \((V \((S, t + d\ t, d\ Y)\) - V \((S, t, 0)\))\)\)}]}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where ",
+  Cell[BoxData[
+      \(TraditionalForm\`K\)]],
+  " is coupon rate, ",
+  Cell[BoxData[
+      \(TraditionalForm\`D\)]],
+  " is dividend rate etc. As usual, to eliminate the risk associated with the \
+",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  "-process, we set "
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"\[CapitalDelta]", "=", 
+        FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+          MultilineFunction->None]}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["to obtain", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(d\ P\), "=", " ", 
+        RowBox[{
+          RowBox[{"d", " ", "t", " ", 
+            RowBox[{"(", 
+              RowBox[{"K", "-", 
+                RowBox[{"D", " ", 
+                  FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+                    MultilineFunction->None]}], "+", 
+                FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+                  MultilineFunction->None], "+", 
+                RowBox[{\(1\/2\), " ", \(\[Sigma]\^2\), " ", \(S\^2\), " ", 
+                  FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]S\^2\),
+                    MultilineFunction->None]}]}], ")"}]}], "+", 
+          \(d\ Y\ \((V \((S, t + d\ t, Y + d\ Y)\) - V \((S, t, Y)\))
+              \)\)}]}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The contribution from the Poisson process, as in Merton's jump \
+diffusion model, cannot be eliminated by any further choice of hedge. \
+However, we can proceed by assuming that the process is risk-neutral when \
+averaged over the defaulting process:\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`E[d\ P] = r\ E[P]\ d\ t\)], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "We further assume that the value of the defaulting CB is some fraction ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Phi]\)]],
+  " of the non-defaulting CB, thereby allowing us to approximate the default \
+term. We have"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[{
+    \(TraditionalForm\`E[d\ Y] = \[Lambda]\ d\ t\), 
+    \(TraditionalForm\`V(S, t, 1) = \[Phi]\ \(V(S, t, 0)\)\)}], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+And we take the expected value of the entire equation, using bars \
+to denote expectations. We represent the default term as\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm
+    \`E[d\ Y\ \((V(S, t + d\ t, Y + d\ Y) - V(S, t, Y))\)]\[LongRightArrow]\ 
+        \[Lambda]\ d\ t\ \(\(V\&_\)(S, t)\) \((\[Phi] - 1)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["and the portfolio grows by", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(r\ E[P]\ d\ t\), "=", 
+        RowBox[{"r", " ", 
+          RowBox[{"(", 
+            RowBox[{\(V\&_\), "-", 
+              RowBox[{"S", " ", 
+                FractionBox[\(\[PartialD]V\&_\), \(\[PartialD]S\),
+                  MultilineFunction->None]}]}], ")"}], "d", " ", "t"}]}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["Putting this all together gives", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{"K", "+", 
+          RowBox[{\((r\ S - D)\), " ", 
+            FractionBox[\(\[PartialD]V\&_\), \(\[PartialD]S\),
+              MultilineFunction->None]}], "+", 
+          FractionBox[\(\[PartialD]V\&_\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{\(1\/2\), " ", \(\[Sigma]\^2\), " ", \(S\^2\), " ", 
+            FractionBox[\(\[PartialD]\^2 V\&_\), \(\[PartialD]S\^2\),
+              MultilineFunction->None]}], "-", 
+          \(\((r\  + \ \[Lambda] \((1 - \[Phi])\))\) \(V\ \)\&_\)}], "=", 
+        " ", "0"}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+This is a simple version of the default-risk-adjusted Black-Scholes \
+equation. The drift term is\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{\((r\ S - D)\), " ", 
+          FractionBox[\(\[PartialD]V\&_\), \(\[PartialD]S\),
+            MultilineFunction->None]}], "=", " ", 
+        RowBox[{\(S \((r - q)\)\), 
+          FractionBox[\(\[PartialD]V\&_\), \(\[PartialD]S\),
+            MultilineFunction->None]}]}], TraditionalForm]], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "if the dividend yield is ",
+  Cell[BoxData[
+      \(TraditionalForm\`q\)]],
+  ", and the discounting factor is"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`r\  + \ \[Lambda](1 - \[Phi])\)], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where we interpret ",
+  Cell[BoxData[
+      \(TraditionalForm\`sp = \[Lambda](1 - \[Phi])\)]],
+  " as the ",
+  StyleBox["spread",
+    FontSlant->"Italic"],
+  " term. The spread is zero if there is no risk of default or if the payout \
+is 100%, which is sensible if trivial. Note that the risk-neutral drift or \
+growth rate is still ",
+  Cell[BoxData[
+      \(TraditionalForm\`\((r - q)\)\)]],
+  ", but the discounting term is ",
+  Cell[BoxData[
+      \(TraditionalForm\`r + sp\)]],
+  ". For a \"straight bond\" (non-convertible, independent of the asset \
+price) the equation reduces to"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{"K", "+", 
+          FractionBox[\(\[PartialD]V\&_\), \(\[PartialD]t\),
+            MultilineFunction->None], "-", \(\((r\  + \ sp)\) \(V\ \)\&_\)}], 
+        "=", " ", "0"}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Hypothetically, this allows the spread to be estimated from \
+zero-coupon bonds. Quite what values should be taken for sp is a difficult \
+matter. Another question relates to capturing correlation between underlying \
+price and spread by assuming a certain functional form for the spread as a \
+function of stock price. Such matters take us beyond the scope of this book. \
+The point of our argument is that within the assumptions made we still have \
+the Black-Scholes differential equation to solve, but with different \
+parameters to represent the default risk. In addition the equation has a \
+\"source\" term representing the coupon payments.\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["3.5 Asset-FX Coupled Options", "Section",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell["\<\
+The idea is to develop a single conceptual framework within which \
+it is clear how to treat such objects as:
+
+(a) domestic options;
+(b) foreign options;
+(c) FX Options;
+(d) composite options;
+(e) Quantos;
+
+as well as other more complex cross-currency instruments. \
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+A useful analysis of several special cases was given by E. Reiner \
+(1992), who gives various cunning arguments for valuing four types of \
+asset-FX linked options, and who comes up with some rules for what to use as \
+effective interest rates, yields and volatilities, based on \"domestic market\
+\" or \"foreign market\" analyses, as is most appropriate for each case. The \
+general framework underpinning that analysis was far from clear to me, even \
+after several readings. One may also be interested more generally in the \
+valuation of options involving indices in several currencies, with and \
+without Quanto effects and with various types of payoffs. It is therefore \
+vital to get a grip on the FX effect, and how it applies for various types of \
+payoffs and the different ways of including the FX. \
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}},
+  TextAlignment->Left,
+  TextJustification->1],
+
+Cell["\<\
+More generally, there is increasing interest in two-factor models \
+for various types of application, where one factor is an asset, and the \
+second is an FX, an interest rate or a volatility. Given that modelling \
+single-factor is a lot quicker than modelling two-factor, it is highly \
+desirable to clarify when a two-factor model can be treated as essentially a \
+single-factor model, with suitable adjustments to parameters. Current \
+research in stochastic volatility, for example, can be based on a two-factor \
+route, or on a single-factor approach with various types of correction to \
+account for some component of the second factor. Given the special character \
+of asset-FX linked derivatives, it is more usual for the reduction for \
+single-factor to be possible, but it is not a foregone conclusion. Another \
+issue is to understand what the correct hedge position should look like, in \
+terms of a suitable mix of the underlying and foreign currency.
+
+Finally, the following allows us to adopt a unified domestic picture of all \
+the derivatives of interest. Reiner's analysis switched between an analysis \
+based on foreign markets and one based on domestic markets according to \
+convenience. When we generalize to multi-asset multi-currency Quantos, for \
+example, it is useful to have a consistent domestic picture, due to the lack \
+of a unique foreign country. Readers with a probabilistic background may wish \
+to explore how these results can be obtained in an alternative manner.\
+\>", 
+  "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Framework", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Suppose that we have two countries, called \"Payofferania\" and \
+\"Assetagonia\". These slightly bizarre names are intended to constantly \
+remind the reader that the option payoff is in one currency, while the \
+underlying asset is in another. These terms also avoid all possible confusion \
+that may arise from differing views as to whether the underlying is domestic \
+or foreign, with the option investor being foreign or domestic - in my view \
+these terms are chronically ambiguous, just as is the notion of \"FX Rate\" \
+(w.r.t. which way up it is!). In order to at least try to avoid confusion, \
+let ",
+  Cell[BoxData[
+      \(TraditionalForm\`X(t)\)]],
+  " denote the spot price in Payofferanian currency of one unit of \
+Assetagonian currency. We have an underlying asset (e.g. equity or index) in \
+Assetagonia with price ",
+  Cell[BoxData[
+      \(TraditionalForm\`S'\)]],
+  " in Assetagonian currency. Here and elsewhere primes denote Assetagonian \
+objects. We can build an equivalent Payofferanian asset with price"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"S", "=", 
+        RowBox[{
+          SuperscriptBox["S", "\[Prime]",
+            MultilineFunction->None], " ", "X"}]}], TraditionalForm]], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+A completely general option, paying off in the Payofferanian \
+currency, can be thought of as a function\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"V", "=", 
+        RowBox[{"V", "(", 
+          RowBox[{
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None], ",", "X", ",", "t"}], ")"}]}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "and we write it this way to emphasize the fact that in complete generality \
+it is a function separately of the two stochastic factors ",
+  Cell[BoxData[
+      \(TraditionalForm\`S'\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  ", as well as the time ",
+  Cell[BoxData[
+      \(TraditionalForm\`t\)]],
+  ". If things are really this general, there is no alternative to a full \
+two-factor treatment. However, one can conceive of all sorts of special cases \
+where it ought to boil down to just one effective factor. A few types stand \
+out as being important:"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Type 1", "Subsubsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+We have a purely Assetagonian option converted to Payofferanian \
+currency:\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"V", "=", 
+        RowBox[{"X", " ", 
+          RowBox[{"u", "(", 
+            RowBox[{
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None], ",", "t"}], ")"}]}]}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Type 2", "Subsubsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->True],
+
+Cell["\<\
+A Payofferanian-denominated option that is a function only of the \
+equivalent Payofferanian asset:\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"V", "=", 
+        RowBox[{"v", "(", 
+          RowBox[{
+            RowBox[{"X", " ", 
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None]}], ",", "t"}], ")"}]}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Type 3", "Subsubsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+A Payofferanian-denominated option that is a function only of the \
+Assetagonian asset:\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"V", "=", 
+        RowBox[{
+          RowBox[{"w", "(", 
+            RowBox[{
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None], ",", "t"}], ")"}], "=", 
+          \(w \((S\/X, t)\)\)}]}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Note that \"composite\" options are an example of Type 2, and \"Quanto\" \
+options fall into the Type 3 category. We could also build currency options \
+modulated in some way by the asset price, but this is not our primary \
+interest, and would be more properly the domain of an interest-rate \
+derivative model where the two interest rates are stochastic. For \
+completeness we also include Type 0 (zero), a pure domestic option, and Type \
+FX, which is a function only of ",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  "."
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The Risky Coupled Random Processes", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+One basic difficulty is that we do not know how to specify in \
+advance what risk-neutral processes are followed, from a domestic point of \
+view, by the foreign asset. What we shall do, therefore, is to specify the \
+real-world risky processes, build a risk-neutral hedge portfolio containing \
+the asset and currency, and introduce an unknown risk-neutral drift for the \
+foreign asset, parametrized by an unknown effective yield. We shall \
+eventually demand that in case (b), the ordinary Black-Scholes single-factor \
+model is recovered. In this way, we can divine the risk-neutral drift in \
+terms of the domestic interest rate, the asset yield and the \
+correlation.\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        FractionBox[
+          RowBox[{"d", " ", 
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None]}], 
+          SuperscriptBox["S", "\[Prime]",
+            MultilineFunction->None]], "=", 
+        \(\(\[Mu]\_1\) d\ t + \[Sigma]\_\(S'\)\ d\ Z\_1\)}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm
+    \`\(d\ X\)\/X = \ \(\[Mu]\_2\) d\ t + \[Sigma]\_X\ d\ Z\_2\)], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The correlation between the two processes is ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Rho]\_\(S' X\)\)]],
+  " or just ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Rho]\)]],
+  " for short. Let's suppose you are the holder of the derivative ",
+  Cell[BoxData[
+      \(TraditionalForm\`V\)]],
+  ", and that we apply It\[OHat]'s Lemma in two dimensions. Then It\[OHat] \
+gives"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(d\ V\), "=", " ", 
+        RowBox[{
+          RowBox[{
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+              MultilineFunction->None], "d", " ", "t"}], "+", 
+          RowBox[{
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]X\),
+              MultilineFunction->None], "d", " ", "X"}], "+", 
+          RowBox[{
+            FractionBox[\(\[PartialD]V\), 
+              RowBox[{"\[PartialD]", 
+                SuperscriptBox["S", "\[Prime]",
+                  MultilineFunction->None]}],
+              MultilineFunction->None], " ", "d", " ", 
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None]}], "\n", "             ", "+", 
+          RowBox[{\(1\/2\), " ", 
+            RowBox[{"(", 
+              RowBox[{
+                RowBox[{\(\[Sigma]\_X\%2\), \(X\^2\), " ", 
+                  FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]X\^2\),
+                    MultilineFunction->None]}], " ", "+", 
+                RowBox[{"2", " ", "X", " ", 
+                  SuperscriptBox["S", "\[Prime]",
+                    MultilineFunction->None], "\[Rho]", " ", 
+                  SubscriptBox["\[Sigma]", 
+                    SuperscriptBox["S", "\[Prime]",
+                      MultilineFunction->None]], " ", \(\[Sigma]\_X\), " ", 
+                  FractionBox[\(\[PartialD]\^2 V\), 
+                    RowBox[{
+                      RowBox[{"\[PartialD]", 
+                        SuperscriptBox["S", "\[Prime]",
+                          MultilineFunction->None]}], "\[ThinSpace]", 
+                      \(\[PartialD]X\)}],
+                    MultilineFunction->None]}], "+", 
+                RowBox[{
+                  SubsuperscriptBox["\[Sigma]", 
+                    SuperscriptBox["S", "\[Prime]",
+                      MultilineFunction->None], "2"], " ", 
+                  SuperscriptBox[
+                    SuperscriptBox["S", "\[Prime]",
+                      MultilineFunction->None], "2"], 
+                  FractionBox[\(\[PartialD]\^2 V\), 
+                    RowBox[{"\[PartialD]", 
+                      SuperscriptBox[
+                        SuperscriptBox["S", "\[Prime]",
+                          MultilineFunction->None], "2"]}],
+                    MultilineFunction->None]}]}], " ", ")"}], "d", " ", 
+            "t"}]}]}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Building a Risk-Neutral Portfolio", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "To eliminate both asset risk and FX risk we build a portfolio of ",
+  Cell[BoxData[
+      \(TraditionalForm\`V\)]],
+  ", the Payofferanian asset and some Assetagonian currency."
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"P", "=", 
+        RowBox[{"V", "-", 
+          RowBox[{\(\[CapitalDelta]\_1\), " ", 
+            RowBox[{"(", 
+              RowBox[{
+                SuperscriptBox["S", "\[Prime]",
+                  MultilineFunction->None], " ", "X"}], ")"}]}], "-", 
+          \(\[CapitalDelta]\_2\ X\)}]}], TraditionalForm]], "NumberedEquation",\
+
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "We parametrize (what will turn out to be) the risk-neutral drifts in terms \
+of \"yields\" ",
+  Cell[BoxData[
+      \(TraditionalForm\`q\_\(S' X\)\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`q\_X\)]],
+  ". So the change in the value of the portfolio ",
+  Cell[BoxData[
+      \(TraditionalForm\`P\)]],
+  " is given by "
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(d\ P\), "=", 
+        RowBox[{\(d\ V\), "-", \(\[CapitalDelta]\_2\ d\ X\), "-", 
+          RowBox[{\(\[CapitalDelta]\_1\), " ", 
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None], " ", "d", " ", "X"}], "-", 
+          RowBox[{\(\[CapitalDelta]\_1\), " ", "X", " ", "d", " ", 
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None]}], "-", 
+          \(q\_X\ \[CapitalDelta]\_2\ X\ d\ t\), "-", 
+          RowBox[{
+            SubscriptBox["q", 
+              RowBox[{
+                SuperscriptBox["S", "\[Prime]",
+                  MultilineFunction->None], " ", "X"}]], " ", 
+            \(\[CapitalDelta]\_1\), " ", 
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None], " ", "X", " ", "d", " ", "t"}]}]}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(d\ P\), "=", 
+        RowBox[{
+          RowBox[{
+            RowBox[{"(", 
+              RowBox[{
+                FractionBox[\(\[PartialD]V\), \(\[PartialD]X\),
+                  MultilineFunction->None], "-", \(\[CapitalDelta]\_1\ S'\), 
+                "-", \(\[CapitalDelta]\_2\)}], ")"}], "d", " ", "X"}], "+", 
+          RowBox[{
+            RowBox[{"(", 
+              RowBox[{
+                FractionBox[\(\[PartialD]V\), 
+                  RowBox[{"\[PartialD]", 
+                    SuperscriptBox["S", "\[Prime]",
+                      MultilineFunction->None]}],
+                  MultilineFunction->None], "-", \(\[CapitalDelta]\_1\ X\)}], 
+              ")"}], " ", "d", " ", 
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None]}], "+", " ", 
+          RowBox[{"d", " ", "t", " ", 
+            RowBox[{"(", " ", 
+              RowBox[{
+                FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+                  MultilineFunction->None], "+", 
+                RowBox[{\(1\/2\), \(\[Sigma]\_X\%2\), \(X\^2\), " ", 
+                  FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]X\^2\),
+                    MultilineFunction->None]}], " ", "\n", "\t\t\t\t       ", 
+                "+", " ", 
+                RowBox[{"X", " ", 
+                  SuperscriptBox["S", "\[Prime]",
+                    MultilineFunction->None], "\[Rho]", " ", 
+                  SubscriptBox["\[Sigma]", 
+                    SuperscriptBox["S", "\[Prime]",
+                      MultilineFunction->None]], " ", \(\[Sigma]\_X\), " ", 
+                  FractionBox[\(\[PartialD]\^2 V\), 
+                    RowBox[{
+                      RowBox[{"\[PartialD]", 
+                        SuperscriptBox["S", "\[Prime]",
+                          MultilineFunction->None]}], "\[ThinSpace]", 
+                      \(\[PartialD]X\)}],
+                    MultilineFunction->None]}], "+", 
+                RowBox[{\(1\/2\), 
+                  SubsuperscriptBox["\[Sigma]", 
+                    SuperscriptBox["S", "\[Prime]",
+                      MultilineFunction->None], "2"], " ", 
+                  SuperscriptBox[
+                    SuperscriptBox["S", "\[Prime]",
+                      MultilineFunction->None], "2"], 
+                  FractionBox[\(\[PartialD]\^2 V\), 
+                    RowBox[{"\[PartialD]", 
+                      SuperscriptBox[
+                        SuperscriptBox["S", "\[Prime]",
+                          MultilineFunction->None], "2"]}],
+                    MultilineFunction->None]}], " ", "-", 
+                \(q\_X\ \[CapitalDelta]\_2\ X\ d\ t\), "-", 
+                RowBox[{
+                  SubscriptBox["q", 
+                    RowBox[{
+                      SuperscriptBox["S", "\[Prime]",
+                        MultilineFunction->None], " ", "X"}]], " ", 
+                  \(\[CapitalDelta]\_1\), " ", 
+                  SuperscriptBox["S", "\[Prime]",
+                    MultilineFunction->None], " ", "X"}]}], ")"}]}]}]}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The stochastic component of risk can be eliminated by setting\
+\>", 
+  "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm
+    \`\[CapitalDelta]\_1 = \(1\/X\) \[PartialD]V\/\[PartialD]S\^\[Prime]\)], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(\[CapitalDelta]\_2\), "=", 
+        RowBox[{\(1\/X\), 
+          RowBox[{"(", 
+            RowBox[{
+              RowBox[{"X", " ", 
+                FractionBox[\(\[PartialD]V\), \(\[PartialD]X\),
+                  MultilineFunction->None]}], "-", 
+              RowBox[{
+                SuperscriptBox["S", "\[Prime]",
+                  MultilineFunction->None], " ", 
+                FractionBox[\(\[PartialD]V\), 
+                  RowBox[{"\[PartialD]", 
+                    SuperscriptBox["S", "\[Prime]",
+                      MultilineFunction->None]}],
+                  MultilineFunction->None]}]}], ")"}]}]}], TraditionalForm]], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Remark on Vanishing FX Hedge Position", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The FX component of the hedge position is given by ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[CapitalDelta]\_2\)]],
+  ". It is a useful check and quite revealing to analyse under what \
+conditions this vanishes automatically. Note that for any function ",
+  Cell[BoxData[
+      \(TraditionalForm\`f\  = \ f(S'\ X)\)]],
+  ", then"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          RowBox[{"X", " ", 
+            FractionBox[\(\[PartialD]f\), \(\[PartialD]X\),
+              MultilineFunction->None]}], "-", 
+          RowBox[{
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None], " ", 
+            FractionBox[\(\[PartialD]f\), 
+              RowBox[{"\[PartialD]", 
+                SuperscriptBox["S", "\[Prime]",
+                  MultilineFunction->None]}],
+              MultilineFunction->None]}]}], "=", " ", 
+        \(X\ S'\ f'\  - \ S'\ X\ f'\  = \ 0\)}], TraditionalForm]], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Conversely, any function with a zero ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[CapitalDelta]\_2\)]],
+  " must be a function only of the combination ",
+  Cell[BoxData[
+      \(TraditionalForm\`S' X\)]],
+  ". So there is no currency in the hedge position when the option is a \
+function only of the equivalent Payofferanian underlying. This of course is \
+in accordance with common sense."
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Derivation of the Two-Factor PDE", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Our portfolio ",
+  Cell[BoxData[
+      \(TraditionalForm\`P\)]],
+  " is now risk-neutral in our Payofferanian environment. We can therefore \
+state that the return on it is no greater than a bank deposit at a rate ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\)]],
+  ", where ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\)]],
+  ", possibly time-dependent, is the Payofferanian risk-free interest rate. \
+For a European-style option, we shall therefore write"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`d\ P = r\ P\ d\ t\)], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+with it being understood that with American options or \
+convertibles, corresponding projection inequalities are to be applied for \
+early exercise/conversion etc. We can now do some algebra to obtain the \
+two-factor Black-Scholes differential equation. There are two versions, \
+depending on what coordinates we use for independent variables.\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The S'-X Picture", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+If we just continue our analysis to its conclusion, we arrive at \
+the following PDE:\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{\(1\/2\), \(\[Sigma]\_X\%2\), \(X\^2\), " ", 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]X\^2\),
+              MultilineFunction->None]}], " ", "+", " ", 
+          RowBox[{"X", " ", 
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None], "\[Rho]", " ", 
+            SubscriptBox["\[Sigma]", 
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None]], " ", \(\[Sigma]\_X\), " ", 
+            FractionBox[\(\[PartialD]\^2 V\), 
+              RowBox[{
+                RowBox[{"\[PartialD]", 
+                  SuperscriptBox["S", "\[Prime]",
+                    MultilineFunction->None]}], "\[ThinSpace]", 
+                \(\[PartialD]X\)}],
+              MultilineFunction->None]}], "+", 
+          RowBox[{\(1\/2\), 
+            SubsuperscriptBox["\[Sigma]", 
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None], "2"], " ", 
+            SuperscriptBox[
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None], "2"], 
+            FractionBox[\(\[PartialD]\^2 V\), 
+              RowBox[{"\[PartialD]", 
+                SuperscriptBox[
+                  SuperscriptBox["S", "\[Prime]",
+                    MultilineFunction->None], "2"]}],
+              MultilineFunction->None]}], " ", "\n", "+", 
+          RowBox[{\((q\_X - q\_\(S' X\))\), 
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None], 
+            FractionBox[\(\[PartialD]V\), 
+              RowBox[{"\[PartialD]", 
+                SuperscriptBox["S", "\[Prime]",
+                  MultilineFunction->None]}],
+              MultilineFunction->None]}], "+", " ", 
+          RowBox[{\((r - q\_X)\), "X", " ", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]X\),
+              MultilineFunction->None]}], " ", "-", \(r\ V\)}], "=", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The S-X Picture", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "If, instead, we change variables to use ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  " as independent variables, we arrive instead at the following different \
+PDE (this requires some fiddling with the chain rule - basic maths of no \
+financial import, so I omit it):"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{\(1\/2\), \(\[Sigma]\_X\%2\), \(X\^2\), " ", 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]X\^2\),
+              MultilineFunction->None]}], " ", "+", 
+          RowBox[{"X", " ", 
+            RowBox[{"S", "(", 
+              RowBox[{
+                RowBox[{"\[Rho]", " ", 
+                  SubscriptBox["\[Sigma]", 
+                    SuperscriptBox["S", "\[Prime]",
+                      MultilineFunction->None]], " ", \(\[Sigma]\_X\)}], "+", 
+                \(\[Sigma]\_X\%2\)}], ")"}], " ", 
+            
+            FractionBox[\(\[PartialD]\^2 V\), 
+              \(\[PartialD]S\[ThinSpace]\[PartialD]X\),
+              MultilineFunction->None]}], "+", 
+          RowBox[{\(1\/2\), \(\[Sigma]\_S\%2\), " ", \(S\^2\), 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]S\^2\),
+              MultilineFunction->None]}], " ", "\n", "+", 
+          RowBox[{
+            RowBox[{"(", 
+              RowBox[{"r", "-", \(q\_\(S' X\)\), "+", 
+                RowBox[{"\[Rho]", " ", 
+                  SubscriptBox["\[Sigma]", 
+                    SuperscriptBox["S", "\[Prime]",
+                      MultilineFunction->None]], " ", \(\[Sigma]\_X\)}]}], 
+              " ", ")"}], "S", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+              MultilineFunction->None]}], "+", " ", 
+          RowBox[{\((r - q\_X)\), "X", " ", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]X\),
+              MultilineFunction->None]}], " ", "-", \(r\ V\)}], "=", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  "-volatility used here has been calculated by the chain rule as the \
+expected thing:"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(\[Sigma]\_S\%2\), "=", 
+        RowBox[{\(\[Sigma]\_X\%2\), "+", 
+          RowBox[{"2", " ", "\[Rho]", " ", 
+            SubscriptBox["\[Sigma]", 
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None]], " ", \(\[Sigma]\_X\)}], "+", 
+          SubsuperscriptBox["\[Sigma]", 
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None], "2"]}]}], TraditionalForm]], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Fixing the Risk-Neutral Drifts in Payofferania", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "We can now fix the two unknown parameters in this model by appealing to \
+known single-factor problems, using the ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  "-",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  " picture. Suppose first that the option is independent of ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  ". Then we have, by crossing out some terms,"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{\(1\/2\), \(\[Sigma]\_X\%2\), \(X\^2\), " ", 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]X\^2\),
+              MultilineFunction->None]}], " ", "+", " ", 
+          RowBox[{\((r - q\_X)\), "X", " ", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]X\),
+              MultilineFunction->None]}], " ", "-", \(r\ V\)}], "=", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "whence we identify the parametric yield ",
+  Cell[BoxData[
+      \(TraditionalForm\`q\_X\)]],
+  " as just the Assetagonian interest rate ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\_A\)]],
+  ", by comparison with the FX option equation,"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{\(1\/2\), \(\[Sigma]\_X\%2\), \(X\^2\), " ", 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]X\^2\),
+              MultilineFunction->None]}], " ", "+", " ", 
+          RowBox[{\((r - r\_A)\), "X", " ", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]X\),
+              MultilineFunction->None]}], " ", "-", \(r\ V\)}], "=", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+or by noting that the yield on holding Assetagonian currency is \
+just the Assetagonian interest rate.\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "So the risk-neutral drift for ",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  " is ",
+  Cell[BoxData[
+      \(TraditionalForm\`\((r - r\_A)\)\)]],
+  ".  Next we assume that the option is a function only of ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  ", leading to"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", "K", "+", 
+          RowBox[{\(1\/2\), \(\[Sigma]\_S\%2\), " ", \(S\^2\), 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]S\^2\),
+              MultilineFunction->None]}], " ", "+", 
+          RowBox[{
+            RowBox[{"(", 
+              RowBox[{"r", "-", \(q\_\(S' X\)\), "+", 
+                RowBox[{"\[Rho]", " ", 
+                  SubscriptBox["\[Sigma]", 
+                    SuperscriptBox["S", "\[Prime]",
+                      MultilineFunction->None]], " ", \(\[Sigma]\_X\)}]}], 
+              " ", ")"}], "S", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+              MultilineFunction->None]}], " ", "-", \(r\ V\)}], "=", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "We write ",
+  Cell[BoxData[
+      FormBox[
+        RowBox[{"q", " ", "=", " ", 
+          RowBox[{\(q\_\(S' X\)\), "-", "  ", 
+            RowBox[{"\[Rho]", " ", 
+              SubscriptBox["\[Sigma]", 
+                SuperscriptBox["S", "\[Prime]",
+                  MultilineFunction->None]], " ", \(\[Sigma]\_X\)}]}]}], 
+        TraditionalForm]]],
+  ", so that this is equivalent to"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", "K", "+", 
+          RowBox[{\(1\/2\), \(\[Sigma]\_S\%2\), " ", \(S\^2\), 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]S\^2\),
+              MultilineFunction->None]}], " ", "+", 
+          RowBox[{\((r - q\ )\), "S", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+              MultilineFunction->None]}], " ", "-", \(r\ V\)}], "=", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "which is the purely domestic Black-Scholes equation, with ",
+  Cell[BoxData[
+      \(TraditionalForm\`q\)]],
+  " the continuously compounded yield. But what exactly is the ",
+  Cell[BoxData[
+      \(TraditionalForm\`q\)]],
+  " that goes in here? It is, in fact, just the local dividend yield of the \
+Assetagonian asset, as this is invariant under changes of market."
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The Final Two-Factor PDEs", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->True],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+The S'-X picture (Assetagonian Variable and FX as Independent \
+Variables)\
+\>", "Subsubsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{\(1\/2\), \(\[Sigma]\_X\%2\), \(X\^2\), " ", 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]X\^2\),
+              MultilineFunction->None]}], " ", "+", " ", 
+          RowBox[{"X", " ", 
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None], "\[Rho]", " ", 
+            SubscriptBox["\[Sigma]", 
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None]], " ", \(\[Sigma]\_X\), " ", 
+            FractionBox[\(\[PartialD]\^2 V\), 
+              RowBox[{
+                RowBox[{"\[PartialD]", 
+                  SuperscriptBox["S", "\[Prime]",
+                    MultilineFunction->None]}], "\[ThinSpace]", 
+                \(\[PartialD]X\)}],
+              MultilineFunction->None]}], "+", 
+          RowBox[{\(1\/2\), 
+            SubsuperscriptBox["\[Sigma]", 
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None], "2"], " ", 
+            SuperscriptBox[
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None], "2"], 
+            FractionBox[\(\[PartialD]\^2 V\), 
+              RowBox[{"\[PartialD]", 
+                SuperscriptBox[
+                  SuperscriptBox["S", "\[Prime]",
+                    MultilineFunction->None], "2"]}],
+              MultilineFunction->None]}], " ", "\n", "+", 
+          RowBox[{
+            RowBox[{"(", 
+              RowBox[{\(r\_A\), "-", "q", "-", " ", 
+                RowBox[{"\[Rho]", " ", 
+                  SubscriptBox["\[Sigma]", 
+                    SuperscriptBox["S", "\[Prime]",
+                      MultilineFunction->None]], " ", \(\[Sigma]\_X\)}]}], 
+              ")"}], 
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None], 
+            FractionBox[\(\[PartialD]V\), 
+              RowBox[{"\[PartialD]", 
+                SuperscriptBox["S", "\[Prime]",
+                  MultilineFunction->None]}],
+              MultilineFunction->None]}], "+", " ", 
+          RowBox[{\((r - r\_A)\), "X", " ", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]X\),
+              MultilineFunction->None]}], " ", "-", \(r\ V\)}], "=", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+The S-X picture (Payofferanian Variable and FX as Independent \
+Variables)\
+\>", "Subsubsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{\(1\/2\), \(\[Sigma]\_X\%2\), \(X\^2\), " ", 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]X\^2\),
+              MultilineFunction->None]}], " ", "+", 
+          RowBox[{"X", " ", 
+            RowBox[{"S", "(", 
+              RowBox[{
+                RowBox[{"\[Rho]", " ", 
+                  SubscriptBox["\[Sigma]", 
+                    SuperscriptBox["S", "\[Prime]",
+                      MultilineFunction->None]], " ", \(\[Sigma]\_X\)}], "+", 
+                \(\[Sigma]\_X\%2\)}], ")"}], " ", 
+            
+            FractionBox[\(\[PartialD]\^2 V\), 
+              \(\[PartialD]S\[ThinSpace]\[PartialD]X\),
+              MultilineFunction->None]}], "+", 
+          RowBox[{\(1\/2\), \(\[Sigma]\_S\%2\), " ", \(S\^2\), 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]S\^2\),
+              MultilineFunction->None]}], " ", "\n", "+", 
+          RowBox[{\((r - q\ )\), "S", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+              MultilineFunction->None]}], "+", " ", 
+          RowBox[{\((r - r\_A)\), "X", " ", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]X\),
+              MultilineFunction->None]}], " ", "-", \(r\ V\)}], "=", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["3.6 Reduction to Single-Factor Models", "Section",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+Type 1 Options - Assetagonian Options Expressed in Payofferanian \
+Currency\
+\>", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["To treat the first type of option we write", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"V", "=", 
+        RowBox[{"X", " ", 
+          RowBox[{"u", "(", 
+            RowBox[{
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None], ",", "t"}], ")"}]}]}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "and look at the ",
+  Cell[BoxData[
+      \(TraditionalForm\`S'\)]],
+  "-",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  " equation with this simplification. We just have to note that"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{"X", " ", 
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]X\),
+            MultilineFunction->None]}], "=", "V"}], TraditionalForm]], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["and simplify the resulting equation. It all boils down to", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]u\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{\(1\/2\), 
+            SubsuperscriptBox["\[Sigma]", 
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None], "2"], " ", 
+            SuperscriptBox[
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None], "2"], 
+            FractionBox[\(\[PartialD]\^2 u\), 
+              RowBox[{"\[PartialD]", 
+                SuperscriptBox[
+                  SuperscriptBox["S", "\[Prime]",
+                    MultilineFunction->None], "2"]}],
+              MultilineFunction->None]}], " ", "+", 
+          RowBox[{\((r\_A - q)\), 
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None], 
+            FractionBox[\(\[PartialD]u\), 
+              RowBox[{"\[PartialD]", 
+                SuperscriptBox["S", "\[Prime]",
+                  MultilineFunction->None]}],
+              MultilineFunction->None]}], " ", "-", \(r\_A\ u\)}], "=", 
+        "0"}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "which is the correct equation for a foreign option. So the value is the \
+current ",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  ", the spot rate, times the solution of the Black-Scholes equation in \
+Assetagonia, with the parameters appropriate to Assetagonia."
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+Effective Parameters for Type 1 Options in Black-Scholes Model\
+\>",
+   "Subsubsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "(1) risk-free rate - the Assetagonian interest rate ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\_A\)]],
+  ";\n(2) volatility - the volatility of the Assetagonian asset;\n(3) yield - \
+the local yield of the Assetagonian asset."
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Type 2 Options - Composites", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->True],
+
+Cell[TextData[{
+  "In this case the option is a function only of ",
+  Cell[BoxData[
+      \(TraditionalForm\`X\ S'\  = \ S\)]],
+  ". We can also look at this type of option in two ways - they are \
+consistent, and we just give the easier view. Consider the ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  "-",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  " two-factor PDE, and cross out the ",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  " in the above. Then we obtain"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{\(1\/2\), \(\[Sigma]\_S\%2\), " ", \(S\^2\), 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]S\^2\),
+              MultilineFunction->None]}], " ", "+", 
+          RowBox[{\((r - q\ )\), "S", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+              MultilineFunction->None]}], " ", "-", \(r\ V\)}], "=", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+This can be valued in the Black-Scholes world of Payofferania.\
+\>",
+   "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+Effective Parameters for Type 2 Options in Black-Scholes Model\
+\>",
+   "Subsubsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "(1) risk-free rate - the Payofferanian interest rate ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\)]],
+  ";\n(2) volatility - the volatility of the equivalent Payofferanian asset;\n\
+(3) yield - the local yield of the Assetagonian asset."
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["The volatility to be used is just given by", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(\[Sigma]\_S\%2\), "=", 
+        RowBox[{\(\[Sigma]\_X\%2\), "+", 
+          RowBox[{"2", " ", "\[Rho]", " ", 
+            SubscriptBox["\[Sigma]", 
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None]], " ", \(\[Sigma]\_X\)}], "+", 
+          SubsuperscriptBox["\[Sigma]", 
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None], "2"]}]}], TraditionalForm]], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Type 3 Options - Quantos", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "In this case the option is a function only of ",
+  Cell[BoxData[
+      \(TraditionalForm\`S'\  = \ S/X\)]],
+  ". We can look at this option in two ways. First consider the ",
+  Cell[BoxData[
+      \(TraditionalForm\`S' - X\)]],
+  " 2-factor picture, and cross out the ",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  " in the above. Then we obtain"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{\(1\/2\), 
+            SubsuperscriptBox["\[Sigma]", 
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None], "2"], " ", 
+            SuperscriptBox[
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None], "2"], 
+            FractionBox[\(\[PartialD]\^2 V\), 
+              RowBox[{"\[PartialD]", 
+                SuperscriptBox[
+                  SuperscriptBox["S", "\[Prime]",
+                    MultilineFunction->None], "2"]}],
+              MultilineFunction->None]}], " ", "+", 
+          RowBox[{
+            RowBox[{"(", 
+              RowBox[{\(r\_f\), "-", "q", "-", " ", 
+                RowBox[{"\[Rho]", " ", 
+                  SubscriptBox["\[Sigma]", 
+                    SuperscriptBox["S", "\[Prime]",
+                      MultilineFunction->None]], " ", \(\[Sigma]\_X\)}]}], 
+              ")"}], 
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None], 
+            FractionBox[\(\[PartialD]V\), 
+              RowBox[{"\[PartialD]", 
+                SuperscriptBox["S", "\[Prime]",
+                  MultilineFunction->None]}],
+              MultilineFunction->None]}], " ", "-", \(r\ V\)}], "=", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "It is a useful check on our analysis to also work in the ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  "-",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  " picture and write ",
+  Cell[BoxData[
+      \(TraditionalForm\`V = w(S/X, \ t)\)]],
+  " and to derive the PDE satisfied by ",
+  Cell[BoxData[
+      \(TraditionalForm\`w(z, t)\)]],
+  ". The relevant algebra leads to"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]w\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{\(1\/2\), 
+            SubsuperscriptBox["\[Sigma]", 
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None], "2"], \(z\^2\), 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]z\^2\),
+              MultilineFunction->None]}], " ", "+", 
+          RowBox[{
+            RowBox[{"(", 
+              RowBox[{\(r\_f\), "-", "q", "-", " ", 
+                RowBox[{"\[Rho]", " ", 
+                  SubscriptBox["\[Sigma]", 
+                    SuperscriptBox["S", "\[Prime]",
+                      MultilineFunction->None]], " ", \(\[Sigma]\_X\)}]}], 
+              ")"}], "z", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]z\),
+              MultilineFunction->None]}], " ", "-", \(r\ V\)}], "=", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "which is precisely the same differential equation as we obtained from the \
+",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  "'-",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  " picture. So we can value Quantos using the Black-Scholes formula, but \
+with some interesting adjustments to the parameters."
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{\(1\/2\), 
+            SubsuperscriptBox["\[Sigma]", 
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None], "2"], " ", 
+            SuperscriptBox[
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None], "2"], 
+            FractionBox[\(\[PartialD]\^2 V\), 
+              RowBox[{"\[PartialD]", 
+                SuperscriptBox[
+                  SuperscriptBox["S", "\[Prime]",
+                    MultilineFunction->None], "2"]}],
+              MultilineFunction->None]}], " ", "+", 
+          RowBox[{\((r - Q)\), 
+            SuperscriptBox["S", "\[Prime]",
+              MultilineFunction->None], 
+            FractionBox[\(\[PartialD]V\), 
+              RowBox[{"\[PartialD]", 
+                SuperscriptBox["S", "\[Prime]",
+                  MultilineFunction->None]}],
+              MultilineFunction->None]}], " ", "-", \(r\ V\)}], "=", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"Q", "=", 
+        RowBox[{"q", "+", "r", "-", \(r\_A\), "+", 
+          RowBox[{"\[Rho]", " ", \(\[Sigma]\_X\), " ", 
+            SubscriptBox["\[Sigma]", 
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None]]}]}]}], TraditionalForm]], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+Effective Parameters for Type 3 Options (Quantos) in Black-Scholes \
+Model \
+\>", "Subsubsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "(1) risk-free rate - the Payofferanian interest rate ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\)]],
+  ";\n(2) volatility - the local volatility of the Assetagonian asset;\n(3) \
+yield - the effective yield is given by"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"Q", "=", 
+        RowBox[{"q", "+", "r", "-", \(r\_A\), "+", 
+          RowBox[{"\[Rho]", " ", \(\[Sigma]\_X\), " ", 
+            SubscriptBox["\[Sigma]", 
+              SuperscriptBox["S", "\[Prime]",
+                MultilineFunction->None]]}]}]}], TraditionalForm]], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Type FX Options", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "In this case the option is a function only of ",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  ". "
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{\(1\/2\), \(\[Sigma]\_X\%2\), \(X\^2\), " ", 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]X\^2\),
+              MultilineFunction->None]}], " ", "+", " ", 
+          RowBox[{\((r - r\_A)\), "X", " ", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]X\),
+              MultilineFunction->None]}], " ", "-", \(r\ V\)}], "=", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+Effective Parameters for Type FX Options in Black-Scholes Model \
+\
+\>", "Subsubsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[TextData[{
+  "(1) risk-free rate - the Payofferanian interest rate ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\)]],
+  ";\n(2) volatility - the volatility of the exchange rate;\n(3) yield - the \
+effective yield is given by the Assetagonian interest rate ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\_A\)]],
+  "."
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Remarks", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell["\<\
+This discussion illustrates the fact that similarity solutions are \
+a powerful way of reducing certain types of two-factor models to \
+single-factor descriptions. It also points out that a wide variety of \
+interesting cases can be treated within the single-factor Black-Scholes \
+framework. One can imagine other types of cross-market option that cannot be \
+reduced to a single-factor view - these would have to be treated using the \
+full three-dimensional partial differential equations. Finally we note that \
+it can often be rather confusing identifying which type of option should be \
+associated with a particular cross-currency contract. Warrants and \
+convertible bonds are rather notorious in this respect - the contracts for \
+both often refer to \"fixed exchange rates\", but neither is a Quanto option, \
+as the fixed exchange rate is used only to calculate exercise prices or \
+strikes in the appropriate currency. When viewed from the payoff currency, \
+warrants are usually Type 1 options, and convertible bonds are generally Type \
+2 or composite options.\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["3.7 Other Higher-Dimensional Partial Differential Equations", "Section",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[TextData[{
+  "There are many other cases where one can obtain three- or \
+higher-dimensional partial differential equations, including, but not limited \
+to, cases \n\n(a) where the asset price and the volatility are stochastic;\n\
+(b) where the asset price and interest rates are stochastic;\n(c) of \
+combinations of asset price, FX-rate, volatility, interest rates ALL being \
+stochastic;\n(d) of many assets and/or currencies;\n(e) of path-dependent \
+options.\n\nWe will not be attempting to construct models appropriate to all \
+of these cases, and solve high-dimensional PDEs in this text. The case of \
+many assets is very effectively modelled by Monte Carlo simulation, and this \
+will be discussed in Chapter 23. The case of path-dependent options is a \
+special one that deserves comment, as it leads to a useful standard framework \
+for the numerical solution of such problems. Readers interested in a detailed \
+discussion should consult the texts by Wilmott ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " (1993, 1996), but should also bear in mind that the European forms of \
+such options are more easily treated, at least for continuum models, by \
+analytical methods - most of the important cases are accessible to a \
+\"near-closed-form\" analysis, albeit using some interesting special \
+functions not usually the domain of option-pricing theory. One of the points \
+of this text is that once one is armed with a system such as ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  ", the use of such objects as are needed - hypergeometric functions in the \
+case of Asian options, for example - is a matter of routine.\n\nAn \
+interesting class of path-dependent options may be considered by introducing \
+a further variable that accumulates information about the path taken by the \
+option, in the form"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}},
+  PageBreakWithin->True],
+
+Cell[BoxData[
+    \(TraditionalForm
+    \`J\_n = \((
+          \[Integral]\_0\%t\(\( f(S(\[Tau]), \[Tau])\)\^n\) 
+              \[DifferentialD]\[Tau])\)\^\(1/n\)\)], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "for various choices about ",
+  Cell[BoxData[
+      \(TraditionalForm\`n\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`f\)]],
+  ". The following are interesting cases:\n\n(a) ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(\(n = 1, \)\ \)\)]],
+  Cell[BoxData[
+      \(TraditionalForm\`f = log(S)\)]],
+  ", ",
+  Cell[BoxData[
+      \(TraditionalForm\`J\)]],
+  " represents the geometric average of the stock price along the path;\n(b) \
+",
+  Cell[BoxData[
+      \(TraditionalForm\`\(\(n = 1, \)\ \)\)]],
+  Cell[BoxData[
+      \(TraditionalForm\`f\  = \ S\)]],
+  ", ",
+  Cell[BoxData[
+      \(TraditionalForm\`J\)]],
+  " represents the arithmetic average of the stock price along the path;\n(c) \
+",
+  Cell[BoxData[
+      \(TraditionalForm\`n \[Rule] \[Infinity]\)]],
+  ", ",
+  Cell[BoxData[
+      \(TraditionalForm\`f\  = \ S\)]],
+  ", ",
+  Cell[BoxData[
+      \(TraditionalForm\`J\)]],
+  " represents the maximum attained along the path.\n\nSuitable boundary \
+conditions involving ",
+  Cell[BoxData[
+      \(TraditionalForm\`J\)]],
+  " must be added, and the payoff needs to be written in terms of it also. It\
+\[OHat]'s Lemma can be applied as before, leading, in the case ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(n = 1, \)\)]],
+  " to"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{\(f \((S)\)\), 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]J\),
+              MultilineFunction->None]}], "+", 
+          RowBox[{\((r\ S - D)\), " ", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+              MultilineFunction->None]}], "+", 
+          RowBox[{\(1\/2\), " ", \(\[Sigma]\^2\), " ", \(S\^2\), " ", 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]S\^2\),
+              MultilineFunction->None]}], "-", \(r\ V\)}], "=", " ", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This is of a rather different character from the asset-FX coupled case - \
+there is no second derivative involving the path variable. However, in common \
+with the asset-FX case, these equations may admit similarity solutions, \
+depending on whether the boundary conditions (including the payoff) are \
+consistent with a similarity approach. Some examples are given by Wilmott ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " (1993)."
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["3.8 The Greeks and Other Partial Differential Equations", "Section",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The derivatives of an option value with respect to its various \
+arguments (the \"Greeks\") play an important role, whether simply as \
+sensitivity parameters, or, additionally, as hedge parameters. This is a \
+convenient place to define these quantities and to explore the relationships \
+between them. There are more links between the Greeks than many workers \
+appear to be aware of - these will be derived here. Similar results can be \
+derived from the probabilistic viewpoint, as has been pointed out by P. Carr \
+(personal communication).\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Definitions of Greeks", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "In what follows we shall give the definition of the Greeks to be used \
+throughout this book. The fundamental  sensitivity parameter, \
+\[CapitalDelta], is given as the rate of change of the option price with \
+respect to the underlying asset price ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  ":"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"\[CapitalDelta]", "=", 
+        FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+          MultilineFunction->None]}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This parameter plays a special role as the hedge position in the \
+underlying to ensure the valuation portfolio is risk-neutral. The second \
+derivative is called ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[CapitalGamma]\)]],
+  ":"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"\[CapitalGamma]", "=", 
+        FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]S\^2\),
+          MultilineFunction->None]}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The sensitivity with respect to interest rate is called \
+\[Rho]:\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"\[Rho]", "=", 
+        FractionBox[\(\[PartialD]V\), \(\[PartialD]r\),
+          MultilineFunction->None]}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The rate of change with respect to ",
+  StyleBox["real time",
+    FontSlant->"Italic"],
+  " is called \[Theta]:"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"\[Theta]", "=", 
+        FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+          MultilineFunction->None]}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Note that if time is expressed in terms of time to maturity, we \
+need to add a minus sign. The rate of change with respect to volatility is \
+called Vega or Lambda (\[CapitalLambda]) (the former is common in speaking \
+about the object, while the latter is quite commonplace in written \
+work):\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"\[CapitalLambda]", "=", 
+        FractionBox[\(\[PartialD]V\), \(\[PartialD]\[Sigma]\),
+          MultilineFunction->None]}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Conventions for Greeks", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+In the previous sub-section we gave the definition of the Greeks to \
+be used throughout this book. We work exclusively with raw partial \
+derivatives in natural units. If you use this book to check your own risk \
+parameters, you must take the responsibility for mapping these conventions \
+onto your own. Possible variations include:
+
+(a) for \[CapitalDelta], using % terms, and/or expressing \[CapitalDelta] \
+with respect to a 1% change in the underlying;
+(b) for \[CapitalGamma], using % terms, and /or multiplying by the stock \
+price;
+(c) for \[Theta], using days rather than years;
+(d) for \[Rho], using annual rather than continuous compounding, % rather \
+than absolute. 
+
+Other variants are possible, and great care should be taken in making \
+detailed comparisons.\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Partial Differential Equations for Greeks", "Subsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The Black-Scholes equation implies a number of differential \
+constraints linking the Greeks. Here is the key one, and two that are not so \
+well known.\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["The Black-Scholes Equation as a Greek Constraint", "Subsubsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["First of all, consider the fundamental equation:", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          FractionBox[\(\[PartialD]V\), \(\[PartialD]t\),
+            MultilineFunction->None], "+", 
+          RowBox[{\((r\ S - D)\), " ", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]S\),
+              MultilineFunction->None]}], "+", 
+          RowBox[{\(1\/2\), " ", \(\[Sigma]\^2\), " ", \(S\^2\), " ", 
+            FractionBox[\(\[PartialD]\^2 V\), \(\[PartialD]S\^2\),
+              MultilineFunction->None]}], "-", \(r\ V\)}], "=", " ", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+If we substitute the definitions of our Greeks, we find that this \
+can be written as\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm
+    \`\[Theta] + \((r\ S - D)\) \[CapitalDelta] + 
+        1\/2\ \[Sigma]\^2\ S\^2\ \[CapitalGamma] - r\ V = \ 0\)], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The Vega-Gamma Constraint", "Subsubsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "For any function ",
+  Cell[BoxData[
+      \(TraditionalForm\`f\)]],
+  ", we define the Black-Scholes operator acting on ",
+  Cell[BoxData[
+      \(TraditionalForm\`f\)]],
+  " as"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(L\_BS[f]\), "=", 
+        RowBox[{
+          RowBox[{\(1\/2\), " ", \(S\^2\), " ", 
+            FractionBox[\(\[PartialD]\^2 f\), \(\[PartialD]S\^2\),
+              MultilineFunction->None], " ", \(\[Sigma]\^2\)}], "-", 
+          \(r\ f\), "+", 
+          RowBox[{\((r\ S - D)\), " ", 
+            FractionBox[\(\[PartialD]f\), \(\[PartialD]S\),
+              MultilineFunction->None]}], "+", 
+          FractionBox[\(\[PartialD]f\), \(\[PartialD]t\),
+            MultilineFunction->None]}]}], TraditionalForm]], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Other differential constraints can be obtained by considering \
+whether the Black-Scholes operator commutes with other operators. So define \
+the commutator:\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\([P, Q]\) f = P[Q[f]] - Q[P[f]]\)], "NumberedEquation",\
+
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Note that the Black-Scholes operator commutes with the \
+operator\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{"S", " ", 
+        FractionBox["\[PartialD]", \(\[PartialD]S\),
+          MultilineFunction->None]}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "so we note first that if ",
+  Cell[BoxData[
+      \(TraditionalForm\`V\)]],
+  " is a solution of the Black-Scholes equation"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`L\_BS[V] = 0\)], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["then", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(L\_BS[S\ \[CapitalDelta]]\), "=", 
+        RowBox[{
+          RowBox[{\(L\_BS\), "[", 
+            RowBox[{"S", " ", 
+              FractionBox["\[PartialD]", \(\[PartialD]S\),
+                MultilineFunction->None], " ", "V"}], "]"}], " ", "=", 
+          RowBox[{
+            RowBox[{
+              RowBox[{
+                RowBox[{"[", " ", 
+                  RowBox[{\(L\_BS\), " ", ",", "   ", 
+                    RowBox[{"S", 
+                      FractionBox["\[PartialD]", \(\[PartialD]S\),
+                        MultilineFunction->None]}]}], "]"}], "  ", "V"}], 
+              "+", "  ", 
+              RowBox[{"S", 
+                FractionBox["\[PartialD]", \(\[PartialD]S\),
+                  MultilineFunction->None], " ", \(L\_BS\), "V"}]}], " ", 
+            "=", " ", \(0 + 0\  = \ 0\)}]}]}], TraditionalForm]], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Similarly, we deduce that ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^2\) \[CapitalGamma]\)]],
+  " is also a solution of the Black-Scholes equation. On the other hand,"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(L\_BS[\[CapitalLambda]]\), " ", "=", " ", 
+        RowBox[{
+          RowBox[{\(L\_BS\), "[", 
+            FractionBox[\(\[PartialD]V\), \(\[PartialD]\[Sigma]\),
+              MultilineFunction->None], "]"}], " ", "=", " ", 
+          RowBox[{
+            RowBox[{
+              RowBox[{
+                RowBox[{"[", " ", 
+                  RowBox[{\(L\_BS\), ",", " ", 
+                    FractionBox["\[PartialD]", \(\[PartialD]\[Sigma]\),
+                      MultilineFunction->None]}], "]"}], "V"}], " ", "+", 
+              "  ", 
+              RowBox[{
+                FractionBox["\[PartialD]", \(\[PartialD]\[Sigma]\),
+                  MultilineFunction->None], " ", \(L\_BS\), "V"}]}], "=", 
+            "  ", 
+            RowBox[{
+              RowBox[{
+                RowBox[{"[", " ", 
+                  RowBox[{\(L\_BS\), ",", " ", 
+                    FractionBox["\[PartialD]", \(\[PartialD]\[Sigma]\),
+                      MultilineFunction->None]}], "]"}], "V"}], " ", "=", 
+              " ", \(\(-S\^2\) \[Sigma]\ \[CapitalGamma]\)}]}]}]}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+which follows by differentiation of the Black-Scholes operator. So \
+Vega is not a solution of the Black-Scholes equation, but the following holds \
+instead:\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm
+    \`\(L\_BS[\[CapitalLambda] - \(S\^2\) \(\[Sigma]\[CapitalGamma](T - t)\)]
+        \  = \ \(\(-S\^2\) \[Sigma]\ \[CapitalGamma]\  + \ 
+          L\_BS[\(S\^2\) \(\[Sigma]\[CapitalGamma](t - T)\)]\  = \ 0\)\ 
+    \)\)], "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["So we deduce that the quantity", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm
+    \`\[CapitalLambda] - \(S\^2\) \(\[Sigma]\[CapitalGamma](T - t)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+satisfies the Black-Scholes equation. We can argue that under a \
+usefully wide range of circumstances, this means that this quantity is \
+identically zero - that is\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm
+    \`\[CapitalLambda] = \(S\^2\) \(\[Sigma]\[CapitalGamma](T - t)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Clearly this requires that the Black-Scholes equation holds as an \
+equality, which rules out American-style options. At maturity, provided \
+\[CapitalGamma] is finite, both sides of this equation are zero, and it also \
+holds for Call- and Put-style payoffs with singularities in Gamma. So we have \
+the Black-Scholes equation with initial data at maturity that are zero - \
+hence the solution is zero for all time. It is also a useful identity for \
+computing Vega for European-style options with many underlyings.\
+\>", "Text",\
+
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The Rho-Delta Constraint", "Subsubsection",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+A similar argument to the one given for Vega shows that the \
+identity\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm
+    \`\[Rho] = \(-\((T - t)\)\) \((V\  - \ S\ \[CapitalDelta])\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+holds for a large class of European-style options. These formulae \
+for \[Rho] and \[Delta] may be useful in situations where direct computation \
+is expensive.\
+\>", "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Chapter 3 Bibliography", "Section",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[TextData[{
+  "Baxter, M. and Rennie, A., 1996, ",
+  StyleBox["Financial Calculus - an Introduction to Derivative Pricing,",
+    FontSlant->"Italic"],
+  " Cambridge University Press.\n\nGhassemieh, R., Shaw, W. and Wilson, R., \
+1997, Equity-index-linked derivatives, in",
+  StyleBox[" The Asian Equity Derivatives Handbook",
+    FontSlant->"Italic"],
+  ", Euromoney Publications.\n\nHull, J.C., 1996, ",
+  StyleBox["Options, Futures, and other Derivatives",
+    FontSlant->"Italic"],
+  ", 3rd edition, Prentice-Hall.\n\nJarrow, R.A. and Rudd, A., 1983, ",
+  StyleBox["Option Pricing",
+    FontSlant->"Italic"],
+  ", Irwin.\n\nLevy, E., 1996, Exotic options I, in ",
+  StyleBox["The Handbook of Risk Management and Analysis",
+    FontSlant->"Italic"],
+  ", ed. C Alexander, Wiley.\n\nKendall, W.S., 1993, Itovsn3: doing \
+stochastic calculus with ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  ", in ",
+  StyleBox["Economic and Financial Modeling with Mathematica",
+    FontSlant->"Italic"],
+  ", ed. H.R. Varian, Springer-TELOS.\n\nReiner, E., 1992, Quanto mechanics, \
+in ",
+  StyleBox["From Black Scholes to Black Holes",
+    FontSlant->"Italic"],
+  ", RISK-FINEX Publications.\n\nSchuss, Z., 1980, ",
+  StyleBox["Theory and Applications of Stochastic Differential Equations",
+    FontSlant->"Italic"],
+  ", Wiley.\n\nWilmott, P., Dewynne, J. and Howison, S., 1993, ",
+  StyleBox["Option Pricing - Mathematical Models and Computation",
+    FontSlant->"Italic"],
+  ", Oxford Financial Press.\n\nWilmott, P., Dewynne, J. and Howison, S., \
+1996, ",
+  StyleBox["The Mathematics of Financial Derivatives",
+    FontSlant->"Italic"],
+  ", Cambridge University Press"
+}], "Text",
+  CellMargins->{{6.25, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]]
+},
+FrontEndVersion->"Macintosh 3.0",
+ScreenRectangle->{{0, 1152}, {0, 850}},
+AutoGeneratedPackage->None,
+WindowToolbars->{},
+CellGrouping->Automatic,
+WindowSize->{673, 687},
+WindowMargins->{{4, Automatic}, {Automatic, 1}},
+PrintingCopies->1,
+PrintingStartingPageNumber->68,
+PrintingPageRange->{1, Automatic},
+PageHeaders->{{Inherited, Inherited, Cell[ 
+        TextData[ {"3. Mathematical Finance Preliminaries"}]]}, {Cell[ 
+        TextData[ {"3. Mathematical Finance Preliminaries"}]], Inherited, 
+      Inherited}},
+PageFooters->{{Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}, {Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}},
+PrintingOptions->{"PrintingMargins"->{{0, 0}, {57, 57}},
+"PaperSize"->{439, 716},
+"PrintCellBrackets"->False,
+"PrintRegistrationMarks"->False,
+"PrintMultipleHorizontalPages"->False,
+"FirstPageHeader"->False,
+"FacingPages"->True},
+PrivateNotebookOptions->{"ColorPalette"->{RGBColor, 128}},
+ShowCellLabel->False,
+ShowCellTags->False,
+RenderingOptions->{"ObjectDithering"->True,
+"RasterDithering"->False},
+PrivateFontOptions->{"FontType"->"Outline"},
+Magnification->1,
+StyleDefinitions -> "Default.nb",
+MacintoshSystemPageSetup->"\<\
+00<0004/0B`000003;T8`?n3ohP==PTh0b85N`?P0080004/0B`000006G<AP001
+0000I00000400@4100800BL?00400@R3M10000000000064/01T1T00000000000
+00000000007oo@R3M43oo@001HL:kP00\>"
+]
+
+
+(***********************************************************************
+Cached data follows.  If you edit this Notebook file directly, not using
+Mathematica, you must remove the line containing CacheID at the top of 
+the file.  The cache data will then be recreated when you save this file 
+from within Mathematica.
+***********************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1731, 51, 226, 8, 134, "Title"],
+Cell[1960, 61, 138, 1, 45, "Subsubtitle"],
+
+Cell[CellGroupData[{
+Cell[2123, 66, 143, 3, 49, "Section"],
+Cell[2269, 71, 4986, 73, 644, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[7292, 149, 132, 1, 31, "Section"],
+Cell[7427, 152, 510, 16, 24, "Text"],
+Cell[7940, 170, 174, 3, 24, "NumberedEquation"],
+Cell[8117, 175, 966, 30, 85, "Text"],
+Cell[9086, 207, 934, 19, 26, "NumberedEquation"],
+Cell[10023, 228, 611, 11, 50, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[10671, 244, 124, 1, 31, "Section"],
+Cell[10798, 247, 197, 6, 16, "Text"],
+Cell[10998, 255, 167, 3, 24, "NumberedEquation"],
+Cell[11168, 260, 332, 12, 16, "Text"],
+Cell[11503, 274, 147, 2, 16, "NumberedEquation"],
+Cell[11653, 278, 255, 9, 16, "Text"],
+Cell[11911, 289, 1195, 24, 26, "NumberedEquation"],
+Cell[13109, 315, 502, 15, 24, "Text"],
+Cell[13614, 332, 258, 5, 24, "NumberedEquation"],
+Cell[13875, 339, 102, 1, 16, "Text"],
+Cell[13980, 342, 712, 15, 26, "NumberedEquation"],
+Cell[14695, 359, 347, 6, 32, "Text"],
+Cell[15045, 367, 488, 11, 24, "NumberedEquation"],
+Cell[15536, 380, 366, 12, 16, "Text"],
+Cell[15905, 394, 628, 13, 25, "NumberedEquation"],
+Cell[16536, 409, 286, 7, 24, "Text"],
+Cell[16825, 418, 635, 13, 25, "NumberedEquation"],
+
+Cell[CellGroupData[{
+Cell[17485, 435, 119, 1, 25, "Subsection"],
+Cell[17607, 438, 272, 5, 24, "Text"],
+Cell[17882, 445, 183, 3, 24, "NumberedEquation"],
+Cell[18068, 450, 286, 7, 24, "Text"],
+Cell[18357, 459, 161, 3, 16, "NumberedEquation"],
+Cell[18521, 464, 237, 6, 16, "Text"],
+Cell[18761, 472, 1099, 21, 26, "NumberedEquation"],
+Cell[19863, 495, 153, 4, 16, "Text"],
+Cell[20019, 501, 132, 2, 16, "NumberedEquation"],
+Cell[20154, 505, 1346, 23, 147, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[21549, 534, 166, 2, 31, "Section",
+  PageBreakAbove->Automatic],
+Cell[21718, 538, 955, 15, 94, "Text"],
+Cell[22676, 555, 397, 7, 50, "Text"],
+Cell[23076, 564, 1857, 43, 129, "Text"],
+Cell[24936, 609, 395, 9, 36, "NumberedEquation"],
+Cell[25334, 620, 194, 6, 16, "Text"],
+Cell[25531, 628, 166, 3, 24, "NumberedEquation"],
+Cell[25700, 633, 106, 1, 16, "Text"],
+Cell[25809, 636, 147, 2, 16, "NumberedEquation"],
+Cell[25959, 640, 266, 9, 16, "Text"],
+Cell[26228, 651, 1307, 26, 38, "NumberedEquation"],
+Cell[27538, 679, 371, 13, 24, "Text"],
+Cell[27912, 694, 258, 5, 24, "NumberedEquation"],
+Cell[28173, 701, 85, 1, 16, "Text"],
+Cell[28261, 704, 853, 17, 26, "NumberedEquation"],
+Cell[29117, 723, 334, 6, 32, "Text"],
+Cell[29454, 731, 144, 2, 16, "NumberedEquation"],
+Cell[29601, 735, 311, 7, 24, "Text"],
+Cell[29915, 744, 214, 4, 25, "NumberedEquation"],
+Cell[30132, 750, 208, 4, 24, "Text"],
+Cell[30343, 756, 261, 5, 16, "NumberedEquation"],
+Cell[30607, 763, 102, 1, 16, "Text"],
+Cell[30712, 766, 432, 10, 27, "NumberedEquation"],
+Cell[31147, 778, 107, 1, 16, "Text"],
+Cell[31257, 781, 707, 14, 25, "NumberedEquation"],
+Cell[31967, 797, 181, 4, 16, "Text"],
+Cell[32151, 803, 432, 10, 25, "NumberedEquation"],
+Cell[32586, 815, 202, 6, 16, "Text"],
+Cell[32791, 823, 150, 2, 16, "NumberedEquation"],
+Cell[32944, 827, 679, 18, 41, "Text"],
+Cell[33626, 847, 332, 7, 25, "NumberedEquation"],
+Cell[33961, 856, 731, 11, 59, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[34729, 872, 136, 2, 31, "Section",
+  PageBreakAbove->Automatic],
+Cell[34868, 876, 349, 12, 85, "Text"],
+Cell[35220, 890, 942, 15, 76, "Text"],
+Cell[36165, 907, 1590, 24, 147, "Text"],
+
+Cell[CellGroupData[{
+Cell[37780, 935, 91, 1, 25, "Subsection"],
+Cell[37874, 938, 1123, 20, 85, "Text"],
+Cell[39000, 960, 264, 7, 16, "NumberedEquation"],
+Cell[39267, 969, 188, 4, 16, "Text"],
+Cell[39458, 975, 318, 8, 16, "NumberedEquation"],
+Cell[39779, 985, 671, 16, 41, "Text"],
+
+Cell[CellGroupData[{
+Cell[40475, 1005, 91, 1, 22, "Subsubsection"],
+Cell[40569, 1008, 159, 4, 16, "Text"],
+Cell[40731, 1014, 345, 9, 16, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[41113, 1028, 115, 2, 22, "Subsubsection",
+  PageBreakAbove->True],
+Cell[41231, 1032, 183, 4, 16, "Text"],
+Cell[41417, 1038, 345, 9, 16, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[41799, 1052, 91, 1, 22, "Subsubsection"],
+Cell[41893, 1055, 171, 4, 16, "Text"],
+Cell[42067, 1061, 365, 9, 24, "NumberedEquation"],
+Cell[42435, 1072, 621, 12, 50, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[43105, 1090, 116, 1, 25, "Subsection"],
+Cell[43224, 1093, 757, 12, 68, "Text"],
+Cell[43984, 1107, 432, 11, 24, "NumberedEquation"],
+Cell[44419, 1120, 185, 4, 24, "NumberedEquation"],
+Cell[44607, 1126, 470, 13, 24, "Text"],
+Cell[45080, 1141, 2456, 51, 48, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[47573, 1197, 115, 1, 25, "Subsection"],
+Cell[47691, 1200, 268, 6, 24, "Text"],
+Cell[47962, 1208, 436, 11, 16, "NumberedEquation"],
+Cell[48401, 1221, 422, 13, 24, "Text"],
+Cell[48826, 1236, 950, 20, 16, "NumberedEquation"],
+Cell[49779, 1258, 3158, 66, 50, "NumberedEquation"],
+Cell[52940, 1326, 148, 4, 16, "Text"],
+Cell[53091, 1332, 195, 4, 24, "NumberedEquation"],
+Cell[53289, 1338, 764, 18, 24, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[54090, 1361, 119, 1, 25, "Subsection"],
+Cell[54212, 1364, 423, 10, 24, "Text"],
+Cell[54638, 1376, 685, 17, 24, "NumberedEquation"],
+Cell[55326, 1395, 482, 11, 32, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[55845, 1411, 114, 1, 25, "Subsection"],
+Cell[55962, 1414, 550, 14, 32, "Text"],
+Cell[56515, 1430, 138, 2, 16, "NumberedEquation"],
+Cell[56656, 1434, 428, 7, 41, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[57121, 1446, 98, 1, 25, "Subsection"],
+Cell[57222, 1449, 169, 4, 16, "Text"],
+Cell[57394, 1455, 2162, 47, 48, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[59593, 1507, 97, 1, 25, "Subsection"],
+Cell[59693, 1510, 426, 11, 32, "Text"],
+Cell[60122, 1523, 1791, 38, 47, "NumberedEquation"],
+Cell[61916, 1563, 234, 7, 16, "Text"],
+Cell[62153, 1572, 546, 12, 16, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[62736, 1589, 128, 1, 25, "Subsection"],
+Cell[62867, 1592, 470, 13, 32, "Text"],
+Cell[63340, 1607, 636, 13, 25, "NumberedEquation"],
+Cell[63979, 1622, 330, 9, 24, "Text"],
+Cell[64312, 1633, 636, 13, 25, "NumberedEquation"],
+Cell[64951, 1648, 186, 4, 16, "Text"],
+Cell[65140, 1654, 369, 12, 16, "Text"],
+Cell[65512, 1668, 940, 20, 25, "NumberedEquation"],
+Cell[66455, 1690, 479, 13, 16, "Text"],
+Cell[66937, 1705, 635, 13, 25, "NumberedEquation"],
+Cell[67575, 1720, 458, 10, 32, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[68070, 1735, 131, 2, 25, "Subsection",
+  PageBreakAbove->True],
+
+Cell[CellGroupData[{
+Cell[68226, 1741, 167, 4, 22, "Subsubsection"],
+Cell[68396, 1747, 2449, 54, 48, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[70882, 1806, 167, 4, 22, "Subsubsection"],
+Cell[71052, 1812, 1486, 31, 47, "NumberedEquation"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[72599, 1850, 116, 1, 31, "Section"],
+
+Cell[CellGroupData[{
+Cell[72740, 1855, 165, 4, 36, "Subsection"],
+Cell[72908, 1861, 118, 1, 16, "Text"],
+Cell[73029, 1864, 345, 9, 16, "NumberedEquation"],
+Cell[73377, 1875, 279, 9, 16, "Text"],
+Cell[73659, 1886, 280, 7, 24, "NumberedEquation"],
+Cell[73942, 1895, 133, 1, 16, "Text"],
+Cell[74078, 1898, 1211, 28, 27, "NumberedEquation"],
+Cell[75292, 1928, 359, 8, 24, "Text"],
+
+Cell[CellGroupData[{
+Cell[75676, 1940, 158, 4, 22, "Subsubsection"],
+Cell[75837, 1946, 320, 7, 32, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[76206, 1959, 133, 2, 25, "Subsection",
+  PageBreakAbove->True],
+Cell[76342, 1963, 557, 16, 32, "Text"],
+Cell[76902, 1981, 625, 13, 25, "NumberedEquation"],
+Cell[77530, 1996, 149, 4, 16, "Text"],
+
+Cell[CellGroupData[{
+Cell[77704, 2004, 158, 4, 22, "Subsubsection"],
+Cell[77865, 2010, 330, 7, 32, "Text"],
+Cell[78198, 2019, 118, 1, 16, "Text"],
+Cell[78319, 2022, 546, 12, 16, "NumberedEquation"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[78914, 2040, 106, 1, 25, "Subsection"],
+Cell[79023, 2043, 443, 12, 24, "Text"],
+Cell[79469, 2057, 1503, 35, 27, "NumberedEquation"],
+Cell[80975, 2094, 472, 15, 24, "Text"],
+Cell[81450, 2111, 1036, 23, 26, "NumberedEquation"],
+Cell[82489, 2136, 403, 11, 24, "Text"],
+Cell[82895, 2149, 1203, 28, 27, "NumberedEquation"],
+Cell[84101, 2179, 394, 9, 16, "NumberedEquation"],
+
+Cell[CellGroupData[{
+Cell[84520, 2192, 168, 4, 22, "Subsubsection"],
+Cell[84691, 2198, 313, 7, 32, "Text"],
+Cell[85007, 2207, 394, 9, 16, "NumberedEquation"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[85450, 2222, 97, 1, 25, "Subsection"],
+Cell[85550, 2225, 194, 6, 16, "Text"],
+Cell[85747, 2233, 661, 14, 25, "NumberedEquation",
+  PageBreakAbove->False],
+
+Cell[CellGroupData[{
+Cell[86433, 2251, 184, 5, 22, "Subsubsection",
+  PageBreakAbove->False],
+Cell[86620, 2258, 392, 10, 32, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[87061, 2274, 114, 2, 25, "Subsection",
+  PageBreakAbove->False],
+Cell[87178, 2278, 1158, 17, 94, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[88385, 2301, 163, 2, 31, "Section",
+  PageBreakAbove->False],
+Cell[88551, 2305, 1935, 31, 208, "Text",
+  PageBreakWithin->True],
+Cell[90489, 2338, 246, 5, 29, "NumberedEquation"],
+Cell[90738, 2345, 1342, 44, 76, "Text"],
+Cell[92083, 2391, 770, 16, 25, "NumberedEquation"],
+Cell[92856, 2409, 529, 10, 41, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[93422, 2424, 134, 1, 31, "Section"],
+Cell[93559, 2427, 629, 10, 59, "Text"],
+
+Cell[CellGroupData[{
+Cell[94213, 2441, 103, 1, 25, "Subsection"],
+Cell[94319, 2444, 396, 9, 32, "Text"],
+Cell[94718, 2455, 258, 5, 24, "NumberedEquation"],
+Cell[94979, 2462, 324, 8, 24, "Text"],
+Cell[95306, 2472, 265, 5, 25, "NumberedEquation"],
+Cell[95574, 2479, 149, 4, 16, "Text"],
+Cell[95726, 2485, 249, 5, 24, "NumberedEquation"],
+Cell[95978, 2492, 203, 6, 16, "Text"],
+Cell[96184, 2500, 251, 5, 24, "NumberedEquation"],
+Cell[96438, 2507, 379, 7, 32, "Text"],
+Cell[96820, 2516, 266, 5, 24, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[97123, 2526, 104, 1, 25, "Subsection"],
+Cell[97230, 2529, 860, 18, 103, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[98127, 2552, 123, 1, 34, "Subsection"],
+Cell[98253, 2555, 236, 5, 33, "Text"],
+
+Cell[CellGroupData[{
+Cell[98514, 2564, 133, 1, 28, "Subsubsection"],
+Cell[98650, 2567, 124, 1, 20, "Text"],
+Cell[98777, 2570, 628, 13, 36, "NumberedEquation"],
+Cell[99408, 2585, 169, 4, 20, "Text"],
+Cell[99580, 2591, 235, 5, 34, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[99852, 2601, 110, 1, 28, "Subsubsection"],
+Cell[99965, 2604, 269, 9, 20, "Text"],
+Cell[100237, 2615, 639, 14, 36, "NumberedEquation"],
+Cell[100879, 2631, 241, 5, 33, "Text"],
+Cell[101123, 2638, 155, 3, 21, "NumberedEquation"],
+Cell[101281, 2643, 149, 4, 20, "Text"],
+Cell[101433, 2649, 241, 5, 35, "NumberedEquation"],
+Cell[101677, 2656, 215, 6, 20, "Text"],
+Cell[101895, 2664, 133, 2, 21, "NumberedEquation"],
+Cell[102031, 2668, 80, 1, 20, "Text"],
+Cell[102114, 2671, 959, 22, 35, "NumberedEquation"],
+Cell[103076, 2695, 264, 6, 21, "Text"],
+Cell[103343, 2703, 1214, 27, 35, "NumberedEquation"],
+Cell[104560, 2732, 241, 5, 33, "Text"],
+Cell[104804, 2739, 337, 6, 23, "NumberedEquation"],
+Cell[105144, 2747, 106, 1, 20, "Text"],
+Cell[105253, 2750, 191, 4, 23, "NumberedEquation"],
+Cell[105447, 2756, 249, 5, 33, "Text"],
+Cell[105699, 2763, 191, 4, 23, "NumberedEquation"],
+Cell[105893, 2769, 602, 10, 72, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[106532, 2784, 109, 1, 22, "Subsubsection"],
+Cell[106644, 2787, 154, 4, 16, "Text"],
+Cell[106801, 2793, 187, 4, 16, "NumberedEquation"],
+Cell[106991, 2799, 244, 5, 24, "Text"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[107296, 2811, 126, 2, 31, "Section",
+  PageBreakAbove->False],
+Cell[107425, 2815, 1749, 40, 320, "Text"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+
+(***********************************************************************
+End of Mathematica Notebook file.
+***********************************************************************)
+

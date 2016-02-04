@@ -1,0 +1,1744 @@
+(***********************************************************************
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used on any computer system with Mathematica 3.0,
+MathReader 3.0, or any compatible application. The data for the notebook 
+starts with the line of stars above.
+
+To get the notebook into a Mathematica-compatible application, do one of 
+the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing the 
+word CacheID, otherwise Mathematica-compatible applications may try to 
+use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+***********************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     44843,       1356]*)
+(*NotebookOutlinePosition[     46680,       1412]*)
+(*  CellTagsIndexPosition[     46636,       1408]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["\<\
+Chapter 25. 
+Simple Deterministic and Stochastic Interest-Rate Models\
+\>", "Title",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  TextAlignment->Left,
+  TextJustification->0,
+  AspectRatioFixed->True],
+
+Cell["\<\
+Bonds and Yield Curves for Deterministic 
+and Simple Random Interest Rates\
+\>", "Subsubtitle",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["25.1 Introduction", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "Our goal in this chapter is to understand the valuation of bonds within \
+two interest-rate frameworks:\n\n(a) deterministic time-dependent interest \
+rates;\n(b) simple stochastic models of interest rates.\n\nIn the latter \
+case, we need to capture the basic properties of interest-rate random walks, \
+including non-log-normal behaviour and mean-reversion, without sacrificing \
+manifest positivity. We need a framework within which one can calibrate to \
+and price:\n\nbonds;\noptions on bonds;\nswaps, caps and floors;\nswaptions, \
+captions and floortions;\netc., etc.\n\nand other more exotic objects. This \
+is a subject of ongoing research. An outstanding survey of interest-rate \
+models is given in the text by Rebonato (1996) - the reader is referred to \
+that work for a definitive mathematical and financial discussion of \
+interest-rate option modelling. An excellent overview is also given in \
+Section 5 of Baxter and Rennie (1996). In this chapter we shall develop a \
+unified treatment of several common models of interest, based on the \
+technology prior to HJM and variants. Notation for individual models follows \
+Hull (1996), whereas families of models are treated within the notation of \
+Wilmott ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " (1993). \n\nIt is not possible to give, within the scope of this text, a \
+definitive overview and set of implementations - at least, not to the extent \
+we have considered equity options, or by changes of variables, FX options. \
+What we shall do is to give a taste of what can be done with ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  ", within a partially unified, if not state-of-the-art, framework. This \
+chapter will consider basic definitions and the pricing of bonds within \
+various frameworks. The deterministic case will be described only as a device \
+for fixing notation and definitions. We shall then survey the pre-HJM models \
+and the pricing of bonds. Simple methods for building yield curves and \
+associated rates will be considered in Chapter 26. The pricing of very simple \
+interest-rate options will be consider in Chapter 27. "
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["25.2 Bonds with Deterministic Time-Dependent Interest Rates", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This topic was studied briefly in Chapter 4, where we considered how to \
+transform the Black-Scholes equation with time-dependent deterministic \
+interest rates into the diffusion equation. Let's review the details as they \
+apply to a straight bond. Our terminology is as follows:\n\n",
+  Cell[BoxData[
+      \(TraditionalForm\`V\)]],
+  " is the value of the bond;\n",
+  Cell[BoxData[
+      \(TraditionalForm\`r(t)\)]],
+  " is the time-dependent spot rate;\n",
+  Cell[BoxData[
+      \(TraditionalForm\`K\)]],
+  " is the coupon payment on the bond, and will normally be a discrete \
+function.\n\nThe deterministic bond equation is then"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[PartialD]V\/\[PartialD]t - \(r(t)\) V + K[t] = 0\)], 
+  "NumberedEquation",
+  CellFrame->False,
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["We can solve this using an integrating factor to obtain", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`V\_0 = \[ExponentialE]\^\(-\(\[Integral]\_t\%T\( \
+r(s)\) \[DifferentialD]s\)\)\ \((Z + \[Integral]\_t\%T K[
+                  s]\ \(\[ExponentialE]\^\(\[Integral]\_s\%T\( r(
+                          p)\) \[DifferentialD]p\)\) \[DifferentialD]s)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Now the coupon payments are typically discrete, so we write, \
+accordingly,\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`K[
+        t] = \[Sum]\+\(t\  \[LessSlantEqual] t\_\(i\ \) \[LessSlantEqual] \
+T\)K\_i\ \(\[Delta](t - t\_i)\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "representing the coupon payments as a general cash flow of payments ",
+  Cell[BoxData[
+      \(TraditionalForm\`K\_i\ at  times\ \(t\_i . \)\)]]
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`V\_0 = \[ExponentialE]\^\(-\(\[Integral]\_t\%T\( \
+r(s)\) \[DifferentialD]s\)\)\ \((Z + \[Sum]\+\(t\  \[LessSlantEqual] t\_\(i\ \
+\) \[LessSlantEqual] T\)K\_i\ \ \[ExponentialE]\^\(\[Integral]\_t\_i\%T\( \
+r(p)\) \[DifferentialD]p\))\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["This boils down to ", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`V\_0 = 
+      Z\[ExponentialE]\^\(-\(\[Integral]\_t\%T\( r(s)\) \[DifferentialD]s\)\)\
+\  + \[Sum]\+\(t\  \[LessSlantEqual] t\_\(i\ \) \[LessSlantEqual] T\)K\_i\ \ \
+\[ExponentialE]\^\(-\(\[Integral]\_t\%t\_i\( r(p)\) \[DifferentialD]p\)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "If the interest rate were constant at a value  ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\_0\)]],
+  ", this would simplify further to "
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`V\_0 = 
+      Z\[ExponentialE]\^\(-\(\(r\_0\)(T - t)\)\)\  + \[Sum]\+\(t\  \
+\[LessSlantEqual] t\_\(i\ \) \[LessSlantEqual] T\)K\_i\ \ \
+\[ExponentialE]\^\(-\(\(r\_0\)(t\_i - t)\)\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+but we do not assume this here. In general, we require knowledge of \
+the integrals of the form\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[Integral]\_t\_i\%T\( r(p)\) \[DifferentialD]p\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["and this must be based on yield-curve information. ", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["25.3 The Yield Curve", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+This matter is easy mathematically, but is messed up by \
+terminological hang-ups. Given the discount factor structure\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  TextAlignment->Left,
+  TextJustification->1],
+
+Cell[BoxData[
+    \(TraditionalForm\`P(t, T)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "describing the price at time ",
+  Cell[BoxData[
+      \(TraditionalForm\`t\)]],
+  " of a zero-coupon (or \"discount\") bond maturing at time ",
+  Cell[BoxData[
+      \(TraditionalForm\`T\)]],
+  ", with ",
+  Cell[BoxData[
+      \(TraditionalForm\`Z = 1\)]],
+  ", the \"yield\" as defined by Baxter and Rennie (1996) or Wilmott ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " (1996), but called by Rebonato (1996) the \"continuously compounded \
+discrete spot rate of maturity ",
+  Cell[BoxData[
+      \(TraditionalForm\`T\)]],
+  "\", is a function "
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  TextAlignment->Left,
+  TextJustification->1],
+
+Cell[BoxData[
+    \(TraditionalForm\`R(t, T) = \(-\(\(log(P(t, T))\)\/\(T - t\)\)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["Clearly, inverting this relationship:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`P(t, 
+        T) = \[ExponentialE]\^\(\(-\((T - t)\)\)\ \(R(t, T)\)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "It follows that the yield for a fixed ",
+  Cell[BoxData[
+      \(TraditionalForm\`t\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`T\)]],
+  " is the interest rate that discounts the bond correctly to its present \
+value as though it were constant."
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  TextAlignment->Left,
+  TextJustification->1],
+
+Cell[CellGroupData[{
+
+Cell["Simply Compounded Analogues", "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The formulae above are implicitly (explicitly in the case of \
+Rebonato's terminology) based on continuously compounded variables. One can \
+invent numerous compounding conventions. The corresponding relations for \
+interest rates defined by simple compounding are\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`R\_S[t, T] = \(1\/\(P(t, T)\) - 1\)\/\(T - t\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["so that", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`P(t, T) = 1\/\(1 + \((T - t)\)\ R\_S[t, T]\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The Yield with Deterministic Interest Rates", "Subsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+If interest rates are deterministic, we have the yield expressed as \
+the time-average:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`R(t, 
+        T) = \(\[Integral]\_t\%T\( r(p)\) \[DifferentialD]p\)\/\(T - t\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["25.4 Some Stochastic Model History", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+An interesting category of interest-rate (IR) models is obtained by \
+considering the family of (risk-neutral) random walks, on the spot rate, \
+given by\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(d\ r = m\ d\ t\  + s\ d\ z\ \)\)], "NumberedEquation",\
+
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "A large part of the recent history of single-factor stochastic IR models \
+can be written down by making simple choices for ",
+  Cell[BoxData[
+      \(TraditionalForm\`m\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`s\)]],
+  ". (We shall consider the exceptional case of the Black model in Chapter \
+27.) Some of the better known ones include:"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Rendleman-Bartter", "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+This model, given by R. Rendleman and B. Bartter (1980), assumes a \
+process that is the same for an asset:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`m = \(\[Mu]\ r\ \ \ \ \ \ \ \ s = \[Sigma]\ r\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The main drawback of this model is a lack of mean-reversion, \
+observed in real-world rates. The advantage is that we can use all of the \
+existing equity technology. \
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Vasicek", "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+This model, given by O.A. Vasicek (1977), assumes a process that \
+has mean-reversion:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`m = \(\(a(b - \ r)\)\ \ \ \ \ \ \ s = \[Sigma]\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The main drawback of this model is the presence of a normal \
+distribution, rather than a log-normal form, so that the interest rate can \
+become negative.\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Cox-Ingersoll-Ross", "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+This model, given by Cox, Ingersoll and Ross (1985), assumes a \
+process that also has mean-reversion, but which deals with the positivity \
+issue:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`m = \(\(a(
+            b - r)\)\ \ \ \ \ \ \ s = \[Sigma]\ \@r\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Ho-Lee", "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+This model, given by Ho and Lee (1986), assumes a process where one \
+of the parameters may be time-dependent. In the continuous-time description, \
+it may be regarded as\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(m = \(\(\[Theta](
+            t)\)\ \ \ \ \ \ \ \ s = \[Sigma]\)\ \)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+This again has no mean-reversion, but the presence of a \
+time-dependent drift allows more flexibility in fitting the model to a given \
+term structure. \
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Hull-White", "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+This model, given by Hull and White (1990), assumes a process where \
+one of the parameters may be time-dependent. In the continuous-time \
+description, it may be regarded as\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(m = \(\((\[Theta](t) - 
+              a\ r)\)\ \ \ \ \ \ \ \ s = \[Sigma]\)\ \)\)], "NumberedEquation",\
+
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+This has mean-reversion, in addition to flexibility in fitting the \
+model to a given term structure. \
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Black-Derman-Toy and Variants", "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell["\<\
+This model, given by Black, Derman and Toy (1990), assumes a \
+process which combines elements of log-normality with the ability to fold in \
+time-dependent features:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{\(d\ \(log \((r)\)\)\), "=", 
+        RowBox[{
+          RowBox[{"d", " ", "t", " ", 
+            RowBox[{"(", 
+              RowBox[{\(\[Theta] \((t)\)\), "+", 
+                FractionBox[
+                  RowBox[{\(log \((r)\)\), " ", 
+                    RowBox[{
+                      SuperscriptBox["\[Sigma]", "\[Prime]",
+                        MultilineFunction->None], "(", "t", 
+                      ")"}]}], \(\[Sigma] \((t)\)\)]}], ")"}]}], 
+          "+", \(d\ z\ \(\[Sigma] \((t)\)\)\)}]}], TraditionalForm]], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Note that when ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Sigma]\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Theta]\)]],
+  " are time-independent this model, which we abbreviate as BDT, reduces to \
+the log-normal model. The variant developed by Black and Karasinski (1991) is \
+more general (we call it BK):"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`d\ \(log(r)\) = 
+      d\ t\ \((\[Theta](t) - \(log(r)\)\ \(a(t)\))\) + 
+        d\ z\ \(\[Sigma](t)\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+There are therefore two identifiable branches of this family of \
+models. The log-normal and generalizations of it such as BDT, BK are one \
+easily identifiable family. The second family is most easily characterized by \
+the nature of the solution to the bond-pricing equation. This will be \
+considered next.\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["25.5 The Log-Linear Bond Family of Models", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "There are other variants of these models, which we shall not pursue \
+explicitly. What is interesting is that from the point of view of bond \
+valuation, there is very little difference between several of these models. \
+The observation,  probably made first by N. Pearson and T.-S. Sun at MIT, but \
+more accessibly discussed in the work by Wilmott ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " (1993), is that all of these models, with the exception of the \
+Rendleman-Bartter asset-like model, and the Black-Derman-Toy family, have a \
+simple \"similarity\" solution for the bond price. If we assume a certain \
+functional form for the price of a bond, we can show that the parameters of \
+the interest-rate random walk must satisfy certain constraints, which happen \
+to be satisfied by all of the models above except the asset-like models. \
+Under these assumptions, we can derive differential equations for the \
+parameters of the bond price, and construct explicit solutions in many cases \
+of interest. We take the bond-pricing equation to be"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{
+          RowBox[{\(1\/2\), " ", \(q \((r, t)\)\), " ", 
+            
+            FractionBox[\(\[PartialD]\^2\( 
+                  V \((r, t)\)\)\), \(\[PartialD]r\^2\),
+              MultilineFunction->None]}], "+", 
+          RowBox[{\(p \((r, t)\)\), 
+            FractionBox[\(\[PartialD]\(V \((r, t)\)\)\), \(\[PartialD]r\),
+              MultilineFunction->None]}], " ", 
+          "-", \(r\ \(V \((r, t)\)\)\)}], " ", "=", " ", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(q(r, t)\  = \ \(s\^2\)(r, t), \ 
+      p(r, t)\  = \[Mu](r, t) - \(\[Lambda](r, t)\)\ \(s(r, t)\)\ \)\)]],
+  "and ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Lambda]\)]],
+  " is the market price of risk associated with the real-world drift ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Mu]\)]],
+  ". This equation may be derived by constructing a hedge position from two \
+bonds of different maturities, in a similar manner to the original \
+Black-Scholes equation. Let's write the bond-pricing equation in symbolic \
+form:"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["Clear[p,q,r,t]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+BondBSE[V_, r_, t_, p_, q_] := D[V[r,t],t] + 1/2 q[r,t] D[V[r,t], \
+{r, 2}] + p[r,t] D[V[r,t], r] - r V[r,t] \
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The log-linear bond family is defined by assuming a solution family of the \
+form (we suppress an implicit dependence on the maturity ",
+  Cell[BoxData[
+      \(TraditionalForm\`T\)]],
+  ")"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["U[r_, t_] = Z*Exp[A[t] - r*B[t]];", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["TraditionalForm[U[r,t,T]]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[ExponentialE]\^\(A(t) - r\ \(B(t)\)\)\ Z\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+We substitute this into the bond-pricing equation and \
+simplify:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Simplify[2 BondBSE[U,r,t,p,q]]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    RowBox[{\(-E\^\(A[t] - r\ B[t]\)\), " ", "Z", " ", 
+      RowBox[{"(", 
+        RowBox[{\(2\ B[t]\ p[r, t]\), "-", \(B[t]\^2\ q[r, t]\), "+", 
+          RowBox[{"2", " ", 
+            RowBox[{"(", 
+              RowBox[{"r", "-", 
+                RowBox[{
+                  SuperscriptBox["A", "\[Prime]",
+                    MultilineFunction->None], "[", "t", "]"}], "+", 
+                RowBox[{"r", " ", 
+                  RowBox[{
+                    SuperscriptBox["B", "\[Prime]",
+                      MultilineFunction->None], "[", "t", "]"}]}]}], 
+              ")"}]}]}], ")"}]}]], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "Next we divide through by the hypothesized bond price and differentiate \
+twice w.r.t. ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\)]],
+  ":"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["eqn = Simplify[%/U[r,t]]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    RowBox[{\(\(-2\)\ B[t]\ p[r, t]\), "+", \(B[t]\^2\ q[r, t]\), "-", 
+      RowBox[{"2", " ", 
+        RowBox[{"(", 
+          RowBox[{"r", "-", 
+            RowBox[{
+              SuperscriptBox["A", "\[Prime]",
+                MultilineFunction->None], "[", "t", "]"}], "+", 
+            RowBox[{"r", " ", 
+              RowBox[{
+                SuperscriptBox["B", "\[Prime]",
+                  MultilineFunction->None], "[", "t", "]"}]}]}], ")"}]}]}]], 
+  "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Simplify[D[%, {r,2}]/B[t]]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    RowBox[{
+      RowBox[{\(-2\), " ", 
+        RowBox[{
+          SuperscriptBox["p", 
+            TagBox[\((2, 0)\),
+              Derivative],
+            MultilineFunction->None], "[", \(r, t\), "]"}]}], "+", 
+      RowBox[{\(B[t]\), " ", 
+        RowBox[{
+          SuperscriptBox["q", 
+            TagBox[\((2, 0)\),
+              Derivative],
+            MultilineFunction->None], "[", \(r, t\), "]"}]}]}]], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "This combination must vanish. Since ",
+  Cell[BoxData[
+      \(TraditionalForm\`B\)]],
+  " alone depends on ",
+  Cell[BoxData[
+      \(TraditionalForm\`T\)]],
+  ", it follows that the second ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\)]],
+  "-derivatives of ",
+  Cell[BoxData[
+      \(TraditionalForm\`q(r, t)\  = \ \(s\^2\)(r, t)\)]],
+  ", and of ",
+  Cell[BoxData[
+      \(TraditionalForm\`p(r, t)\  = 
+        m(r, t) - \(\[Lambda](r, t)\)\ \(s(r, t)\)\)]],
+  ", are zero separately. So these must be linear functions of ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\)]],
+  ". This includes the models of Vasicek, Ho and Lee, Hull and White, and \
+Cox, Ingersoll and Ross. "
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["25.6 Ordinary Differential Equations for the Bond Price", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+We write down a linear form for the coefficients of the \
+bond-pricing equation:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Clear[\[Alpha], \[Beta], \[Eta], \[Gamma]];
+q[r_, t_] := \[Alpha][t] r - \[Beta][t];
+p[r_, t_] := \[Eta][t] - r \[Gamma][t];\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The ",
+  Cell[BoxData[
+      \(TraditionalForm\`A, \ B\)]],
+  " functions must satisfy the condition"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["eqn == 0", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    RowBox[{
+      RowBox[{\(B[t]\^2\ \((r\ \[Alpha][t] - \[Beta][t])\)\), 
+        "-", \(2\ B[t]\ \((\(-r\)\ \[Gamma][t] + \[Eta][t])\)\), "-", 
+        RowBox[{"2", " ", 
+          RowBox[{"(", 
+            RowBox[{"r", "-", 
+              RowBox[{
+                SuperscriptBox["A", "\[Prime]",
+                  MultilineFunction->None], "[", "t", "]"}], "+", 
+              RowBox[{"r", " ", 
+                RowBox[{
+                  SuperscriptBox["B", "\[Prime]",
+                    MultilineFunction->None], "[", "t", "]"}]}]}], ")"}]}]}], 
+      "==", "0"}]], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "We can obtain two ordinary differential equations for the bond price by \
+equating the coefficients of powers of ",
+  Cell[BoxData[
+      \(TraditionalForm\`r\)]],
+  ". "
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["aeqn = Coefficient[eqn/2, r, 0];", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["TraditionalForm[aeqn==0]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{\(\(-\(1\/2\)\)\ \(\[Beta] \((t)\)\)\ \((B \((t)\))\)\^2\), 
+          "-", \(\(\[Eta] \((t)\)\)\ \(B \((t)\)\)\), "+", 
+          RowBox[{
+            SuperscriptBox["A", "\[Prime]",
+              MultilineFunction->None], "(", "t", ")"}]}], "=", "0"}], 
+      TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["beqn = -Coefficient[eqn/2, r, 1];", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    FormBox[
+      RowBox[{
+        RowBox[{\(\(-\(1\/2\)\)\ \(\[Alpha] \((t)\)\)\ \((B \((t)\))\)\^2\), 
+          "-", \(\(\[Gamma] \((t)\)\)\ \(B \((t)\)\)\), "+", 
+          RowBox[{
+            SuperscriptBox["B", "\[Prime]",
+              MultilineFunction->None], "(", "t", ")"}], "+", "1"}], "=", 
+        "0"}], TraditionalForm]], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This pair of coupled ODEs determine the bond price as a function of the \
+functions ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Alpha], \ \[Beta], \ \[Eta], \ \[Gamma]\)]],
+  "."
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["25.7 Simple Symbolic Solutions of the Bond-Pricing Equation", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The bond ODEs can now be solved subject to the initial conditions that the \
+bond value is ",
+  Cell[BoxData[
+      \(TraditionalForm\`Z\)]],
+  " when ",
+  Cell[BoxData[
+      \(TraditionalForm\`t\  = \ T\)]],
+  ". This requires that"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`A(T) = \(0 = B(T)\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["Let's explore the several cases of interest.", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Vasicek Bond Formula", "Subsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+In this case the special nature of the interest-rate random walk \
+allows us to set\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+\[Alpha][t_] := 0;
+\[Beta][t_] := -\[Sigma]^2;
+\[Eta][t_] := a b;
+\[Gamma][t_] := a;\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The differential equations governing the bond price are obtained by \
+setting the following quantities to zero:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["aeqn", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    RowBox[{\(\(-a\)\ b\ B[t]\), "+", \(1\/2\ \[Sigma]\^2\ B[t]\^2\), "+", 
+      RowBox[{
+        SuperscriptBox["A", "\[Prime]",
+          MultilineFunction->None], "[", "t", "]"}]}]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["beqn", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    RowBox[{"1", "-", \(a\ B[t]\), "+", 
+      RowBox[{
+        SuperscriptBox["B", "\[Prime]",
+          MultilineFunction->None], "[", "t", "]"}]}]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Solving for A and B", "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This pair of ODEs is sufficiently simple that we can get ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " to solve the pair together."
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+soln = DSolve[{beqn==0, B[T]==0, aeqn==0, A[T]==0}, {B[t], A[t]}, \
+t][[1]]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({B[t] \[Rule] 1\/a - E\^\(a\ t - a\ T\)\/a, 
+      A[t] \[Rule] \(-\(\(E\^\(2\ a\ t - 2\ a\ T\)\ \[Sigma]\^2\)\/\(4\ \
+a\^3\)\)\) - \(E\^\(a\ t - a\ T\)\ \((a\^2\ b - \[Sigma]\^2)\)\)\/a\^3 + \(t\ \
+\((2\ a\^2\ b - \[Sigma]\^2)\)\)\/\(2\ a\^2\) + 
+          1\/4\ \((\(4\ b\)\/a - 
+                4\ b\ T - \(3\ \[Sigma]\^2\)\/a\^3 + \(2\ T\ \[Sigma]\^2\)\/a\
+\^2)\)}\)], "Output"]
+}, Open  ]],
+
+Cell["BB[t_, T_] = B[t] /. soln;", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["AA[t_, T_] = A[t] /. soln;", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["TraditionalForm[BB[t, T]]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`1\/a - \[ExponentialE]\^\(a\ t - a\ T\)\/a\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["TraditionalForm[AA[t, T]]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(-\(\(\[ExponentialE]\^\(2\ a\ t - 2\ a\ T\)\ \
+\[Sigma]\^2\)\/\(4\ a\^3\)\)\) - \(\[ExponentialE]\^\(a\ t - a\ T\)\ \((a\^2\ \
+b - \[Sigma]\^2)\)\)\/a\^3 + \(t\ \((2\ a\^2\ b - \[Sigma]\^2)\)\)\/\(2\ a\^2\
+\) + 1\/4\ \((\(2\ T\ \[Sigma]\^2\)\/a\^2 - \(3\ \[Sigma]\^2\)\/a\^3 + \(4\ b\
+\)\/a - 4\ b\ T)\)\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "This gives the exact formula for the bond price in terms of the parameters \
+",
+  Cell[BoxData[
+      \(TraditionalForm\`a, \ b, \ \[Sigma]\)]],
+  ". "
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Cox-Ingersoll-Ross Bond Formula", "Subsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["We set", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+\[Alpha][t_] := \[Sigma]^2;
+\[Beta][t_] := 0;
+\[Eta][t_] := a b;
+\[Gamma][t_] := a;\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["aeqn", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    RowBox[{\(\(-a\)\ b\ B[t]\), "+", 
+      RowBox[{
+        SuperscriptBox["A", "\[Prime]",
+          MultilineFunction->None], "[", "t", "]"}]}]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["beqn", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  GroupPageBreakWithin->True],
+
+Cell[BoxData[
+    RowBox[{"1", "-", \(a\ B[t]\), "-", \(1\/2\ \[Sigma]\^2\ B[t]\^2\), "+", 
+      RowBox[{
+        SuperscriptBox["B", "\[Prime]",
+          MultilineFunction->None], "[", "t", "]"}]}]], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "This pair of equations is a little more awkward, so we first solve for ",
+  Cell[BoxData[
+      \(TraditionalForm\`B\)]],
+  " and then solve for ",
+  Cell[BoxData[
+      \(TraditionalForm\`A\)]],
+  ". "
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+  "Solving for ",
+  StyleBox["B",
+    FontSlant->"Italic"]
+}], "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["bsoln = DSolve[{beqn == 0, B[T]==0}, B[t], t][[1]]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({B[t] \[Rule] \(1\/\[Sigma]\^2\((\(-a\) + \@\(\(-a\^2\) - 2\ \
+\[Sigma]\^2\)\ Tan[
+                1\/2\ \((t\ \@\(\(-a\^2\) - 2\ \[Sigma]\^2\) - 
+                      T\ \@\(\(-a\^2\) - 2\ \[Sigma]\^2\) + 
+                      2\ ArcTan[
+                          a\/\@\(\(-a\^2\) - 2\ \[Sigma]\^2\)])\)])\)\)}\)], 
+  "Output"]
+}, Open  ]],
+
+Cell["\<\
+We have an answer, but in a slightly awkward form. Let's make a \
+standard substitution, and do some further simplification: \
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+PowerExpand[bsoln /. -a^2 - 2 \[Sigma]^2 -> - g^2]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({B[t] \[Rule] \(\(-a\) + I\ g\ Tan[1\/2\ \((I\ g\ t - I\ g\ T - 2\ I\ \
+ArcTanh[a\/g])\)]\)\/\[Sigma]\^2}\)], "Output"]
+}, Open  ]],
+
+Cell["bbsoln = Simplify[%];", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["BB[t_, T_] = B[t] /. bbsoln", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(-\(\(a + 
+            g\ Tanh[1\/2\ g\ \((t - T)\) - 
+                  ArcTanh[a\/g]]\)\/\[Sigma]\^2\)\)\)], "Output"]
+}, Open  ]],
+
+Cell["We check the boundary condition:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[" Simplify[BB[T, T]]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+  "Solving for ",
+  StyleBox["A",
+    FontSlant->"Italic"]
+}], "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell["\<\
+asoln = Simplify[DSolve[{(aeqn /. bbsoln)==0, A[T]==0}, A[t], \
+t][[1]]];\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["Here is the full form of the answer:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["AA[t_, T_] = A[t] /. asoln", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(1\/\(g\ \[Sigma]\^2\)\((a\ b\ \((\((a - g)\)\ Log[
+                1 - a\/g] - \((a + g)\)\ Log[\(-\(\(a + g\)\/g\)\)] + 
+            a\ Log[\(-1\) + Tanh[1\/2\ g\ \((t - T)\) - ArcTanh[a\/g]]] + 
+            g\ Log[\(-1\) + Tanh[1\/2\ g\ \((t - T)\) - ArcTanh[a\/g]]] - 
+            a\ Log[1 + Tanh[1\/2\ g\ \((t - T)\) - ArcTanh[a\/g]]] + 
+            g\ Log[1 + 
+                  Tanh[1\/2\ g\ \((t - T)\) - ArcTanh[a\/g]]])\))\)\)\)], 
+  "Output"]
+}, Open  ]],
+
+Cell["Again, we check the boundary condition:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Simplify[AA[T,T]]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0\)], "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Hull-White Model", "Subsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["We set", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+\[Alpha][t_] := 0;
+\[Beta][t_] := -\[Sigma]^2;
+\[Eta][t_] := \[Theta][t];
+\[Gamma][t_] := a;\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["aeqn", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    RowBox[{\(1\/2\ \[Sigma]\^2\ B[t]\^2\), "-", \(B[t]\ \[Theta][t]\), "+", 
+      RowBox[{
+        SuperscriptBox["A", "\[Prime]",
+          MultilineFunction->None], "[", "t", "]"}]}]], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["beqn", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  GroupPageBreakWithin->True],
+
+Cell[BoxData[
+    RowBox[{"1", "-", \(a\ B[t]\), "+", 
+      RowBox[{
+        SuperscriptBox["B", "\[Prime]",
+          MultilineFunction->None], "[", "t", "]"}]}]], "Output",
+  GroupPageBreakWithin->True]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+  "Solving for ",
+  StyleBox["B",
+    FontSlant->"Italic"]
+}], "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[TextData[{
+  "We give the ODE to ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " as it is:"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["bsoln = DSolve[{beqn == 0, B[T]==0}, B[t], t][[1]]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[BoxData[
+    \({B[t] \[Rule] \(1 - E\^\(a\ t - a\ T\)\)\/a}\)], "Output",
+  PageBreakAbove->False]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+  "Solving for ",
+  StyleBox["A",
+    FontSlant->"Italic"]
+}], "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell["We can proceed as far as the differential equation:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["aaeqn = aeqn /. bbsoln", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[BoxData[
+    RowBox[{\(\((a + g\ Tanh[1\/2\ g\ \((t - T)\) - ArcTanh[a\/g]])\)\^2\/\(2\
+\ \[Sigma]\^2\)\), 
+      "+", \(\(\((a + 
+                g\ Tanh[1\/2\ g\ \((t - T)\) - ArcTanh[a\/g]])\)\ \[Theta][
+              t]\)\/\[Sigma]\^2\), "+", 
+      RowBox[{
+        SuperscriptBox["A", "\[Prime]",
+          MultilineFunction->None], "[", "t", "]"}]}]], "Output",
+  PageBreakAbove->False]
+}, Open  ]],
+
+Cell[TextData[{
+  "Although ",
+  Cell[BoxData[
+      \(TraditionalForm\`B\)]],
+  " is identical to its form in the Vasicek model, this equation for ",
+  Cell[BoxData[
+      \(TraditionalForm\`A\)]],
+  " cannot be solved without a knowledge of ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Theta](t)\)]],
+  ", which is usually based on matching to the initial term structure. The \
+reader is referred to Chapter 17 of Hull (1996) for details of how to do this \
+- similar issues arise in the model of Ho and Lee. "
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Remarks", "Subsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->False],
+
+Cell[TextData[{
+  "In each case we are able to find formulae for the price of a zero-coupon \
+bond in terms of the model parameters, which may be constant or \
+time-dependent. Given a family of zero-coupon bonds in the market, each model \
+can, at least hypothetically, be calibrated to the market data. Other \
+instruments can then be priced (or used for further calibration) within the \
+model. This plan raises a host of practical issues. Some very important ones \
+are:\n\n(a) there is not usually an ample supply of zero-coupon bonds;\n(b) \
+what bonds there are may not be government or Treasury bonds, and may contain \
+spread effects arising from default probabilities, as well as coupons and \
+embedded options;\n(c) the results you will get for the prices of all other \
+instruments will depend on the model chosen.\n\nThe issue in (c) is in some \
+ways the most disconcerting - interest-rate options are subject to \"model \
+risk\". The same really is true of equity options, but the log-normal picture \
+has such a wide acceptance that the issue of equity derivative model risk is \
+frequently swept under the carpet. The trouble arising with cash dividends \
+exposes this to some extent, but changing the model is perhaps more \
+interesting, and is discussed in the equity context in Chapter 28. In Chapter \
+27 we shall see how options on bonds can be priced in some different \
+interest-rate models. Our next task is to figure out how to build yield \
+curves.\n\nIt is a useful exercise to use these ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " representations of bond prices to explore the types of yield curve that \
+can be modelled within each interest-rate model - the reader is encouraged to \
+follow this up. "
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  PageBreakWithin->True]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Chapter 25 Bibliography", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Baxter, M. and Rennie, A., 1996, ",
+  StyleBox["Financial Calculus, an Introduction to Derivative Pricing",
+    FontSlant->"Italic"],
+  ", Cambridge University Press.\n\nBlack, F., Derman, E. and Toy, W., 1990, \
+A one-factor model of interest rates and its applications to Treasury bond \
+options, ",
+  StyleBox["Financial Analysts Journal",
+    FontSlant->"Italic"],
+  ", Jan-Feb., p. 33\n\nBlack, F. and Karasinski, P., 1991, Bond and option \
+pricing when short rates are lognormal, ",
+  StyleBox["Financial Analysts Journal",
+    FontSlant->"Italic"],
+  ", July-Aug., p. 52. \n\nCox, J.C., Ingersoll, J.E. and Ross, S.A., 1985, A \
+theory of the term structure of interest rates, ",
+  StyleBox["Econometrica",
+    FontSlant->"Italic"],
+  ", 53, p. 385.\n\nHo, T.S.Y. and Lee, S.-B., 1986, Term structure movements \
+and pricing interest rate contingent claims, ",
+  StyleBox["Journal of Finance",
+    FontSlant->"Italic"],
+  ", 41, p. 1011.\n\nHull, J.C., 1996, ",
+  StyleBox["Options, Futures, and Other Derivatives",
+    FontSlant->"Italic"],
+  ", 3rd edition, Prentice-Hall.\n\nHull, J. and White, A., 1990, Pricing \
+interest rate derivative securities, ",
+  StyleBox["Review of Financial Studies",
+    FontSlant->"Italic"],
+  ", 3, p. 573.\n\nRebonato, R., 1996, ",
+  StyleBox["Interest-Rate Option Models",
+    FontSlant->"Italic"],
+  ", Wiley.\n\nRendleman, R. and Bartter, B., 1980, The pricing of options on \
+debt securities, ",
+  StyleBox["Journal of Financial and Quantitative Analysis",
+    FontSlant->"Italic"],
+  ", 15, p. 11.\n\nVasicek, O.A., 1977, An equilibrium characterization of \
+the term structure, ",
+  StyleBox["Journal of Financial Economics",
+    FontSlant->"Italic"],
+  ", 5, p. 177.\n\nWilmott, P., Dewynne, J. and Howison, S., 1993, ",
+  StyleBox["Option Pricing - Mathematical Models and Computation",
+    FontSlant->"Italic"],
+  ", Oxford Financial Press.\n"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]]
+},
+FrontEndVersion->"Macintosh 3.0",
+ScreenRectangle->{{0, 1152}, {0, 850}},
+AutoGeneratedPackage->None,
+WindowToolbars->{},
+CellGrouping->Automatic,
+WindowSize->{639, 724},
+WindowMargins->{{4, Automatic}, {Automatic, 1}},
+PrintingCopies->1,
+PrintingStartingPageNumber->470,
+PrintingPageRange->{1, Automatic},
+PageHeaders->{{Inherited, Inherited, Cell[ 
+        TextData[ {"25. Simple Interest Rate Models"}]]}, {Cell[ 
+        TextData[ {"25. Simple Interest Rate Models"}]], Inherited, 
+      Inherited}},
+PageFooters->{{Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}, {Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}},
+PrintingOptions->{"PrintingMargins"->{{0, 0}, {57, 57}},
+"PaperSize"->{439, 716},
+"PrintCellBrackets"->False,
+"PrintRegistrationMarks"->False,
+"PrintMultipleHorizontalPages"->False,
+"FirstPageHeader"->False,
+"FacingPages"->True},
+PrivateNotebookOptions->{"ColorPalette"->{RGBColor, 128}},
+ShowCellLabel->False,
+ShowCellTags->False,
+RenderingOptions->{"ObjectDithering"->True,
+"RasterDithering"->False},
+Magnification->1,
+StyleDefinitions -> "Default.nb",
+MacintoshSystemPageSetup->"\<\
+00<0004/0B`000003;T8`?n3ohP==PTh0b85N`?P0080004/0B`000006G<AP001
+0000I00000400@4100800BL?00400@S<]<0000000000064/01T1T00000000000
+00000000007oo@S<_?3oo@001HL:kP00\>"
+]
+
+
+(***********************************************************************
+Cached data follows.  If you edit this Notebook file directly, not using
+Mathematica, you must remove the line containing CacheID at the top of 
+the file.  The cache data will then be recreated when you save this file 
+from within Mathematica.
+***********************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1731, 51, 246, 8, 174, "Title"],
+Cell[1980, 61, 162, 4, 64, "Subsubtitle"],
+
+Cell[CellGroupData[{
+Cell[2167, 69, 141, 3, 50, "Section"],
+Cell[2311, 74, 2275, 36, 480, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[4623, 115, 135, 1, 64, "Section"],
+Cell[4761, 118, 725, 16, 133, "Text"],
+Cell[5489, 136, 191, 4, 38, "NumberedEquation"],
+Cell[5683, 142, 128, 1, 21, "Text"],
+Cell[5814, 145, 369, 6, 40, "NumberedEquation"],
+Cell[6186, 153, 156, 4, 21, "Text"],
+Cell[6345, 159, 228, 4, 40, "NumberedEquation"],
+Cell[6576, 165, 232, 5, 21, "Text"],
+Cell[6811, 172, 353, 5, 52, "NumberedEquation"],
+Cell[7167, 179, 92, 1, 21, "Text"],
+Cell[7262, 182, 360, 6, 45, "NumberedEquation"],
+Cell[7625, 190, 226, 6, 21, "Text"],
+Cell[7854, 198, 299, 5, 40, "NumberedEquation"],
+Cell[8156, 205, 176, 4, 21, "Text"],
+Cell[8335, 211, 168, 3, 41, "NumberedEquation"],
+Cell[8506, 216, 124, 1, 21, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[8667, 222, 96, 1, 44, "Section"],
+Cell[8766, 225, 246, 6, 36, "Text"],
+Cell[9015, 233, 125, 2, 21, "NumberedEquation"],
+Cell[9143, 237, 688, 21, 40, "Text"],
+Cell[9834, 260, 167, 3, 30, "NumberedEquation"],
+Cell[10004, 265, 110, 1, 20, "Text"],
+Cell[10117, 268, 190, 4, 20, "NumberedEquation"],
+Cell[10310, 274, 393, 12, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[10728, 290, 109, 1, 28, "Subsubsection"],
+Cell[10840, 293, 345, 6, 40, "Text"],
+Cell[11188, 301, 167, 3, 34, "NumberedEquation"],
+Cell[11358, 306, 80, 1, 20, "Text"],
+Cell[11441, 309, 165, 3, 32, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[11643, 317, 122, 1, 32, "Subsection"],
+Cell[11768, 320, 168, 4, 20, "Text"],
+Cell[11939, 326, 199, 4, 36, "NumberedEquation"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[12187, 336, 110, 1, 38, "Section"],
+Cell[12300, 339, 234, 5, 29, "Text"],
+Cell[12537, 346, 152, 3, 20, "NumberedEquation"],
+Cell[12692, 351, 443, 11, 40, "Text"],
+
+Cell[CellGroupData[{
+Cell[13160, 366, 99, 1, 28, "Subsubsection"],
+Cell[13262, 369, 188, 4, 20, "Text"],
+Cell[13453, 375, 168, 3, 20, "NumberedEquation"],
+Cell[13624, 380, 248, 5, 29, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[13909, 390, 89, 1, 28, "Subsubsection"],
+Cell[14001, 393, 167, 4, 20, "Text"],
+Cell[14171, 399, 169, 3, 20, "NumberedEquation"],
+Cell[14343, 404, 236, 5, 29, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[14616, 414, 100, 1, 28, "Subsubsection"],
+Cell[14719, 417, 228, 5, 29, "Text"],
+Cell[14950, 424, 182, 3, 20, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[15169, 432, 88, 1, 28, "Subsubsection"],
+Cell[15260, 435, 251, 5, 29, "Text"],
+Cell[15514, 442, 188, 3, 20, "NumberedEquation"],
+Cell[15705, 447, 234, 5, 29, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[15976, 457, 92, 1, 28, "Subsubsection"],
+Cell[16071, 460, 255, 5, 29, "Text"],
+Cell[16329, 467, 201, 4, 20, "NumberedEquation"],
+Cell[16533, 473, 183, 4, 20, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[16753, 482, 140, 2, 28, "Subsubsection",
+  PageBreakAbove->Automatic],
+Cell[16896, 486, 247, 5, 29, "Text"],
+Cell[17146, 493, 647, 15, 32, "NumberedEquation"],
+Cell[17796, 510, 415, 11, 29, "Text"],
+Cell[18214, 523, 220, 4, 20, "NumberedEquation"],
+Cell[18437, 529, 390, 7, 40, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[18876, 542, 117, 1, 38, "Section"],
+Cell[18996, 545, 1146, 18, 117, "Text"],
+Cell[20145, 565, 604, 14, 32, "NumberedEquation"],
+Cell[20752, 581, 666, 16, 52, "Text"],
+Cell[21421, 599, 88, 1, 25, "Input"],
+Cell[21512, 602, 191, 4, 36, "Input"],
+Cell[21706, 608, 278, 7, 29, "Text"],
+Cell[21987, 617, 107, 1, 25, "Input"],
+Cell[22097, 620, 99, 1, 25, "Input"],
+Cell[22199, 623, 163, 3, 20, "NumberedEquation"],
+Cell[22365, 628, 146, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[22536, 636, 104, 1, 25, "Input"],
+Cell[22643, 639, 621, 14, 24, "Output"]
+}, Open  ]],
+Cell[23279, 656, 231, 7, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[23535, 667, 98, 1, 20, "Input"],
+Cell[23636, 670, 485, 12, 22, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[24158, 687, 100, 1, 20, "Input"],
+Cell[24261, 690, 439, 13, 22, "Output"]
+}, Open  ]],
+Cell[24715, 706, 768, 23, 53, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[25520, 734, 131, 1, 44, "Section"],
+Cell[25654, 737, 161, 4, 21, "Text"],
+Cell[25818, 743, 206, 5, 44, "Input"],
+Cell[26027, 750, 189, 6, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[26241, 760, 82, 1, 20, "Input"],
+Cell[26326, 763, 597, 14, 22, "Output"]
+}, Open  ]],
+Cell[26938, 780, 258, 7, 36, "Text"],
+Cell[27199, 789, 106, 1, 20, "Input"],
+Cell[27308, 792, 98, 1, 20, "Input"],
+Cell[27409, 795, 415, 9, 40, "NumberedEquation"],
+Cell[27827, 806, 107, 1, 20, "Input"],
+Cell[27937, 809, 430, 9, 40, "NumberedEquation"],
+Cell[28370, 820, 268, 7, 21, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[28675, 832, 135, 1, 64, "Section"],
+Cell[28813, 835, 322, 10, 36, "Text"],
+Cell[29138, 847, 137, 2, 21, "NumberedEquation"],
+Cell[29278, 851, 117, 1, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[29420, 856, 99, 1, 32, "Subsection"],
+Cell[29522, 859, 164, 4, 20, "Text"],
+Cell[29689, 865, 166, 6, 57, "Input"],
+Cell[29858, 873, 192, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[30075, 881, 78, 1, 25, "Input"],
+Cell[30156, 884, 210, 4, 48, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[30403, 893, 78, 1, 25, "Input"],
+Cell[30484, 896, 175, 4, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[30696, 905, 101, 1, 28, "Subsubsection"],
+Cell[30800, 908, 232, 6, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[31057, 918, 157, 4, 36, "Input"],
+Cell[31217, 924, 402, 7, 81, "Output"]
+}, Open  ]],
+Cell[31634, 934, 100, 1, 25, "Input"],
+Cell[31737, 937, 100, 1, 25, "Input"],
+
+Cell[CellGroupData[{
+Cell[31862, 942, 99, 1, 25, "Input"],
+Cell[31964, 945, 93, 1, 48, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[32094, 951, 99, 1, 25, "Input"],
+Cell[32196, 954, 356, 5, 81, "Output"]
+}, Open  ]],
+Cell[32567, 962, 239, 7, 20, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[32855, 975, 110, 1, 32, "Subsection"],
+Cell[32968, 978, 79, 1, 20, "Text"],
+Cell[33050, 981, 165, 6, 57, "Input"],
+
+Cell[CellGroupData[{
+Cell[33240, 991, 78, 1, 25, "Input"],
+Cell[33321, 994, 173, 4, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[33531, 1003, 108, 2, 25, "Input"],
+Cell[33642, 1007, 212, 4, 48, "Output"]
+}, Open  ]],
+Cell[33869, 1014, 290, 9, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[34184, 1027, 152, 5, 28, "Subsubsection"],
+
+Cell[CellGroupData[{
+Cell[34361, 1036, 124, 1, 25, "Input"],
+Cell[34488, 1039, 350, 7, 89, "Output"]
+}, Open  ]],
+Cell[34853, 1049, 206, 4, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[35084, 1057, 132, 3, 25, "Input"],
+Cell[35219, 1062, 139, 2, 52, "Output"]
+}, Open  ]],
+Cell[35373, 1067, 95, 1, 25, "Input"],
+
+Cell[CellGroupData[{
+Cell[35493, 1072, 101, 1, 25, "Input"],
+Cell[35597, 1075, 141, 3, 52, "Output"]
+}, Open  ]],
+Cell[35753, 1081, 105, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[35883, 1086, 93, 1, 25, "Input"],
+Cell[35979, 1089, 35, 1, 36, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[36063, 1096, 181, 6, 28, "Subsubsection",
+  PageBreakAbove->Automatic],
+Cell[36247, 1104, 155, 4, 25, "Input"],
+Cell[36405, 1110, 109, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[36539, 1115, 100, 1, 25, "Input"],
+Cell[36642, 1118, 474, 8, 177, "Output"]
+}, Open  ]],
+Cell[37131, 1129, 112, 1, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[37268, 1134, 91, 1, 20, "Input"],
+Cell[37362, 1137, 35, 1, 20, "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[37458, 1145, 95, 1, 34, "Subsection"],
+Cell[37556, 1148, 79, 1, 21, "Text"],
+Cell[37638, 1151, 174, 6, 56, "Input"],
+
+Cell[CellGroupData[{
+Cell[37837, 1161, 78, 1, 20, "Input"],
+Cell[37918, 1164, 212, 4, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[38167, 1173, 108, 2, 20, "Input"],
+Cell[38278, 1177, 205, 5, 20, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[38520, 1187, 177, 6, 30, "Subsubsection",
+  PageBreakAbove->False],
+Cell[38700, 1195, 176, 6, 22, "Text"],
+
+Cell[CellGroupData[{
+Cell[38901, 1205, 149, 2, 20, "Input",
+  PageBreakAbove->False],
+Cell[39053, 1209, 103, 2, 38, "Output",
+  PageBreakAbove->False]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[39205, 1217, 177, 6, 30, "Subsubsection",
+  PageBreakAbove->False],
+Cell[39385, 1225, 124, 1, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[39534, 1230, 121, 2, 20, "Input",
+  PageBreakAbove->False],
+Cell[39658, 1234, 398, 9, 93, "Output",
+  PageBreakAbove->False]
+}, Open  ]],
+Cell[40071, 1246, 607, 15, 49, "Text",
+  PageBreakAbove->False]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[40727, 1267, 111, 2, 34, "Subsection",
+  PageBreakAbove->False],
+Cell[40841, 1271, 1839, 28, 288, "Text",
+  PageBreakWithin->True]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[42729, 1305, 99, 1, 44, "Section"],
+Cell[42831, 1308, 1984, 44, 442, "Text"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+
+(***********************************************************************
+End of Mathematica Notebook file.
+***********************************************************************)
+

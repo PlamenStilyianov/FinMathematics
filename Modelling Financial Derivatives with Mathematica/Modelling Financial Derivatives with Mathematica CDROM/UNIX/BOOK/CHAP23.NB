@@ -1,0 +1,3098 @@
+(***********************************************************************
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used on any computer system with Mathematica 3.0,
+MathReader 3.0, or any compatible application. The data for the notebook 
+starts with the line of stars above.
+
+To get the notebook into a Mathematica-compatible application, do one of 
+the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing the 
+word CacheID, otherwise Mathematica-compatible applications may try to 
+use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+***********************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     76967,       2600]*)
+(*NotebookOutlinePosition[     78810,       2656]*)
+(*  CellTagsIndexPosition[     78766,       2652]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["\<\
+Chapter 23.
+Monte Carlo Simulation of Basket Options\
+\>", "Title",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  TextAlignment->Left,
+  TextJustification->0],
+
+Cell["An Ideal Application of Simulation Technology", "Subsubtitle",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["23.1 Introduction", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "\nThis chapter looks at the valuation of options where the payoff depends \
+on a combination of several assets. Sometimes called Rainbow options, a \
+typical application is an option on a Basket. Where several correlated \
+stochastic factors are present, the partial differential equation approach is \
+particularly unwieldy and inappropriate, but it is a relatively \
+straightforward matter to simulate the progress of the components of a \
+Basket, even when the assets are correlated. Such methods are readily \
+generalized to include Quanto effects, where the progress of associated \
+currencies can also be simulated.\n\nSometimes Baskets are modelled in a \
+crude way pretending that the total Basket may be treated as a single asset. \
+We shall look at this approximation, and compare it with the Monte Carlo \
+method. Such an approach fails to capture easily the appropriate hedge \
+position for the Basket. It should be noted that to do the simulation at all \
+in a risk-neutral environment requires that we construct an instantaneous \
+hedge portfolio with weights that are the ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[CapitalDelta]\_i\)]],
+  " for each asset ",
+  Cell[BoxData[
+      \(TraditionalForm\`i\)]],
+  ". Such weights can be captured by the Monte Carlo method quite easily. The \
+log-normal approximation can, however, play a useful role in checking the \
+gross levels of simulation results for errors. Also, the simulation of \
+Baskets with many assets is a prime candidate for the use of pseudo-random \
+numbers, though we shall not pursue this here.\n\nA special case is afforded \
+by the case of two assets, which can, in the case of the European instrument, \
+easily be valued by other means, such as direct integration. If we allow one \
+\"weight\" in the Basket to be negative, we obtain a spread option, and we \
+can test the Monte Carlo method out by comparison with direct integration of \
+the associated bivariate log-normal distribution. Of course, we could do \
+standard Baskets by similar direct integration, and there is, for European \
+instruments, no particular difficulty in doing so in the cases of just two or \
+three assets. However, in many dimensions the Monte Carlo and pseudo-random \
+approaches come into their own, where, like the PDE approach, direct \
+integration becomes unwieldy.\n\nThis chapter will also introduce some useful \
+techniques for memory management in ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  ". The storage of many random sequences, particularly with many assets \
+and/or entire path histories, becomes highly demanding on memory, \
+particularly given the high-precision storage used by ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  ". Here we shall present some devices for removing unwanted information \
+from memory as the calculation proceeds. This allows more \
+paths/assets/time-steps to be considered for a given amount of real or \
+virtual memory. \n\nThroughout this chapter our focus will be on options on a \
+Basket ",
+  Cell[BoxData[
+      \(TraditionalForm\`B\)]],
+  " given by"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(TraditionalForm\`B = \[Sum]\+\(i = 1\)\%m w\_i\ S\_i\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "We shall do our experiments based on just two assets, but the results are \
+applicable to general values of ",
+  Cell[BoxData[
+      \(TraditionalForm\`m\)]],
+  "."
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["23.2 Correlated Random Sequences", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The first thing we do is to make it possible to stop ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " storing its \"In\" and \"Out\" references (to save memory), load a useful \
+statistics Package, and stop it whining about spelling:"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(Unprotect[In, \ Out]; \n
+    Needs["\<Statistics`DescriptiveStatistics`\>"]; \nOff[General::spell]; \n
+    Off[General::spell1]; \)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Next we define a function that builds a covariance matrix from a \
+list of volatilities and correlations:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(covariance[volvec_List, \ correl_List]\  := \n\t
+      Module[{len\  = \ Length[volvec]}, \n\t\tTable[
+          volvec[\([i]\)]\ correl[\([i, j]\)]\ volvec[\([j]\)], \ {i, \ 1, \ 
+            len}, \ {j, \ 1, \ len}]]; \)\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["As an example, suppose we have a pair of assets with", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(volassetA\  = \ 0.4; \nvolassetB\  = \ 0.15; \nrhoAB\  = \ 0.1; \)], 
+  "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["We set", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(volvec\  = \ {volassetA, \ volassetB}; \n
+    correl\  = \ {{1, rhoAB}, {rhoAB, 1}}; \)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MatrixForm[correl]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    TagBox[
+      RowBox[{"(", GridBox[{
+            {"1", 
+              StyleBox["0.1`",
+                StyleBoxAutoDelete->True,
+                PrintPrecision->1]},
+            {
+              StyleBox["0.1`",
+                StyleBoxAutoDelete->True,
+                PrintPrecision->1], "1"}
+            }], ")"}],
+      (MatrixForm[ #]&)]], "Output"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(\(cov\  = \ covariance[volvec, \ correl]; \)\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MatrixForm[cov]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    TagBox[
+      RowBox[{"(", GridBox[{
+            {"0.160000000000000035`", "0.00600000000000000088`"},
+            {"0.006`", "0.0225`"}
+            }], ")"}],
+      (MatrixForm[ #]&)]], "Output"]
+}, Open  ]],
+
+Cell["Next we diagonalize the covariance matrix, as follows:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \({evals, \ evecs}\  = \ Eigensystem[cov]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({{0.160261321534948191`, 
+        0.0222386784650518354`}, {{0.999052889663873955`, 
+          0.043512339103560107`}, {\(-0.0435123391035601247`\), 
+          0.999052889663873955`}}}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Now we form a diagonal matrix of pseudo-variances in a diagonal \
+basis:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(diag\  = \ 
+      Table[If[i == j, \ evals[\([j]\)], \ 0], \ {i, \ 2}, \ {j, \ 
+          2}]; \)\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MatrixForm[diag]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    TagBox[
+      RowBox[{"(", GridBox[{
+            {"0.160261321534948191`", "0"},
+            {"0", "0.0222386784650518354`"}
+            }], ")"}],
+      (MatrixForm[ #]&)]], "Output"]
+}, Open  ]],
+
+Cell["\<\
+The associated volatilities of the independent processes are given \
+by the square root:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MatrixForm[Sqrt[diag]]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    TagBox[
+      RowBox[{"(", GridBox[{
+            {"0.400326518650648743`", "0"},
+            {"0", "0.149126384201628914`"}
+            }], ")"}],
+      (MatrixForm[ #]&)]], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "Next we define the function for sampling the normal distribution. We use \
+the version that makes the most efficient use of the random number generator, \
+bearing in mind that we are using just two assets here. This is easily \
+generalized to handle ",
+  Cell[BoxData[
+      \(TraditionalForm\`n\)]],
+  " assets, throwing away one number if ",
+  Cell[BoxData[
+      \(TraditionalForm\`n\)]],
+  " is odd."
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(setgen\  := 
+      Module[{va, vb, rad\  = \ 2.0, \ den}, \n\t\tWhile[
+          rad\  >= 1.0, \((va\  = \ 2.0*Random[] - 1.0; \ 
+            vb\  = \ 2.0*Random[] - 1.0; \n\t\t\t\trad\  = \ 
+              va*va + vb*vb)\)]; \ 
+        den\  = \ Sqrt[\(-2.0\)*Log[rad]/rad]; \n\t\t{va*den, \ 
+          vb*den}]; \)\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["Now we set a parameter to govern the size of the sample:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(size\  = \ 50000; \nvals\  = \ Table[setgen, \ {i, \ size}]; \)], 
+  "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "We make the antithetic sets, and then free the memory used by both ",
+  StyleBox["vals",
+    FontFamily->"Courier",
+    FontWeight->"Bold"],
+  " and the In/Out variables:"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(avals\  = \ Join[vals, \(-vals\)]; \nvals\  =. ; \nClear[In, Out]; \)], 
+  "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+At this point we have some independent pairs. Now we mix them up \
+using the eigenvectors and eigenvalues, to generate suitably correlated sets. \
+(See Appendix 23.1 for the mathematics of this - it is just elementary linear \
+algebra.)\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(corrset\  = \ 
+      Transpose[Map[Transpose[evecs] . Sqrt[diag] . # &, \ avals]]; \)\)], 
+  "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["We clear out the memory again:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(avals =. ; \nClear[In, Out]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Now we are in a position to sample the correlated expiry values. \
+Now we make up some parameters of interest, and compute the scale changes in \
+the two correlated assets:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(r\  = \ Log[1.06]; \nT\  = \ 225/365; \nrootT\  = \ N[Sqrt[T]]; \)], 
+  "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(endassetA\  = \ 
+      Exp[\((r\  - \ volassetA^2/2)\)*T]*Exp[corrset[\([1]\)]*Sqrt[T]]; \n
+    endassetB\  = \ 
+      Exp[\((r\  - \ volassetB^2/2)\)*T]*Exp[corrset[\([2]\)]*Sqrt[T]]; \)], 
+  "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(corrset =. ; \)\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+We can now simulate the pricing of several options of interest. \
+Let's consider first a Call on a Basket consisting of the assets equally \
+weighted with initial prices both of 100 and unit weights. We make it an \
+at-the-money Call and work out the possible payoffs:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(callpayoffs\  = \ 
+      Map[Max[\((# - 200)\), \ 0] &, \ 
+        100*\((endassetA\  + \ endassetB)\)]; \)\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The value of the option is the discounted mean, and we also give \
+its standard error:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(callval\  = \ Exp[\(-r\)*T]*Mean[callpayoffs]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(17.3487490911081998`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(callse\  = \ Exp[\(-r\)*T]*StandardErrorOfSampleMean[callpayoffs]\)], 
+  "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.082721122134114271`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+A spread is done just as easily. Consider the same two assets with \
+a spread with strike 2:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(sppayoffs\  = \ 
+      Map[Max[\((# - 2)\), \ 0] &, \ 
+        100*\((endassetA\  - \ endassetB)\)]; \)\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(spval\  = \ Exp[\(-r\)*T]*Mean[sppayoffs]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(12.1684823427752908`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(spse\  = \ Exp[\(-r\)*T]*StandardErrorOfSampleMean[sppayoffs]\)], 
+  "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.0694513584763038416`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Geobasket Control Variate Model", "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["First we do the geometric basket in isolation:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(geocallpayoffs\  = \ 
+      Map[Max[\((# - 200)\), \ 0] &, \ 
+        200*Sqrt[\((endassetA\ *endassetB)\)]]; \)\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(geocallval\  = \ Exp[\(-r\)*T]*Mean[geocallpayoffs]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(15.8974183503435506`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(geocallse\  = \ 
+      Exp[\(-r\)*T]*StandardErrorOfSampleMean[geocallpayoffs]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.0748901343095893956`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Now we work out the differences between the arithmetic and \
+geometric Baskets, together with the standard error of the difference. \
+\>", 
+  "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["diffs = callpayoffs-geocallpayoffs;", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["diffsval =  Exp[-r*T]*Mean[diffs]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(1.4513307407649993`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["diffse =  Exp[-r*T]*StandardErrorOfSampleMean[diffs]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.0113502938964993571`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Note that the standard error of the differences is well down on the \
+original error - this is equivalent to using 55 times as many samples. \
+\>", 
+  "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Geobasket Analytic Result", "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The use of the geometric average as a control variate requires the \
+use of the Black-Scholes model with the drift and volatility set suitably. \
+These are worked out in Appendix 23.3.\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+geovol[geoweights_, covariance_] :=
+Sqrt[Sum[geoweights[[i]]*geoweights[[j]]*covariance[[i,j]], 
+{i,1,Length[geoweights]},{j,1,Length[geoweights]}]]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["gv = geovol[{1/2, 1/2}, cov]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.220510770711999493`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+geodrift[rates_, yields_, geoweights_, covariance_] :=
+Sum[geoweights[[i]]*(rates[[i]]-yields[[i]] - (1/2)*covariance[[i,i]]), \
+{i,1,Length[geoweights]}] + 1/2*geovol[geoweights, covariance]^2\
+\>", "Input",\
+
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["gd = geodrift[{r, r}, {0,0}, {1/2, 1/2}, cov]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.0369564081239758257`\)], "Output"]
+}, Open  ]],
+
+Cell["Needs[\"Derivatives`BlackScholes`\"]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["geoan = BlackScholesCall[200, 200, gv, r, r-gd, T]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(15.8022678974758719`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+This compares well with the geometric average computed by \
+simulation. We now have a control variate adjusted estimate of the arithmetic \
+Basket, given by\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["geoan + diffsval", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(17.2535986382408701`\)], "Output"]
+}, Open  ]],
+
+Cell["with a standard error of", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["diffse", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.0113502938964993571`\)], "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["23.3 The Log-Normal Treatment of the Arithmetic Basket", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  StyleBox[
+  "In Appendix 23.2, formulae for the drift and volatility of a single asset \
+with the same mean and variance as the expiry distribution of the basket are \
+given. We now develop the corresponding ",
+    FontSlant->"Plain"],
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  StyleBox[" forms.",
+    FontSlant->"Plain"]
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  FontSlant->"Italic"],
+
+Cell[CellGroupData[{
+
+Cell["Drift Rates", "Subsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["First we treat the risk-neutral drift - this is given by", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+BasketDrift[rates_List, yields_List, weights_List, prices_List, \
+T_]:=
+Module[{len = Length[weights], top, bot},top = Sum[weights[[i]]*prices[[i]]*
+Exp[(rates[[i]]-yields[[i]])*T],{i,1,len}];
+bot = Sum[weights[[i]]*prices[[i]],{i,1,len}];
+PowerExpand[Log[top/bot]/T]]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["First we confirm it is right for a single asset:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+Clear[r,q];
+BasketDrift[{r}, {q}, {1}, {S}, t]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(-q\) + r\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+For two assets, we have instead (converted to Traditional Form and \
+numbered)\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(log(\[ExponentialE]\^\(\((ra - qa)\)\ t\)\ Sa\ wa + \
+\[ExponentialE]\^\(\((rb - qb)\)\ t\)\ Sb\ wb) - log(Sa\ wa + Sb\ wb)\)\/t\)],
+   "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["For small times, this is given by", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["TraditionalForm[Simplify[Limit[%, t -> 0]]]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(\((ra - qa)\)\ Sa\ wa + \((rb - qb)\)\ Sb\ \
+wb\)\/\(Sa\ wa + Sb\ wb\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+which is just the suitably weighted average of the risk-neutral \
+drifts.\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Volatility", "Subsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["The formula for the effective volatility is", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+BasketVolSq[rates_List, yields_List, weights_List, prices_List, 
+cov_List, T_]:=
+Module[{len = Length[weights], top, bot, drift},
+drift = BasketDrift[rates, yields, weights, prices, T];
+top = Sum[weights[[i]]*prices[[i]]*weights[[j]]*prices[[j]]*
+Exp[(rates[[i]]-yields[[i]]+rates[[j]]-yields[[j]])*T]*
+(Exp[cov[[i,j]]*T]-1),{i,1,len}, {j, 1, len}];
+bot = Sum[weights[[i]]*prices[[i]],{i,1,len}];
+(1/T)*Log[1+Exp[-2*drift*T]*top/(bot*bot)]
+]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["We check it for a single asset:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+BasketVolSq[{r}, {q}, {1}, {S}, {{\[Sigma]^2}}, t]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(Log[1 + E\^\(\(-2\)\ \((\(-q\) + r)\)\ t + \((\(-2\)\ q + 2\ r)\)\ t\)\ \
+\((\(-1\) + E\^\(t\ \[Sigma]\^2\))\)]\/t\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["PowerExpand[Simplify[%]]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\[Sigma]\^2\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+For two assets with weights summing to unity, and equal initial \
+prices:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+two = BasketVolSq[{ra,rb}, {qa,qb}, {w,1-w}, {1,1}, 
+{{sa^2, \[Rho]*sa*sb},
+{\[Rho]*sa*sb, sb^2}}, t];\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["TraditionalForm[PowerExpand[Simplify[two]]]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(log(\(\[ExponentialE]\^\(2\ \((rb - qb)\)\ t\)\ \
+\((\(-1\) + \[ExponentialE]\^\(sb\^2\ t\))\)\ \((w - 1)\)\^2 - 2\ \
+\[ExponentialE]\^\(\((\(-qa\) - qb + ra + rb)\)\ t\)\ \((\(-1\) + \
+\[ExponentialE]\^\(sa\ sb\ t\ \[Rho]\))\)\ w\ \((w - 1)\) + \[ExponentialE]\^\
+\(2\ \((ra - qa)\)\ t\)\ \((\(-1\) + \[ExponentialE]\^\(sa\^2\ t\))\)\ w\^2\)\
+\/\((\[ExponentialE]\^\(\((rb - qb)\)\ t\)\ \((w - 1)\) - \[ExponentialE]\^\(\
+\((ra - qa)\)\ t\)\ w)\)\^2 + 1)\)\/t\)], "Output"]
+}, Open  ]],
+
+Cell["The small-time limit is perhaps more familiar:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Limit[%, t -> 0]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(sb\^2\ \((\(-1\) + w)\)\^2 + sa\^2\ w\^2 - 
+      2\ sa\ sb\ \((\(-1\) + w)\)\ w\ \[Rho]\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Application to Our Example", "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+r = Log[1.06]; T = 225/365;
+adrift = BasketDrift[{r,r}, {0,0}, {1/2,1/2}, {100,100}, T]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.0582689081239759332`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+avol = Sqrt[BasketVolSq[{r,r}, {0,0}, {1/2,1/2}, {100,100}, cov, \
+T]]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.223455631837956003`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["BlackScholesCall[200, 200, avol, r, r-adrift, T]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(17.5480036196333211`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+In this case the log-normal approximation has given quite a good \
+estimate. One difficulty with such single-asset approximations is that they \
+do not easily capture the hedge position. Risk-neutrality requires that we be \
+delta-neutral with respect to each asset separately. These can be computed by \
+varying the starting value for each asset separately, and using the same set \
+of paths:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(upAcallpayoffs\  = \ 
+      Map[Max[\((# - 200)\), \ 0] &, \ 
+        100*\((endassetA*1.01\  + \ endassetB)\)]; \)\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(upAcallval\  = \ Exp[\(-r\)*T]*Mean[upAcallpayoffs]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(18.0014320589633669`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["deltaA = upAcallval - callval", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.652682967855167106`\)], "Output"]
+}, Open  ]],
+
+Cell[BoxData[
+    \(\(upBcallpayoffs\  = \ 
+      Map[Max[\((# - 200)\), \ 0] &, \ 
+        100*\((endassetA\  + \ endassetB*1.01)\)]; \)\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(upBcallval\  = \ Exp[\(-r\)*T]*Mean[upBcallpayoffs]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(17.9081013726152571`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["deltaB = upBcallval - callval", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  GroupPageBreakWithin->True],
+
+Cell[BoxData[
+    \(0.559352281507056403`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+The single-asset approximation, if used naively, gives just one \
+value of \[CapitalDelta]:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["BlackScholesCallDelta[200, 200, avol, r, r-adrift, T]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.615030894714440812`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Use of such an approximation in isolation would lead to an \
+improperly hedged, and hence non-risk-neutral, position. The real point of \
+this is that the hedge position is not strictly a multiple of the basket. The \
+single-asset model, with some very careful use of the chain rule, can be used \
+to derive the full risk-neutral hedge, but it is rather messy compared to \
+direct calculation by simulation. A further point which the reader is invited \
+to explore, is the fact that the single-asset log-normal model becomes less \
+accurate as the overall basket volatility increases - it has this in common \
+with the log-normal model approximation for arithmetically averaged Asian \
+options. \
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["23.4 Analytical Treatment of the Two-Asset Options", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["For a spread option the payoff at expiry is given by", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`Max[So[t] - St[t] - K, \ 0]\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where the asset values at expiry are ",
+  Cell[BoxData[
+      \(TraditionalForm\`So[t]\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`St[t]\)]],
+  ", the strike being ",
+  Cell[BoxData[
+      \(TraditionalForm\`K\)]],
+  ". In terms of samples ",
+  Cell[BoxData[
+      \(TraditionalForm\`x\)]],
+  ", ",
+  Cell[BoxData[
+      \(TraditionalForm\`y\)]],
+  " from a correlated log-normal distribution, this can be written as"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`Max[
+      So\ \[ExponentialE]\^\(x\ \@t - \(\[Sigma]\^2\ t\)\/2\)\ \
+\[ExponentialE]\^\(r\ t\) - 
+        St\ \[ExponentialE]\^\(y\ \@t - \(s\^2\ t\)\/2\)\ \
+\[ExponentialE]\^\(r\ t\) - K, \ 0]\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "When we integrate over the risk-neutral expiry distribution, the ",
+  Cell[BoxData[
+      \(TraditionalForm\`x\)]],
+  "-integration can be restricted to the range ",
+  Cell[BoxData[
+      \(TraditionalForm\`\((L, \ \[Infinity])\)\)]],
+  ", where ",
+  Cell[BoxData[
+      \(TraditionalForm\`L\)]],
+  " is given by setting the payoff to zero, i.e.,"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`L = \(LowLimit(Fone, Ftwo, K, xtwo, \[Sigma], s, 
+          t) := \(\@t\ \[Sigma]\^2\)\/2 + \(log(K\/Fone + \(Ftwo\ \
+\[ExponentialE]\^\(xtwo\ \@t - \(s\^2\ t\)\/2\)\)\/Fone)\)\/\@t\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where Fo are the futures: ",
+  Cell[BoxData[
+      \(TraditionalForm\`Fo\  = \ So\ Exp[r*t]\)]],
+  " etc."
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+LowLimit[Fone_, Ftwo_, K_, xtwo_, sone_, stwo_, t_] :=
+sone^2*Sqrt[t]/2 +1/Sqrt[t]*Log[K/Fone + Ftwo/Fone*Exp[xtwo*Sqrt[t] - \
+stwo^2*t/2]]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+For a Call on a Basket rather than a spread, the corresponding \
+integration limit is given by flipping a sign, i.e.\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+CallLowLimit[Fone_, Ftwo_, K_, xtwo_, sone_, stwo_, t_] :=
+sone^2*Sqrt[t]/2 +1/Sqrt[t]*Log[Max[
+K/Fone - Ftwo/Fone*Exp[xtwo*Sqrt[t] - stwo^2*t/2], 0.00001]]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Method (i): Direct Two-Dimensional Numerical Integration", "Subsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The idea here is that we literally integrate the payoff numerically over \
+the two-dimensional risk-neutral expiry distribution. In ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  ", for the spread and the Basket Call respectively, the integrations are"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(Clear[So, \ St, \ K, \ \[Sigma], \ s, \ \[Rho], \ r, t, range, \ x, \ 
+      y]\)], "Input"],
+
+Cell["\<\
+SpreadIntegral[So_, St_, K_, \[Sigma]_, s_, \[Rho]_,r_,t_, range_] \
+:=
+Exp[-r*t]/(Sqrt[1-\[Rho]^2]*2*Pi*\[Sigma]*s)*NIntegrate[
+Exp[-(x^2/\[Sigma]^2+y^2/s^2 - 2*\[Rho]*x*y/(\[Sigma]*s))/(2*(1-\[Rho]^2))]*
+(So*Exp[r*t]*Exp[x*Sqrt[t] - \[Sigma]^2*t/2] - 
+St*Exp[r*t]*Exp[y*Sqrt[t] - s^2*t/2]-K), {y, -range, range}, 
+{x, LowLimit[So*Exp[r*t], St*Exp[r*t], K, y, \[Sigma], s, t], range}]\
+\>", 
+  "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+BasketCallIntegral[So_, St_, K_, \[Sigma]_, s_, \[Rho]_,r_,t_, \
+range_] :=
+Exp[-r*t]/(Sqrt[1-\[Rho]^2]*2*Pi*\[Sigma]*s)*NIntegrate[
+Exp[-(x^2/\[Sigma]^2+y^2/s^2 - \
+2*\[Rho]*x*y/(\[Sigma]*s))/(2*(1-\[Rho]^2))]*(So*Exp[r*t]*
+Exp[x*Sqrt[t] - \[Sigma]^2*t/2] + 
+St*Exp[r*t]*Exp[y*Sqrt[t] - s^2*t/2]-K), {y, -range, range}, 
+{x, CallLowLimit[So*Exp[r*t], St*Exp[r*t], K, y, \[Sigma], s, t], \
+range}]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+In a more explicit mathematical notation, the double integration \
+can be written in the form\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+SpreadIntegral[So, St, K, \[Sigma], s, \[Rho],r,t,range]\
+\>", 
+  "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(1\/\(2\ \[Pi]\ s\ \@\(1 - \[Rho]\^2\)\ \[Sigma]\)\((E\^\(\(-r\)\ t\)\ \
+NIntegrate[
+          Exp[\(-\(\(x\^2\/\[Sigma]\^2 + 
+                      y\^2\/s\^2 - \(2\ \[Rho]\ x\ y\)\/\(\[Sigma]\ \
+s\)\)\/\(2\ \((1 - \[Rho]\^2)\)\)\)\)]\ \((So\ Exp[r\ t]\ Exp[
+                    x\ \@t - \(\[Sigma]\^2\ t\)\/2] - 
+                St\ Exp[r\ t]\ Exp[y\ \@t - \(s\^2\ t\)\/2] - 
+                K)\), {y, \(-range\), range}, {x, 
+            LowLimit[So\ Exp[r\ t], St\ Exp[r\ t], K, y, \[Sigma], s, t], 
+            range}])\)\)\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+Timing[SpreadIntegral[100,100,2, 0.4, \
+0.15,0.1,Log[1.06],225/365,3]]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({7.26666666666642413`\ Second, 12.0356517767834647`}\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+BasketCallIntegral[100,100,200, 0.4, \
+0.15,0.1,Log[1.06],225/365,4]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(17.2324702602833523`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Recall that the raw Monte Carlo estimate for the former was 12.17 \
+with a standard error of 0.07, and the variance-reduced estimate for the \
+latter was 17.25 with a standard error of 0.011. This confirms the quality of \
+the Monte Carlo simulation, particularly when used with a control variate \
+based on the geometric Basket.\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Method (ii): One Integration Done Analytically", "Subsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell[TextData[{
+  "This is a bit of a pain for the Basket as the lower limit may be finite or \
+infinite depending on parameters. I have therefore confined detailed \
+attention to the spread case. The slightly nasty part is doing one \
+integration analytically, leaving the second to be done numerically. The \
+integral over ",
+  Cell[BoxData[
+      \(TraditionalForm\`x\)]],
+  " in the payoff of a spread option is given by linear combinations of the \
+following function:"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+PartialG[L_, \[Alpha]_, \[Beta]_] := Sqrt[2 Pi] Exp[\[Beta]^2/(4*\
+\[Alpha])]/Sqrt[2\[Alpha]](1 - 
+Norm[Sqrt[2\[Alpha]]*L - \[Beta]/Sqrt[2\[Alpha]]])\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["The mathematical formula is", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Simplify[PartialG[L,a,b]]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(-\(\(E\^\(b\^2\/\(4\ a\)\)\ \@\[Pi]\ \((\(-1\) + 
+                Erf[\(\(-b\) + 2\ a\ L\)\/\(2\ \@a\)])\)\)\/\(2\ \@a\)\)\)\)],
+   "Output"]
+}, Open  ]],
+
+Cell["The significance of this is that its derivative is", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["ExpandAll[Simplify[-D[PartialG[L,a,b], L]]] /. L -> x", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(E\^\(b\ x - a\ x\^2\)\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "and this function, with various values of ",
+  Cell[BoxData[
+      \(TraditionalForm\`a\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`b\)]],
+  ", is what appears in the integrand involving the correlated normal \
+distribution and payoff. I build the result step by step. Some pen-and-paper \
+work leads to the following expression for the once integrated payoff, with a \
+general lower limit:"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+PartialH[y_, \[Sigma]_, s_, \[Rho]_, Fo_, Ft_, K_, t_, L_] :=
+Fo*Exp[-t*\[Sigma]^2/2]*PartialG[L,1/(2*\[Sigma]^2*(1 - \[Rho]^2)),Sqrt[t] + \
+2*y*\[Rho]/(2*s*\[Sigma]*(1-\[Rho]^2))] - 
+(K+Ft*Exp[Sqrt[t]*y-t*s^2/2])*PartialG[L,1/(2*\[Sigma]^2*(1 - \[Rho]^2)),2*y*\
+\[Rho]/(2*s*\[Sigma]*(1-\[Rho]^2))]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+TraditionalForm[Simplify[PartialH[y,\[Sigma],s,\[Rho],Fo,Ft,K,t,L]]]\
+\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(1\/\(2\ \@\(1\/\(2\ \[Pi]\ \[Sigma]\^2 - 2\ \[Pi]\ \
+\[Rho]\^2\ \[Sigma]\^2\)\)\)\((\[ExponentialE]\^\(\(\(y\^2\ \[Rho]\^2\)\/\(1 \
+- \[Rho]\^2\) - s\^4\ t\)\/\(2\ s\^2\)\)\ \((\[ExponentialE]\^\(\@t\ y\)\ Ft \
++ \[ExponentialE]\^\(\(s\^2\ t\)\/2\)\ K)\)\ \((erf(\(y\ \[Rho]\ \[Sigma] - L\
+\ s\)\/\(\@2\ s\ \((\[Rho]\^2 - 1)\)\ \[Sigma]\^2\ \@\(1\/\(\[Sigma]\^2 - \
+\[Rho]\^2\ \[Sigma]\^2\)\)\)) - 
+              1)\) + \[ExponentialE]\^\(1\/2\ \[Sigma]\^2\ \((\((1 - \
+\[Rho]\^2)\)\ \((\(y\ \[Rho]\)\/\(s\ \[Sigma] - s\ \[Rho]\^2\ \[Sigma]\) + \
+\@t)\)\^2 - t)\)\)\ Fo\ \((erf(\(L\ s + \[Sigma]\ \((s\ \@t\ \((\[Rho]\^2 - \
+1)\)\ \[Sigma] - y\ \[Rho])\)\)\/\(\@2\ s\ \((\[Rho]\^2 - 1)\)\ \[Sigma]\^2\ \
+\@\(1\/\(\[Sigma]\^2 - \[Rho]\^2\ \[Sigma]\^2\)\)\)) + 1)\))\)\)\)], 
+  "NumberedEquation",
+  FontSize->10],
+
+Cell["\<\
+Now we put in the lower limit, then put in the remaining p.d.f. for \
+the distribution of y:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+PartialJ[y_, \[Sigma]_, s_, \[Rho]_, Fo_, Ft_, K_, t_]:= 
+PartialH[y, \[Sigma], s, \[Rho], Fo, Ft, K, t, LowLimit[Fo, Ft, K, y, \
+\[Sigma], s, t]];
+PartialK[y_, \[Sigma]_, s_, \[Rho]_, Fo_, Ft_, K_, t_]= \
+Simplify[Exp[-y^2/(2*s^2*(1-\[Rho]^2))]*PartialJ[y, \[Sigma], s, \[Rho], Fo, \
+Ft, K, t]/
+(2*Pi*\[Sigma]*s*Sqrt[1-\[Rho]^2])];\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+TraditionalForm[PartialK[y, \[Sigma], s, \[Rho], Fo, Ft, K, \
+t]]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\((\[ExponentialE]\^\(y\^2\/\(2\ s\^2\ \((\[Rho]\^2 - \
+1)\)\)\)\ \((1\/2\ \[ExponentialE]\^\(1\/2\ \[Sigma]\^2\ \((\((1 - \[Rho]\^2)\
+\)\ \((\(y\ \[Rho]\)\/\(s\ \[Sigma] - s\ \[Rho]\^2\ \[Sigma]\) + \@t)\)\^2 - \
+t)\)\)\ Fo\ \((erf(\(s\ t\ \((2\ \[Rho]\^2 - 1)\)\ \[Sigma]\^2 - 2\ \@t\ y\ \
+\[Rho]\ \[Sigma] + 2\ s\ \(log(\(\[ExponentialE]\^\(\@t\ y - \(s\^2\ t\)\/2\)\
+\ Ft + K\)\/Fo)\)\)\/\(2\ \@2\ s\ \@t\ \((\[Rho]\^2 - 1)\)\ \[Sigma]\^2\ \
+\@\(1\/\(\[Sigma]\^2 - \[Rho]\^2\ \[Sigma]\^2\)\)\)) + 1)\) - 
+              1\/2\ \[ExponentialE]\^\(\(\(y\^2\ \[Rho]\^2\)\/\(1 - \[Rho]\^2\
+\) - s\^4\ t\)\/\(2\ s\^2\)\)\ \((\[ExponentialE]\^\(\@t\ y\)\ Ft + \
+\[ExponentialE]\^\(\(s\^2\ t\)\/2\)\ K)\)\ \((erf(\(s\ t\ \[Sigma]\^2 - 2\ \
+\@t\ y\ \[Rho]\ \[Sigma] + 2\ s\ \(log(\(\[ExponentialE]\^\(\@t\ y - \(s\^2\ \
+t\)\/2\)\ Ft + K\)\/Fo)\)\)\/\(2\ \@2\ s\ \@t\ \((\[Rho]\^2 - 1)\)\ \
+\[Sigma]\^2\ \@\(1\/\(\[Sigma]\^2 - \[Rho]\^2\ \[Sigma]\^2\)\)\)) + 
+                    1)\))\))\)/\((2\ \[Pi]\ s\ \@\(1 - \[Rho]\^2\)\ \[Sigma]\ \
+\@\(1\/\(2\ \[Pi]\ \[Sigma]\^2 - 2\ \[Pi]\ \[Rho]\^2\ \[Sigma]\^2\)\))\)\)], 
+  "NumberedEquation",
+  FontSize->8],
+
+Cell["We can check that it looks sensible:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+Plot[PartialK[y, 0.2, 0.1, 0.0,100,100,2,1], {y, -1, 1}, PlotRange \
+-> All];\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[GraphicsData["PostScript", "\<\
+%!
+%%Creator: Mathematica
+%%AspectRatio: .61803 
+MathPictureStart
+/Mabs {
+Mgmatrix idtransform
+Mtmatrix dtransform
+} bind def
+/Mabsadd { Mabs
+3 -1 roll add
+3 1 roll add
+exch } bind def
+%% Graphics
+/Courier findfont 10  scalefont  setfont
+% Scaling calculations
+0.5 0.476191 0.0147151 0.0173746 [
+[.02381 .00222 -6 -9 ]
+[.02381 .00222 6 0 ]
+[.2619 .00222 -12 -9 ]
+[.2619 .00222 12 0 ]
+[.7381 .00222 -9 -9 ]
+[.7381 .00222 9 0 ]
+[.97619 .00222 -3 -9 ]
+[.97619 .00222 3 0 ]
+[.4875 .10159 -6 -4.5 ]
+[.4875 .10159 0 4.5 ]
+[.4875 .18846 -12 -4.5 ]
+[.4875 .18846 0 4.5 ]
+[.4875 .27533 -12 -4.5 ]
+[.4875 .27533 0 4.5 ]
+[.4875 .36221 -12 -4.5 ]
+[.4875 .36221 0 4.5 ]
+[.4875 .44908 -12 -4.5 ]
+[.4875 .44908 0 4.5 ]
+[.4875 .53595 -12 -4.5 ]
+[.4875 .53595 0 4.5 ]
+[ 0 0 0 0 ]
+[ 1 .61803 0 0 ]
+] MathScale
+% Start of Graphics
+1 setlinecap
+1 setlinejoin
+newpath
+0 g
+.25 Mabswid
+[ ] 0 setdash
+.02381 .01472 m
+.02381 .02097 L
+s
+[(-1)] .02381 .00222 0 1 Mshowa
+.2619 .01472 m
+.2619 .02097 L
+s
+[(-0.5)] .2619 .00222 0 1 Mshowa
+.7381 .01472 m
+.7381 .02097 L
+s
+[(0.5)] .7381 .00222 0 1 Mshowa
+.97619 .01472 m
+.97619 .02097 L
+s
+[(1)] .97619 .00222 0 1 Mshowa
+.125 Mabswid
+.07143 .01472 m
+.07143 .01847 L
+s
+.11905 .01472 m
+.11905 .01847 L
+s
+.16667 .01472 m
+.16667 .01847 L
+s
+.21429 .01472 m
+.21429 .01847 L
+s
+.30952 .01472 m
+.30952 .01847 L
+s
+.35714 .01472 m
+.35714 .01847 L
+s
+.40476 .01472 m
+.40476 .01847 L
+s
+.45238 .01472 m
+.45238 .01847 L
+s
+.54762 .01472 m
+.54762 .01847 L
+s
+.59524 .01472 m
+.59524 .01847 L
+s
+.64286 .01472 m
+.64286 .01847 L
+s
+.69048 .01472 m
+.69048 .01847 L
+s
+.78571 .01472 m
+.78571 .01847 L
+s
+.83333 .01472 m
+.83333 .01847 L
+s
+.88095 .01472 m
+.88095 .01847 L
+s
+.92857 .01472 m
+.92857 .01847 L
+s
+.25 Mabswid
+0 .01472 m
+1 .01472 L
+s
+.5 .10159 m
+.50625 .10159 L
+s
+[(5)] .4875 .10159 1 0 Mshowa
+.5 .18846 m
+.50625 .18846 L
+s
+[(10)] .4875 .18846 1 0 Mshowa
+.5 .27533 m
+.50625 .27533 L
+s
+[(15)] .4875 .27533 1 0 Mshowa
+.5 .36221 m
+.50625 .36221 L
+s
+[(20)] .4875 .36221 1 0 Mshowa
+.5 .44908 m
+.50625 .44908 L
+s
+[(25)] .4875 .44908 1 0 Mshowa
+.5 .53595 m
+.50625 .53595 L
+s
+[(30)] .4875 .53595 1 0 Mshowa
+.125 Mabswid
+.5 .03209 m
+.50375 .03209 L
+s
+.5 .04946 m
+.50375 .04946 L
+s
+.5 .06684 m
+.50375 .06684 L
+s
+.5 .08421 m
+.50375 .08421 L
+s
+.5 .11896 m
+.50375 .11896 L
+s
+.5 .13634 m
+.50375 .13634 L
+s
+.5 .15371 m
+.50375 .15371 L
+s
+.5 .17109 m
+.50375 .17109 L
+s
+.5 .20584 m
+.50375 .20584 L
+s
+.5 .22321 m
+.50375 .22321 L
+s
+.5 .24058 m
+.50375 .24058 L
+s
+.5 .25796 m
+.50375 .25796 L
+s
+.5 .29271 m
+.50375 .29271 L
+s
+.5 .31008 m
+.50375 .31008 L
+s
+.5 .32746 m
+.50375 .32746 L
+s
+.5 .34483 m
+.50375 .34483 L
+s
+.5 .37958 m
+.50375 .37958 L
+s
+.5 .39696 m
+.50375 .39696 L
+s
+.5 .41433 m
+.50375 .41433 L
+s
+.5 .4317 m
+.50375 .4317 L
+s
+.5 .46645 m
+.50375 .46645 L
+s
+.5 .48383 m
+.50375 .48383 L
+s
+.5 .5012 m
+.50375 .5012 L
+s
+.5 .51858 m
+.50375 .51858 L
+s
+.5 .55333 m
+.50375 .55333 L
+s
+.5 .5707 m
+.50375 .5707 L
+s
+.5 .58808 m
+.50375 .58808 L
+s
+.5 .60545 m
+.50375 .60545 L
+s
+.25 Mabswid
+.5 0 m
+.5 .61803 L
+s
+.5 Mabswid
+.02381 .01472 m
+.02499 .01472 L
+.02605 .01472 L
+.02729 .01472 L
+.02846 .01472 L
+.03053 .01472 L
+.0317 .01472 L
+.03279 .01472 L
+.03388 .01472 L
+.03506 .01472 L
+.03635 .01472 L
+.03756 .01472 L
+.03891 .01472 L
+.0402 .01472 L
+.04136 .01472 L
+.04262 .01472 L
+.04396 .01472 L
+.04523 .01472 L
+.04636 .01472 L
+.04759 .01472 L
+.04894 .01472 L
+.05036 .01472 L
+.05157 .01472 L
+.0529 .01472 L
+.05415 .01472 L
+.05528 .01472 L
+.05659 .01472 L
+.05784 .01472 L
+.06004 .01472 L
+.06129 .01472 L
+.06244 .01472 L
+.06486 .01472 L
+.06621 .01472 L
+.06745 .01472 L
+.06974 .01472 L
+.0709 .01472 L
+.07216 .01472 L
+.07356 .01472 L
+.07484 .01472 L
+.07632 .01472 L
+.07771 .01472 L
+.079 .01472 L
+.08019 .01472 L
+.08149 .01472 L
+.08288 .01472 L
+.08422 .01472 L
+.08545 .01472 L
+.08687 .01472 L
+.08821 .01472 L
+.09061 .01472 L
+Mistroke
+.09196 .01472 L
+.09321 .01472 L
+.0947 .01472 L
+.0961 .01472 L
+.09736 .01472 L
+.09872 .01472 L
+.1002 .01472 L
+.10177 .01472 L
+.10311 .01472 L
+.10458 .01472 L
+.1071 .01472 L
+.10852 .01472 L
+.10984 .01472 L
+.11225 .01472 L
+.11347 .01472 L
+.11481 .01472 L
+.11713 .01472 L
+.11843 .01472 L
+.11962 .01472 L
+.12182 .01472 L
+.12292 .01472 L
+.12413 .01472 L
+.12554 .01472 L
+.12688 .01472 L
+.12938 .01472 L
+.13078 .01472 L
+.13207 .01472 L
+.13357 .01472 L
+.13498 .01472 L
+.13731 .01472 L
+.13855 .01472 L
+.13988 .01472 L
+.14127 .01472 L
+.14258 .01472 L
+.14377 .01472 L
+.14506 .01472 L
+.14742 .01472 L
+.14964 .01472 L
+.15092 .01472 L
+.15227 .01472 L
+.15469 .01472 L
+.15592 .01472 L
+.15723 .01472 L
+.15959 .01472 L
+.16103 .01472 L
+.16239 .01472 L
+.16494 .01472 L
+.16717 .01472 L
+.16953 .01472 L
+.17155 .01472 L
+Mistroke
+.17377 .01472 L
+.17616 .01472 L
+.17872 .01472 L
+.18114 .01472 L
+.18335 .01472 L
+.18586 .01472 L
+.18812 .01472 L
+.19074 .01472 L
+.19321 .01472 L
+.1955 .01472 L
+.1976 .01472 L
+.19991 .01472 L
+.20235 .01472 L
+.20482 .01472 L
+.20747 .01472 L
+.20996 .01472 L
+.21224 .01472 L
+.21491 .01472 L
+.21781 .01472 L
+.22055 .01472 L
+.22308 .01472 L
+.2255 .01472 L
+.22772 .01472 L
+.23016 .01472 L
+.23272 .01472 L
+.23496 .01472 L
+.23704 .01472 L
+.23932 .01472 L
+.24176 .01472 L
+.24443 .01472 L
+.24732 .01472 L
+.25005 .01472 L
+.25256 .01472 L
+.25483 .01472 L
+.25733 .01472 L
+.25993 .01472 L
+.26237 .01473 L
+.26496 .01473 L
+.26735 .01473 L
+.26999 .01474 L
+.27279 .01474 L
+.27546 .01475 L
+.27797 .01476 L
+.28026 .01477 L
+.28267 .01479 L
+.28489 .0148 L
+.28732 .01483 L
+.29159 .01488 L
+.29399 .01492 L
+.29657 .01497 L
+Mistroke
+.30121 .01509 L
+.30379 .01518 L
+.30652 .01529 L
+.31142 .01557 L
+.31415 .01577 L
+.3167 .016 L
+.31968 .01632 L
+.32251 .0167 L
+.32757 .01758 L
+.33221 .01868 L
+.3372 .02028 L
+.34265 .02267 L
+.34795 .02582 L
+.35296 .02975 L
+.35745 .03426 L
+.36231 .04038 L
+.36762 .04885 L
+.37323 .06018 L
+.38328 .08791 L
+.39275 .12439 L
+.40291 .17603 L
+.42124 .3 L
+.44104 .45421 L
+.45149 .52561 L
+.45721 .55703 L
+.46002 .56983 L
+.46259 .57989 L
+.46485 .58734 L
+.46732 .59391 L
+.4698 .5988 L
+.47116 .60073 L
+.47242 .60205 L
+.4731 .60257 L
+.47383 .60298 L
+.47453 .60322 L
+.47517 .60332 L
+.47638 .60317 L
+.47767 .60255 L
+.47833 .60204 L
+.47905 .60134 L
+.48034 .59971 L
+.48187 .59715 L
+.48327 .59422 L
+.48797 .58045 L
+.49063 .57008 L
+.49309 .5589 L
+.50242 .5049 L
+.52125 .36201 L
+.54159 .21023 L
+.55276 .14506 L
+Mistroke
+.56303 .09958 L
+.57285 .06824 L
+.57779 .05636 L
+.58321 .04589 L
+.58847 .03792 L
+.59344 .03204 L
+.5979 .02789 L
+.60275 .02439 L
+.60803 .02153 L
+.61363 .01934 L
+.6184 .018 L
+.62092 .01744 L
+.62368 .01693 L
+.6286 .01623 L
+.63129 .01594 L
+.63379 .01572 L
+.63827 .01541 L
+.64078 .01528 L
+.64305 .01518 L
+.64821 .01501 L
+.65111 .01494 L
+.65379 .01489 L
+.65871 .01483 L
+.66119 .0148 L
+.66392 .01478 L
+.66642 .01477 L
+.66914 .01476 L
+.67172 .01475 L
+.6741 .01474 L
+.67861 .01473 L
+.68088 .01473 L
+.6834 .01472 L
+.6861 .01472 L
+.68858 .01472 L
+.6913 .01472 L
+.69417 .01472 L
+.69667 .01472 L
+.699 .01472 L
+.70156 .01472 L
+.7043 .01472 L
+.70688 .01472 L
+.70961 .01472 L
+.71195 .01472 L
+.71452 .01472 L
+.71728 .01472 L
+.7188 .01472 L
+.72025 .01472 L
+.72305 .01472 L
+.72561 .01472 L
+.72803 .01472 L
+Mistroke
+.7306 .01472 L
+.73304 .01472 L
+.73524 .01472 L
+.73784 .01472 L
+.73931 .01472 L
+.74065 .01472 L
+.74313 .01472 L
+.74439 .01472 L
+.74575 .01472 L
+.7483 .01472 L
+.75071 .01472 L
+.75306 .01472 L
+.75523 .01472 L
+.75758 .01472 L
+.75891 .01472 L
+.76016 .01472 L
+.76268 .01472 L
+.7641 .01472 L
+.7654 .01472 L
+.76761 .01472 L
+.76966 .01472 L
+.77192 .01472 L
+.77318 .01472 L
+.77433 .01472 L
+.77665 .01472 L
+.77796 .01472 L
+.77917 .01472 L
+.78138 .01472 L
+.7825 .01472 L
+.78373 .01472 L
+.78623 .01472 L
+.78764 .01472 L
+.78895 .01472 L
+.79134 .01472 L
+.79268 .01472 L
+.7939 .01472 L
+.7962 .01472 L
+.79749 .01472 L
+.79868 .01472 L
+.80087 .01472 L
+.80198 .01472 L
+.80318 .01472 L
+.80459 .01472 L
+.80592 .01472 L
+.80841 .01472 L
+.8098 .01472 L
+.81109 .01472 L
+.8125 .01472 L
+.814 .01472 L
+.81519 .01472 L
+Mistroke
+.81647 .01472 L
+.81879 .01472 L
+.82021 .01472 L
+.82155 .01472 L
+.82408 .01472 L
+.82532 .01472 L
+.82666 .01472 L
+.82785 .01472 L
+.8291 .01472 L
+.83023 .01472 L
+.83147 .01472 L
+.83365 .01472 L
+.83498 .01472 L
+.8362 .01472 L
+.8376 .01472 L
+.83893 .01472 L
+.84008 .01472 L
+.84129 .01472 L
+.84263 .01472 L
+.84387 .01472 L
+.84603 .01472 L
+.84725 .01472 L
+.84837 .01472 L
+.85043 .01472 L
+.85147 .01472 L
+.8526 .01472 L
+.85384 .01472 L
+.85501 .01472 L
+.85637 .01472 L
+.8576 .01472 L
+.85868 .01472 L
+.85983 .01472 L
+.86109 .01472 L
+.86225 .01472 L
+.86345 .01472 L
+.86477 .01472 L
+.86602 .01472 L
+.86717 .01472 L
+.86829 .01472 L
+.86935 .01472 L
+.87057 .01472 L
+.87167 .01472 L
+.87291 .01472 L
+.87421 .01472 L
+.87532 .01472 L
+.87654 .01472 L
+.87785 .01472 L
+.87926 .01472 L
+.88059 .01472 L
+.8818 .01472 L
+Mistroke
+.88294 .01472 L
+.88414 .01472 L
+.88517 .01472 L
+.88631 .01472 L
+.88752 .01472 L
+.88884 .01472 L
+.89007 .01472 L
+.89121 .01472 L
+.89221 .01472 L
+.89328 .01472 L
+.89445 .01472 L
+.89554 .01472 L
+.89678 .01472 L
+.89794 .01472 L
+.89898 .01472 L
+.90011 .01472 L
+.90134 .01472 L
+.90247 .01472 L
+.90377 .01472 L
+.90501 .01472 L
+.90615 .01472 L
+.9072 .01472 L
+.90836 .01472 L
+.90959 .01472 L
+.91094 .01472 L
+.91241 .01472 L
+.91379 .01472 L
+.91506 .01472 L
+.91621 .01472 L
+.91747 .01472 L
+.91878 .01472 L
+.92001 .01472 L
+.92132 .01472 L
+.92274 .01472 L
+.92409 .01472 L
+.92533 .01472 L
+.92645 .01472 L
+.92768 .01472 L
+.92897 .01472 L
+.93018 .01472 L
+.93158 .01472 L
+.93291 .01472 L
+.93411 .01472 L
+.93542 .01472 L
+.93683 .01472 L
+.93762 .01472 L
+.93834 .01472 L
+.93974 .01472 L
+.94106 .01472 L
+.94211 .01472 L
+Mistroke
+.94325 .01472 L
+.94432 .01472 L
+.9453 .01472 L
+.94644 .01472 L
+.94769 .01472 L
+.94886 .01472 L
+.94995 .01472 L
+.95107 .01472 L
+.95212 .01472 L
+.95327 .01472 L
+.95451 .01472 L
+.95574 .01472 L
+.95704 .01472 L
+.95814 .01472 L
+.95935 .01472 L
+.96049 .01472 L
+.96156 .01472 L
+.96253 .01472 L
+.96357 .01472 L
+.96471 .01472 L
+.96591 .01472 L
+.96694 .01472 L
+.96808 .01472 L
+.96913 .01472 L
+.9701 .01472 L
+.97121 .01472 L
+.97227 .01472 L
+.97324 .01472 L
+.97414 .01472 L
+.97514 .01472 L
+.97619 .01472 L
+Mfstroke
+0 0 m
+1 0 L
+1 .61803 L
+0 .61803 L
+closepath
+clip
+newpath
+% End of Graphics
+MathPictureEnd
+\
+\>"], "Graphics",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  ImageSize->{222, 137.125},
+  ImageMargins->{{43, 0}, {0, 0}},
+  ImageRegion->{{0, 1}, {0, 1}},
+  ImageCache->GraphicsData["Bitmap", "\<\
+CF5dJ6E]HGAYHf4PAg9QL6QYHg<PAVmbKF5d0`40003N0000RA000`40O003h00OgWoo003NOol000eo
+o`<002Uoo`8000Aoo`8000=oo`<0059oo`8000Aoo`8000=oo`<002Qoo`<000aoo`003Woo00<007oo
+Ool09goo00@007ooOol000=oo`8000Ioo`03001oogoo04ioo`04001oogoo0003Ool20006Ool00`00
+Oomoo`0VOol00`00Oomoo`0;Ool000Moo`D0009oo`03001oogoo025oo`D00005Ool007ooOol0000;
+Ool00`00Oomoo`1>Ool01000Oomoo`002goo00<007ooOol09Woo00<007ooOol02goo000>Ool00`00
+Oomoo`0WOol01000Oomoo`0027oo0`00DGoo00@007ooOol000Qoo`<002Uoo`03001oogoo00]oo`00
+3Woo00<007ooOol09goo00@007ooOol000Qoo`03001oogoo055oo`04001oogoo0008Ool00`00Oomo
+o`0YOol00`00Oomoo`0;Ool000eoo`8002Yoo`8000Uoo`@0055oo`8000Uoo`@002Moo`8000eoo`00
+gWoo001_Ool00`00Oomoo`1/Ool006moo`03001oogoo06aoo`00Kgoo00<007ooOol0K7oo0007Ooo@
+0007Ool000aoo`03001oogoo00Moo`03001oogoo00Moo`03001oogoo00Moo`03001oogoo00Moo`03
+001oogoo00Ioo`03001oogoo00Moo`04001oogooOol30003Ool00`00Oomoo`07Ool00`00Oomoo`07
+Ool00`00Oomoo`07Ool00`00Oomoo`06Ool00`00Oomoo`07Ool00`00Oomoo`040003Ool00`00Oomo
+o`07Ool00`00Oomoo`07Ool00`00Oomoo`07Ool00`00Oomoo`06Ool00`00Oomoo`07Ool00`00Oomo
+o`07Ool00`00Oomoo`07Ool00`00Oomoo`0:Ool004ioo`8001moo`03001oogoo019oo`03001oogoo
+05Moo`00D7oo00<007ooOol077oo00<007ooOol04Goo00<007ooOol0F7oo001AOol00`00Oomoo`0K
+Ool00`00Oomoo`0@Ool00`00Oomoo`1IOol0059oo`03001oogoo01Yoo`03001oogoo00moo`03001o
+ogoo05Yoo`00DWoo00<007ooOol06Woo00<007ooOol03Woo00<007ooOol0Fgoo001COol00`00Oomo
+o`0IOol00`00Oomoo`0>Ool00`00Oomoo`1KOol005=oo`03001oogoo01Uoo`03001oogoo00eoo`03
+001oogoo05aoo`00E7oo00<007ooOol067oo00<007ooOol03Goo00<007ooOol0G7oo001DOol00`00
+Oomoo`0HOol00`00Oomoo`0=Ool00`00Oomoo`1LOol005Eoo`03001oogoo01Moo`03001oogoo00ao
+o`03001oogoo05eoo`00EGoo00<007ooOol05goo00<007ooOol037oo00<007ooOol0GGoo001EOol0
+0`00Oomoo`0GOol00`00Oomoo`0;Ool00`00Oomoo`1NOol005Ioo`03001oogoo01Ioo`03001oogoo
+00]oo`03001oogoo05ioo`00EWoo00<007ooOol05Woo00<007ooOol02goo00<007ooOol0GWoo001F
+Ool00`00Oomoo`0>Ool30005Ool00`00Oomoo`0:Ool00`00Oomoo`1OOol005Ioo`03001oogoo015o
+o`03001oogoo009oo`03001oogoo00Yoo`03001oogoo05moo`00Egoo00<007ooOol047oo00<007oo
+Ool00Woo0P002goo00<007ooOol0Ggoo001GOol00`00Oomoo`0=Ool30005Ool00`00Oomoo`0:Ool0
+0`00Oomoo`1OOol005Moo`03001oogoo00eoo`03001oogoo00Eoo`03001oogoo00Uoo`03001oogoo
+061oo`00Egoo00<007ooOol03Goo100017oo00<007ooOol02Goo00<007ooOol0H7oo001HOol00`00
+Oomoo`0DOol00`00Oomoo`09Ool00`00Oomoo`1POol005Qoo`03001oogoo01Aoo`03001oogoo00Qo
+o`03001oogoo065oo`00F7oo00<007ooOol057oo00<007ooOol027oo00<007ooOol0HGoo001HOol0
+0`00Oomoo`0DOol00`00Oomoo`08Ool00`00Oomoo`1QOol005Uoo`03001oogoo01=oo`03001oogoo
+00Moo`03001oogoo069oo`00FGoo00<007ooOol04goo00<007ooOol01goo00<007ooOol0HWoo001I
+Ool00`00Oomoo`0COol00`00Oomoo`07Ool00`00Oomoo`1ROol005Yoo`03001oogoo019oo`03001o
+ogoo00Moo`03001oogoo069oo`00FWoo00<007ooOol04Woo00<007ooOol01goo00<007ooOol0HWoo
+001JOol00`00Oomoo`0BOol00`00Oomoo`06Ool00`00Oomoo`1SOol005]oo`03001oogoo015oo`03
+001oogoo00Ioo`03001oogoo06=oo`00Fgoo00<007ooOol04Goo00<007ooOol01Woo00<007ooOol0
+Hgoo001KOol00`00Oomoo`03Ool30004Ool20005Ool00`00Oomoo`06Ool00`00Oomoo`1SOol005]o
+o`03001oogoo00Aoo`03001oogoo009oo`04001oogoo0004Ool00`00Oomoo`06Ool00`00Oomoo`1S
+Ool005]oo`03001oogoo00Aoo`03001oogoo009oo`04001oogoo0004Ool20007Ool00`00Oomoo`1S
+Ool005]oo`03001oogoo00Aoo`03001oogoo009oo`04001oogoo0004Ool00`00Oomoo`06Ool00`00
+Oomoo`1SOol005aoo`03001oogoo00=oo`03001oogoo009oo`04001oogoo0004Ool00`00Oomoo`05
+Ool00`00Oomoo`1TOol005aoo`03001oogoo009oo`8000Eoo`8000Eoo`03001oogoo00Eoo`03001o
+ogoo06Aoo`00G7oo00<007ooOol047oo00<007ooOol01Goo00<007ooOol0I7oo001LOol00`00Oomo
+o`0@Ool00`00Oomoo`05Ool00`00Oomoo`1TOol005aoo`03001oogoo011oo`03001oogoo00Eoo`03
+001oogoo06Aoo`00G7oo00<007ooOol047oo00<007ooOol01Goo00<007ooOol0I7oo001LOol00`00
+Oomoo`0@Ool00`00Oomoo`05Ool00`00Oomoo`1TOol005aoo`03001oogoo011oo`03001oogoo00Ao
+o`03001oogoo06Eoo`00G7oo00<007ooOol047oo00<007ooOol017oo00<007ooOol0IGoo001MOol0
+0`00Oomoo`0?Ool00`00Oomoo`04Ool00`00Oomoo`1UOol005eoo`03001oogoo00moo`03001oogoo
+00Aoo`03001oogoo06Eoo`00GGoo00<007ooOol03goo00<007ooOol017oo00<007ooOol0IGoo001M
+Ool00`00Oomoo`0?Ool00`00Oomoo`04Ool00`00Oomoo`1UOol005eoo`03001oogoo00moo`03001o
+ogoo00Aoo`03001oogoo06Eoo`00GGoo00@007ooOomoo`<000=oo`<000Eoo`03001oogoo00Aoo`03
+001oogoo06Eoo`00GGoo00<007ooOol00Woo00<007ooOol01Goo00<007ooOol00Woo00<007ooOol0
+0goo00<007ooOol0IWoo001MOol00`00Oomoo`02Ool00`00Oomoo`05Ool00`00Oomoo`02Ool20004
+Ool00`00Oomoo`1VOol005eoo`03001oogoo009oo`03001oogoo009oo`<000Eoo`03001oogoo00=o
+o`03001oogoo06Ioo`00GWoo00D007ooOomoo`0000Aoo`03001oogoo00Eoo`03001oogoo00=oo`03
+001oogoo06Ioo`00GWoo00<007ooOol00P0017oo100017oo00<007ooOol00goo00<007ooOol0IWoo
+001NOol00`00Oomoo`0>Ool00`00Oomoo`03Ool00`00Oomoo`1VOol005ioo`03001oogoo00ioo`03
+001oogoo00=oo`03001oogoo06Ioo`00GWoo00<007ooOol03Woo00<007ooOol00goo00<007ooOol0
+IWoo001NOol00`00Oomoo`0>Ool00`00Oomoo`02Ool00`00Oomoo`1WOol005ioo`03001oogoo00io
+o`03001oogoo009oo`03001oogoo06Moo`00GWoo00<007ooOol03Woo00<007ooOol00Woo00<007oo
+Ool0Igoo001OOol00`00Oomoo`0=Ool00`00Oomoo`02Ool00`00Oomoo`1WOol005moo`03001oogoo
+00eoo`03001oogoo009oo`03001oogoo06Moo`00Ggoo00<007ooOol03Goo00<007ooOol00Woo00<0
+07ooOol0Igoo001OOol00`00Oomoo`0=Ool00`00Oomoo`02Ool00`00Oomoo`1WOol005moo`03001o
+ogoo00eoo`03001oogoo009oo`03001oogoo06Moo`00Ggoo00<007ooOol03Goo00D007ooOomoo`00
+06Yoo`00Ggoo00<007oo00000`000goo0P001Goo00D007ooOomoo`0006Yoo`00Ggoo00@007ooOol0
+00Aoo`04001oogoo0004Ool01@00Oomoogoo0000JWoo001POol01000Oomoo`000goo00@007ooOol0
+00Aoo`80009oo`03001oogoo06Qoo`00H7oo00D007ooOomoo`00009oo`04001oogoo0004Ool01@00
+Oomoogoo0000JWoo001POol20002Ool01000Oomoo`000Woo00<007ooOol00Woo00D007ooOomoo`00
+06Yoo`00H7oo00@007oo000000Aoo`8000Eoo`05001oogooOol0001ZOol0061oo`03001oogoo00ao
+o`05001oogooOol0001ZOol0061oo`03001oogoo00aoo`04001oogoo001[Ool0061oo`03001oogoo
+00aoo`04001oogoo001[Ool0061oo`03001oogoo00aoo`04001oogoo001[Ool0065oo`03001oogoo
+00]oo`04001oogoo001[Ool0065oo`03001oogoo00]oo`04001oogoo001[Ool0065oo`03001oogoo
+00]oo`04001oogoo001[Ool0065oo`03001oogoo00]oo`04001oogoo001[Ool0065oo`03001oogoo
+00]oo`03001oo`0006aoo`00HGoo00<007ooOol02goo00<007oo0000K7oo001QOol00`00Oomoo`0;
+Ool00`00Ool0001/Ool0065oo`03001oogoo00]oo`03001oo`0006aoo`00HGoo10000Woo0`001Goo
+00<007oo0000K7oo001ROol00`00Oomoo`05Ool00`00Oomoo`02Ool00`00Ool0001/Ool0069oo`80
+00Ioo`03001oogoo009oo`<006aoo`00HWoo00<007oo00000Woo0`001Goo0P00KGoo001QOol20000
+1Goo001oogoo00001goo0P00KGoo001ROol20003Ool40004Ool2001]Ool006=oo`03001oogoo00Uo
+o`8006eoo`00Hgoo00<007ooOol02Goo0P00KGoo001SOol00`00Oomoo`09Ool2001]Ool006=oo`03
+001oogoo00Uoo`8006eoo`00Hgoo00<007ooOol02Goo00<007ooOol0K7oo001TOol00`00Oomoo`08
+Ool00`00Oomoo`1/Ool006Aoo`03001oogoo00Qoo`03001oogoo06aoo`00I7oo00<007ooOol027oo
+00<007ooOol0K7oo001TOol00`00Oomoo`08Ool00`00Oomoo`1/Ool006Aoo`03001oogoo00Qoo`03
+001oogoo06aoo`00IGoo00<007ooOol01goo00<007ooOol0K7oo001UOol00`00Oomoo`06Ool2001^
+Ool0065oo`<00004Ool007ooOol20004Ool2001^Ool006Aoo`800005Ool007ooOol00003Ool2001^
+Ool006Aoo`800005Ool007ooOol00003Ool3001]Ool0069oo`80009oo`80009oo`04001oogooOol2
+001^Ool006Aoo`04001oo`000002Ool01P00Oomoo`00Ool006ioo`00HGoo0`000Woo00@007oo0000
+00=oo`03001oo`0006ioo`00IWoo00<007ooOol017oo00<007oo0000KWoo001VOol00`00Oomoo`04
+Ool00`00Ool0001^Ool006Ioo`03001oogoo00Aoo`03001oo`0006ioo`00IWoo00<007ooOol017oo
+00<007oo0000KWoo001VOol00`00Oomoo`04Ool00`00Ool0001^Ool006Moo`03001oogoo009oo`04
+001oogoo001^Ool006Moo`03001oogoo009oo`04001oogoo001^Ool006Moo`05001oogooOol00003
+Ool00`00Oomoo`1/Ool006Qoo`04001oogoo0003Ool00`00Oomoo`1/Ool006Qoo`<000Aoo`03001o
+ogoo06aoo`00Kgoo00<007ooOol0K7oo001_Ool00`00Oomoo`1/Ool006moo`03001oogoo06aoo`00
+\
+\>"],
+  ImageRangeCache->{{{0, 221}, {136.125, 0}} -> {-1.12961, -3.22861, 
+  0.0101728, 0.278808}}]
+}, Open  ]],
+
+Cell["\<\
+Dispay[Fo_, Ft_, K_, \[Sigma]_, s_, \[Rho]_, t_, r_] := \
+Exp[-r*t]*NIntegrate[PartialK[y, \[Sigma], s, \[Rho], Fo, Ft, K, t],
+{y, -3.0, 3.0}]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Value[So_, St_, K_, \[Sigma]_, s_, \[Rho]_, t_, r_] \
+:=Dispay[So*Exp[r*t], St*Exp[r*t], K, \[Sigma], s, \[Rho], t, r]
+\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Re-calculation of our previous example gives consistent results, \
+but much more quickly:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Timing[Value[100,100,2,0.4, 0.15, 0.1,225/365,Log[1.06]]]", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.383333333333212067`\ Second, 12.03565189536834`}\)], "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Appendix 23.1 Correlated Multivariate Samples", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Suppose that we have ",
+  Cell[BoxData[
+      \(TraditionalForm\`m\)]],
+  " assets with prices or levels ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\_i\)]],
+  " and it is desired to construct random walks of the form"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[CapitalDelta]S\_i\/S\_i = \@\(\[CapitalDelta]\ t\)\ \
+V\_i + \ \[CapitalDelta]\ t\ \[Mu]\_i\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where ",
+  Cell[BoxData[
+      \(TraditionalForm\`V\_i\)]],
+  ", ",
+  Cell[BoxData[
+      \(TraditionalForm\`i = 1,  ... , m, \)]],
+  " is a family of normally distributed random variables, each with zero \
+mean, and covariance matrix"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`C\_\(i\ j\) = \(Cov(V\_i\ V\_j) = E[V\_i\ V\_j]\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "We use a matrix diagonalization routine based on the eigenvalues ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(\[Lambda]\_1\^2, \)\)]],
+  Cell[BoxData[
+      \(TraditionalForm\`\( ... , \[Lambda]\_m\^2\)\)]],
+  "(note that we write them as a square) and associated eigenvectors ",
+  Cell[BoxData[
+      \(TraditionalForm\`e\_\(1  i\),  ... , e\_\(m\ i\)\)]],
+  " of ",
+  Cell[BoxData[
+      \(TraditionalForm\`C\)]],
+  ". So we can write "
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`C = X\[CapitalLambda]X\^T\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["where", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[CapitalLambda] = 
+      Diag(\[Lambda]\_1\%2\ ,  ... , \[Lambda]\_m\%2)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "and ",
+  Cell[BoxData[
+      \(TraditionalForm\`X\)]],
+  " is orthogonal and built from the eigenvectors:"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`XX\^T = I\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Now let ",
+  Cell[BoxData[
+      \(TraditionalForm\`p\_j\)]],
+  " be ",
+  Cell[BoxData[
+      \(TraditionalForm\`m\)]],
+  " independent ",
+  Cell[BoxData[
+      \(TraditionalForm\`N \((0, 1)\)\)]],
+  " random variables, and set"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`V\_i = \[Sum]\+\(j = 1\)\%m X\_\(i\ j\)\ \[Lambda]\_j\ \
+p\_j\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["It follows that", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`Cov(V\_i\ V\_j) = C\_\(i\ j\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "as required. In ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " the relevant diagonalization is trivial as a result of the existence of \
+the built-in function ",
+  StyleBox["Eigensystem",
+    FontFamily->"Courier",
+    FontWeight->"Bold"],
+  ". If you are coding this up from scratch in another language you will \
+probably find the Cholesky decomposition most useful. The mathematics of \
+this, and an implementation in C, are given by Press",
+  StyleBox[" et al",
+    FontSlant->"Italic"],
+  " (1992), Section 2.9."
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Appendix 23.2 Mean and Variance of a General Basket", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The calculation of such quantities is useful in developing \
+approximations based on single-asset log-normal approximations. We shall \
+present an approach based on moment-generating functions that in principle \
+allows all the moments of a basket to be computed, although here we shall \
+just use the first two.\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+The Moment-Generating Function for Many Zero-Mean Normal \
+Variables\
+\>", "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Suppose that ",
+  Cell[BoxData[
+      \(TraditionalForm\`y\_i\)]],
+  ", ",
+  Cell[BoxData[
+      \(TraditionalForm\`i\  = \ 1,  ... , m\)]],
+  ", are zero-mean and normally distributed. Their covariance matrix is given \
+by"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`W\_\(i\ j\)\  = \ \(E[
+          y\_i\ y\_j] = \[CapitalSigma]\_i\ \[CapitalSigma]\_j\ \[Rho]\_\(i\ \
+j\)\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[CapitalSigma]\_i\)]],
+  " is the standard deviation of ",
+  Cell[BoxData[
+      \(TraditionalForm\`y\_i\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Rho]\_\(i\ j\)\)]],
+  " is the correlation matrix. For assets it may help to remember that ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[CapitalSigma]\_i\  = \ \[Sigma]\_i\ \@T\)]],
+  ", where ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Sigma]\_i\)]],
+  " is the volatility and ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(T\ \)\)]],
+  "the time-interval under consideration. A useful result from the theory of \
+multivariate distributions gives us an explicit form for the \
+moment-generating function (MGF) for this family of variables. Let"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[Omega] = \((\[Omega]\_1,  ... , \ \[Omega]\_m)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["be a vector of variables, so that the MGF is ", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`M(\[Omega]) = 
+      E[\[ExponentialE]\^\(\[Sum]\+\(i = 1\)\%m \[Omega]\_i\ y\_i\)]\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["Then the useful result we need is that", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`M(\[Omega]) = \[ExponentialE]\^\(1\/2\ \[Omega]\^T\ W\ \
+\[Omega]\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Computing Means and Variances with the MGF", "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Now suppose that ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(\[Omega]\_p = \ 0\ \)\)]],
+  "unless ",
+  Cell[BoxData[
+      \(TraditionalForm\`p\  = \ i\)]],
+  ", when ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Omega]\_i = \ 1\)]],
+  ". Applying this result gives us"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`E[\[ExponentialE]\^y\_i] = \(\[ExponentialE]\^\(\
+\[CapitalSigma]\_i\%2\/2\) = \[ExponentialE]\^\(\(\[Sigma]\_i\%2\ \
+T\)\/2\)\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Now suppose that we set  ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(\[Omega]\_p = \ 0\ \)\)]],
+  "unless ",
+  Cell[BoxData[
+      \(TraditionalForm\`p\  = \ i\)]],
+  " or ",
+  Cell[BoxData[
+      \(TraditionalForm\`j\)]],
+  ", when ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Omega]\_p = \ 1\)]],
+  ". Applying this result and doing a little algebra gives us"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`E[\[ExponentialE]\^\(y\_i + y\_j\)] = \
+\(\[ExponentialE]\^\(\[CapitalSigma]\_i\%2\/2 + \[CapitalSigma]\_j\%2\/2 + \ \
+\(\[CapitalSigma]\_i\) \(\[CapitalSigma]\_j\) \[Rho]\_\(i\ j\)\) = \
+\[ExponentialE]\^\(1\/2\ T\ \((\[Sigma]\_i\%2 + 2\ \[Rho]\_\(i\ j\)\ \[Sigma]\
+\_j\ \[Sigma]\_i + \[Sigma]\_j\%2)\)\)\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Now we put back the means. Set ",
+  Cell[BoxData[
+      \(TraditionalForm\`x\_i = \ E[x\_i]\  + \ y\_i\)]],
+  " , and define the asset prices or levels by"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`S\_i = \[ExponentialE]\^x\_i\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "For a time-horizon ",
+  Cell[BoxData[
+      \(TraditionalForm\`T\)]],
+  ", if the initial value of ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\_i\)]],
+  " is ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\_i\)(0)\)]],
+  ", and the relevant risk-neutral drift rate is ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Theta]\_i\)]],
+  ", typically given for equities by "
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[Theta]\_i = r - q\_i\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["then", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`E[x\_i] = \((\[Theta]\_i - \[Sigma]\_i\%2\/2)\)\ T + 
+        log(\(S\_i\)(0))\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Analysing the Basket", "Subsubsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Let the Basket ",
+  Cell[BoxData[
+      \(TraditionalForm\`B\)]],
+  " be given by"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`B = \[Sum]\+\(i = 1\)\%m w\_i\ S\_i\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Then the results given previously imply various results about the moments \
+of ",
+  Cell[BoxData[
+      \(TraditionalForm\`B\)]],
+  ". First of all, at time ",
+  Cell[BoxData[
+      \(TraditionalForm\`T\)]],
+  ", "
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`E[
+        B] = \[Sum]\+\(i = 1\)\%m w\_i\ \(\(S\_i\)(
+            0)\)\ \[ExponentialE]\^\(\[Theta]\_i\ T\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`E[
+        B\^2] = \[Sum]\+\(i, \ j = 1\)\%m\( w\_i\) 
+          w\_j\ \(\(S\_i\)(0)\) \(\(S\_j\)(
+            0)\)\ \[ExponentialE]\^\(\((\[Theta]\_i + \[Theta]\_j\  + \ \(\
+\[Sigma]\_i\) \(\[Sigma]\_j\) \[Rho]\_\(i\ j\))\) T\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["The variance is therefore given by", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`Var[
+        B] = \[Sum]\+\(i, \ j = 1\)\%m\( w\_i\) 
+          w\_j\ \(\(S\_i\)(0)\) \(\(S\_j\)(
+            0)\)\ \(\(\[ExponentialE]\^\(\((\[Theta]\_i + \[Theta]\_j)\) 
+                  T\)\)(\[ExponentialE]\^\(\ \(\[Sigma]\_i\) \(\[Sigma]\_j\) \
+\(\[Rho]\_\(i\ j\)\) T\) - 1)\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+To develop the log-normal approximation to the basket, we assume \
+that the mean and variance may be equated with the corresponding single asset \
+forms, given by\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`E[
+        B] = \(B(0)\)\ \[ExponentialE]\^\(\[Theta]\_B\ T\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`Var[
+        B] = \(\(B\^2\)(
+          0)\) \(\(\[ExponentialE]\^\(2 \( \[Theta]\_B\) 
+                T\)\)(\[ExponentialE]\^\(\ \(\[Sigma]\_B\^2\) T\) - 1)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Equating the two means and two variances results in the formulae \
+for the log-normal approximation given in the main body of this chapter.\
+\>",
+   "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Appendix 23.3 The Geometric Basket", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The MGF may also be used to derive results about a related object of \
+interest. For constant ",
+  Cell[BoxData[
+      \(TraditionalForm\`c\)]],
+  " and a vector of generalized weights ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Gamma]\_i\)]],
+  " we define a geometric Basket according to the prescription"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`G\  = \ 
+      c \(\[Product]\+\(i = 1\)\%m S\_i\^\[Gamma]\_i\)\)], "NumberedEquation",\
+
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["With the same notation as before", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`G = 
+      c\ \[ExponentialE]\^\(\[Sum]\+\(i = 1\)\%m \[Gamma]\_i\ x\_i + \[Sum]\+\
+\(i = 1\)\%m \[Gamma]\_i\ y\_i\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Applying the MGF to the expectations of ",
+  Cell[BoxData[
+      \(TraditionalForm\`G\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`G\^2\)]],
+  " leads to"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`E[
+        G] = \(G(\ 
+          0)\)\ \[ExponentialE]\^\(\(\(\[Gamma]\^T\) W\[Gamma]\)\/2 + T\ \(\
+\[Sum]\+\(i = 1\)\%m\((\[Theta]\_i - \[Sigma]\_i\^2\/2)\)\ \[Gamma]\_i\)\)\)],
+   "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`E[
+        G\^2] = \(\(G\^2\)(\ 
+          0)\)\ \[ExponentialE]\^\(2 \( \[Gamma]\^T\) W\[Gamma] + 2  T\ \(\
+\[Sum]\+\(i = 1\)\%m\((\[Theta]\_i - \[Sigma]\_i\^2\/2)\)\ \[Gamma]\_i\)\)\)],
+   "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "We identify these two moments with the corresponding single-asset \
+variables (",
+  Cell[BoxData[
+      \(TraditionalForm\`G\)]],
+  " is log-normal) by the relations"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`E[
+        G] = \(G(0)\)\ \[ExponentialE]\^\(\[Theta]\_G\ T\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`E[
+        G\^2] = \(\(G\^2\)(
+          0)\) \(\[ExponentialE]\^\(2 \( \[Theta]\_G\) 
+              T\)\) \[ExponentialE]\^\(\ \(\[Sigma]\_G\^2\) T\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "It follows that the volatility (squared) of ",
+  Cell[BoxData[
+      \(TraditionalForm\`G\)]],
+  " is given by"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[Sigma]\_G\^2 = \[Sum]\+\(i = 1\)\%m\(\[Sum]\+\(j = 1\
+\)\%m \[Gamma]\_i\ \[Gamma]\_j\ \[Sigma]\_i\ \[Sigma]\_j\ \[Rho]\_\(i\ \
+j\)\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["and the risk-neutral drift of the geometric basket is ", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\[Theta]\_\(\(G\  = \)\ \)\ \(\[Sum]\+\(i = 1\)\%m\((\
+\[Theta]\_i - \[Sigma]\_i\^2\/2)\)\ \[Gamma]\_i\) + \ \(1\/2\) \(\[Sum]\+\(i \
+= 1\)\%m\(\[Sum]\+\(j = 1\)\%m \[Gamma]\_i\ \[Gamma]\_j\ \[Sigma]\_i\ \
+\[Sigma]\_j\ \[Rho]\_\(i\ j\)\)\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Various prescriptions for the generalized weights may be considered. \
+Frequently the underlying arithmetic basket will represent the average return \
+of ",
+  Cell[BoxData[
+      \(TraditionalForm\`m\)]],
+  " assets. In this case the simple geometric mean, with ",
+  Cell[BoxData[
+      \(TraditionalForm\`\[Gamma]\_i = 1/m\)]],
+  ", is appropriate."
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Chapter 23 Bibliography", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Press, W.H., Teukolsky, S.A., Vetterling, W.T. and Flannery, B.P., 1992, ",
+  
+  StyleBox["Numerical Recipes in C, the Art of Scientific Computing",
+    FontSlant->"Italic"],
+  ", 2nd edition, Cambridge University Press."
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]]
+},
+FrontEndVersion->"Macintosh 3.0",
+ScreenRectangle->{{0, 1152}, {0, 850}},
+AutoGeneratedPackage->None,
+WindowToolbars->{},
+CellGrouping->Automatic,
+WindowSize->{655, 668},
+WindowMargins->{{20, Automatic}, {Automatic, 3}},
+PrintingCopies->1,
+PrintingStartingPageNumber->437,
+PrintingPageRange->{1, Automatic},
+PageHeaders->{{Inherited, Inherited, Cell[ 
+        TextData[ {"23. Simulation of Baskets"}]]}, {Cell[ 
+        TextData[ {"23. Simulation of Baskets"}]], Inherited, Inherited}},
+PageFooters->{{Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}, {Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}},
+PrintingOptions->{"PrintingMargins"->{{0, 0}, {57, 57}},
+"PaperSize"->{439, 716},
+"PrintCellBrackets"->False,
+"PrintRegistrationMarks"->False,
+"PrintMultipleHorizontalPages"->False,
+"FirstPageHeader"->False,
+"FacingPages"->True,
+"FirstPageFace"->Right},
+PrivateNotebookOptions->{"ColorPalette"->{RGBColor, 128}},
+ShowCellLabel->False,
+ShowCellTags->False,
+RenderingOptions->{"ObjectDithering"->True,
+"RasterDithering"->False},
+Magnification->1,
+StyleDefinitions -> "Default.nb",
+MacintoshSystemPageSetup->"\<\
+00<0004/0B`000003;T8`?n3ohP==PTh0b85N`?P0080004/0B`000006G<AP001
+0000I00000400@4100800BL?00400A9j/m0000000000060X01T1T00000000000
+00000000007oo`00003oo`000mP:o`00\>"
+]
+
+
+(***********************************************************************
+Cached data follows.  If you edit this Notebook file directly, not using
+Mathematica, you must remove the line containing CacheID at the top of 
+the file.  The cache data will then be recreated when you save this file 
+from within Mathematica.
+***********************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1731, 51, 181, 6, 174, "Title"],
+Cell[1915, 59, 125, 1, 47, "Subsubtitle"],
+
+Cell[CellGroupData[{
+Cell[2065, 64, 141, 3, 50, "Section"],
+Cell[2209, 69, 3225, 55, 480, "Text"],
+Cell[5437, 126, 156, 3, 45, "NumberedEquation"],
+Cell[5596, 131, 252, 7, 21, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[5885, 143, 108, 1, 44, "Section"],
+Cell[5996, 146, 332, 7, 36, "Text"],
+Cell[6331, 155, 219, 4, 58, "Input"],
+Cell[6553, 161, 186, 4, 21, "Text"],
+Cell[6742, 167, 314, 5, 45, "Input"],
+Cell[7059, 174, 125, 1, 21, "Text"],
+Cell[7187, 177, 157, 3, 45, "Input"],
+Cell[7347, 182, 79, 1, 21, "Text"],
+Cell[7429, 185, 175, 3, 32, "Input"],
+
+Cell[CellGroupData[{
+Cell[7629, 192, 108, 2, 20, "Input"],
+Cell[7740, 196, 371, 12, 32, "Output"]
+}, Open  ]],
+Cell[8126, 211, 134, 2, 20, "Input"],
+
+Cell[CellGroupData[{
+Cell[8285, 217, 105, 2, 20, "Input"],
+Cell[8393, 221, 214, 6, 32, "Output"]
+}, Open  ]],
+Cell[8622, 230, 127, 1, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[8774, 235, 129, 2, 20, "Input"],
+Cell[8906, 239, 218, 4, 20, "Output"]
+}, Open  ]],
+Cell[9139, 246, 153, 4, 21, "Text"],
+Cell[9295, 252, 189, 4, 20, "Input"],
+
+Cell[CellGroupData[{
+Cell[9509, 260, 106, 2, 20, "Input"],
+Cell[9618, 264, 202, 6, 32, "Output"]
+}, Open  ]],
+Cell[9835, 273, 169, 4, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[10029, 281, 112, 2, 20, "Input"],
+Cell[10144, 285, 201, 6, 32, "Output"]
+}, Open  ]],
+Cell[10360, 294, 492, 12, 49, "Text"],
+Cell[10855, 308, 407, 8, 58, "Input"],
+Cell[11265, 318, 129, 1, 21, "Text"],
+Cell[11397, 321, 154, 3, 32, "Input"],
+Cell[11554, 326, 259, 7, 22, "Text"],
+Cell[11816, 335, 160, 3, 45, "Input"],
+Cell[11979, 340, 317, 6, 36, "Text"],
+Cell[12299, 348, 180, 4, 20, "Input"],
+Cell[12482, 354, 103, 1, 21, "Text"],
+Cell[12588, 357, 117, 2, 32, "Input"],
+Cell[12708, 361, 253, 5, 36, "Text"],
+Cell[12964, 368, 157, 3, 45, "Input"],
+Cell[13124, 373, 278, 6, 32, "Input"],
+Cell[13405, 381, 107, 2, 20, "Input"],
+Cell[13515, 385, 349, 6, 36, "Text"],
+Cell[13867, 393, 199, 4, 20, "Input"],
+Cell[14069, 399, 167, 4, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[14261, 407, 135, 2, 20, "Input"],
+Cell[14399, 411, 54, 1, 20, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[14490, 417, 158, 3, 20, "Input"],
+Cell[14651, 422, 55, 1, 20, "Output"]
+}, Open  ]],
+Cell[14721, 426, 173, 4, 21, "Text"],
+Cell[14897, 432, 195, 4, 20, "Input"],
+
+Cell[CellGroupData[{
+Cell[15117, 440, 131, 2, 20, "Input"],
+Cell[15251, 444, 54, 1, 20, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[15342, 450, 154, 3, 20, "Input"],
+Cell[15499, 455, 56, 1, 20, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[15592, 461, 113, 1, 30, "Subsubsection"],
+Cell[15708, 464, 119, 1, 21, "Text"],
+Cell[15830, 467, 204, 4, 20, "Input"],
+
+Cell[CellGroupData[{
+Cell[16059, 475, 141, 2, 20, "Input"],
+Cell[16203, 479, 54, 1, 20, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[16294, 485, 168, 3, 20, "Input"],
+Cell[16465, 490, 56, 1, 20, "Output"]
+}, Open  ]],
+Cell[16536, 494, 216, 5, 21, "Text"],
+Cell[16755, 501, 109, 1, 20, "Input"],
+
+Cell[CellGroupData[{
+Cell[16889, 506, 107, 1, 20, "Input"],
+Cell[16999, 509, 53, 1, 20, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[17089, 515, 126, 1, 20, "Input"],
+Cell[17218, 518, 56, 1, 20, "Output"]
+}, Open  ]],
+Cell[17289, 522, 225, 5, 21, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[17551, 532, 107, 1, 30, "Subsubsection"],
+Cell[17661, 535, 265, 5, 36, "Text"],
+Cell[17929, 542, 230, 5, 44, "Input"],
+
+Cell[CellGroupData[{
+Cell[18184, 551, 102, 1, 20, "Input"],
+Cell[18289, 554, 55, 1, 20, "Output"]
+}, Open  ]],
+Cell[18359, 558, 277, 6, 44, "Input"],
+
+Cell[CellGroupData[{
+Cell[18661, 568, 119, 1, 20, "Input"],
+Cell[18783, 571, 56, 1, 20, "Output"]
+}, Open  ]],
+Cell[18854, 575, 110, 1, 20, "Input"],
+
+Cell[CellGroupData[{
+Cell[18989, 580, 124, 1, 20, "Input"],
+Cell[19116, 583, 54, 1, 20, "Output"]
+}, Open  ]],
+Cell[19185, 587, 237, 5, 36, "Text"],
+
+Cell[CellGroupData[{
+Cell[19447, 596, 90, 1, 20, "Input"],
+Cell[19540, 599, 54, 1, 20, "Output"]
+}, Open  ]],
+Cell[19609, 603, 97, 1, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[19731, 608, 80, 1, 20, "Input"],
+Cell[19814, 611, 56, 1, 20, "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[19931, 619, 130, 1, 44, "Section"],
+Cell[20064, 622, 443, 12, 36, "Text"],
+
+Cell[CellGroupData[{
+Cell[20532, 638, 90, 1, 34, "Subsection"],
+Cell[20625, 641, 129, 1, 21, "Text"],
+Cell[20757, 644, 350, 8, 68, "Input"],
+Cell[21110, 654, 121, 1, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[21256, 659, 128, 4, 32, "Input"],
+Cell[21387, 665, 44, 1, 20, "Output"]
+}, Open  ]],
+Cell[21446, 669, 159, 4, 21, "Text"],
+Cell[21608, 675, 251, 4, 41, "NumberedEquation"],
+Cell[21862, 681, 106, 1, 21, "Text"],
+Cell[21971, 684, 117, 1, 20, "Input"],
+Cell[22091, 687, 190, 3, 38, "NumberedEquation"],
+Cell[22284, 692, 154, 4, 21, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[22475, 701, 89, 1, 34, "Subsection"],
+Cell[22567, 704, 116, 1, 21, "Text"],
+Cell[22686, 707, 523, 12, 128, "Input"],
+Cell[23212, 721, 104, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[23341, 726, 132, 3, 25, "Input"],
+Cell[23476, 731, 148, 2, 50, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[23661, 738, 98, 1, 25, "Input"],
+Cell[23762, 741, 45, 1, 36, "Output"]
+}, Open  ]],
+Cell[23822, 745, 154, 4, 20, "Text"],
+Cell[23979, 751, 184, 5, 46, "Input"],
+
+Cell[CellGroupData[{
+Cell[24188, 760, 117, 1, 25, "Input"],
+Cell[24308, 763, 513, 7, 58, "Output"]
+}, Open  ]],
+Cell[24836, 773, 119, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[24980, 778, 90, 1, 25, "Input"],
+Cell[25073, 781, 122, 2, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[25232, 788, 137, 2, 28, "Subsubsection",
+  PageBreakAbove->Automatic],
+
+Cell[CellGroupData[{
+Cell[25394, 794, 169, 4, 36, "Input"],
+Cell[25566, 800, 56, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[25659, 806, 152, 4, 25, "Input"],
+Cell[25814, 812, 55, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[25906, 818, 122, 1, 25, "Input"],
+Cell[26031, 821, 54, 1, 36, "Output"]
+}, Open  ]],
+Cell[26100, 825, 474, 8, 52, "Text"],
+Cell[26577, 835, 207, 4, 37, "Input"],
+
+Cell[CellGroupData[{
+Cell[26809, 843, 141, 2, 25, "Input"],
+Cell[26953, 847, 54, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[27044, 853, 103, 1, 25, "Input"],
+Cell[27150, 856, 55, 1, 36, "Output"]
+}, Open  ]],
+Cell[27220, 860, 207, 4, 37, "Input"],
+
+Cell[CellGroupData[{
+Cell[27452, 868, 141, 2, 25, "Input"],
+Cell[27596, 872, 54, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[27687, 878, 133, 2, 25, "Input"],
+Cell[27823, 882, 55, 1, 36, "Output"]
+}, Open  ]],
+Cell[27893, 886, 172, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[28090, 894, 127, 1, 25, "Input"],
+Cell[28220, 897, 55, 1, 36, "Output"]
+}, Open  ]],
+Cell[28290, 901, 776, 12, 84, "Text"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[29127, 920, 126, 1, 38, "Section"],
+Cell[29256, 923, 125, 1, 20, "Text"],
+Cell[29384, 926, 145, 2, 20, "NumberedEquation"],
+Cell[29532, 930, 518, 18, 29, "Text"],
+Cell[30053, 950, 312, 6, 24, "NumberedEquation"],
+Cell[30368, 958, 435, 12, 29, "Text"],
+Cell[30806, 972, 304, 5, 46, "NumberedEquation"],
+Cell[31113, 979, 194, 6, 20, "Text"],
+Cell[31310, 987, 221, 5, 46, "Input"],
+Cell[31534, 994, 197, 4, 29, "Text"],
+Cell[31734, 1000, 238, 5, 46, "Input"],
+
+Cell[CellGroupData[{
+Cell[31997, 1009, 135, 1, 32, "Subsection"],
+Cell[32135, 1012, 350, 7, 29, "Text"],
+Cell[32488, 1021, 112, 2, 25, "Input"],
+Cell[32603, 1025, 470, 10, 80, "Input"],
+Cell[33076, 1037, 479, 11, 80, "Input"],
+Cell[33558, 1050, 174, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[33757, 1058, 141, 4, 25, "Input"],
+Cell[33901, 1064, 563, 10, 169, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[34501, 1079, 152, 4, 25, "Input"],
+Cell[34656, 1085, 86, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[34779, 1091, 150, 4, 25, "Input"],
+Cell[34932, 1097, 54, 1, 36, "Output"]
+}, Open  ]],
+Cell[35001, 1101, 410, 7, 52, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[35448, 1113, 154, 2, 32, "Subsection",
+  PageBreakAbove->Automatic],
+Cell[35605, 1117, 543, 11, 52, "Text"],
+Cell[36151, 1130, 231, 5, 36, "Input"],
+Cell[36385, 1137, 100, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[36510, 1142, 99, 1, 25, "Input"],
+Cell[36612, 1145, 163, 3, 62, "Output"]
+}, Open  ]],
+Cell[36790, 1151, 123, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[36938, 1156, 127, 1, 25, "Input"],
+Cell[37068, 1159, 55, 1, 36, "Output"]
+}, Open  ]],
+Cell[37138, 1163, 492, 12, 40, "Text"],
+Cell[37633, 1177, 380, 7, 68, "Input"],
+Cell[38016, 1186, 152, 4, 25, "Input"],
+Cell[38171, 1192, 850, 13, 92, "NumberedEquation"],
+Cell[39024, 1207, 173, 4, 20, "Text"],
+Cell[39200, 1213, 414, 9, 68, "Input"],
+Cell[39617, 1224, 147, 4, 25, "Input"],
+Cell[39767, 1230, 1184, 17, 146, "NumberedEquation"],
+Cell[40954, 1249, 109, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[41088, 1254, 159, 4, 36, "Input"],
+Cell[41250, 1260, 17798, 781, 144, 10047, 680, "GraphicsData", 
+"PostScript", "Graphics"]
+}, Open  ]],
+Cell[59063, 2044, 224, 5, 46, "Input"],
+Cell[59290, 2051, 201, 5, 46, "Input"],
+Cell[59494, 2058, 170, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[59689, 2066, 131, 1, 25, "Input"],
+Cell[59823, 2069, 85, 1, 36, "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[59969, 2077, 121, 1, 38, "Section"],
+Cell[60093, 2080, 307, 9, 29, "Text"],
+Cell[60403, 2091, 211, 3, 32, "NumberedEquation"],
+Cell[60617, 2096, 323, 10, 29, "Text"],
+Cell[60943, 2108, 170, 3, 20, "NumberedEquation"],
+Cell[61116, 2113, 527, 14, 29, "Text"],
+Cell[61646, 2129, 143, 2, 20, "NumberedEquation"],
+Cell[61792, 2133, 78, 1, 20, "Text"],
+Cell[61873, 2136, 191, 3, 20, "NumberedEquation"],
+Cell[62067, 2141, 194, 6, 20, "Text"],
+Cell[62264, 2149, 127, 2, 20, "NumberedEquation"],
+Cell[62394, 2153, 316, 12, 20, "Text"],
+Cell[62713, 2167, 179, 3, 40, "NumberedEquation"],
+Cell[62895, 2172, 88, 1, 20, "Text"],
+Cell[62986, 2175, 147, 2, 20, "NumberedEquation"],
+Cell[63136, 2179, 617, 16, 52, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[63790, 2200, 127, 1, 38, "Section"],
+Cell[63920, 2203, 393, 7, 40, "Text"],
+
+Cell[CellGroupData[{
+Cell[64338, 2214, 158, 4, 28, "Subsubsection"],
+Cell[64499, 2220, 312, 10, 20, "Text"],
+Cell[64814, 2232, 225, 4, 20, "NumberedEquation"],
+Cell[65042, 2238, 849, 23, 52, "Text"],
+Cell[65894, 2263, 171, 3, 20, "NumberedEquation"],
+Cell[66068, 2268, 118, 1, 20, "Text"],
+Cell[66189, 2271, 204, 4, 20, "NumberedEquation"],
+Cell[66396, 2277, 111, 1, 20, "Text"],
+Cell[66510, 2280, 185, 3, 21, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[66732, 2288, 124, 1, 28, "Subsubsection"],
+Cell[66859, 2291, 359, 12, 20, "Text"],
+Cell[67221, 2305, 246, 4, 24, "NumberedEquation"],
+Cell[67470, 2311, 452, 15, 29, "Text"],
+Cell[67925, 2328, 425, 6, 24, "NumberedEquation"],
+Cell[68353, 2336, 243, 6, 20, "Text"],
+Cell[68599, 2344, 146, 2, 20, "NumberedEquation"],
+Cell[68748, 2348, 457, 15, 29, "Text"],
+Cell[69208, 2365, 140, 2, 20, "NumberedEquation"],
+Cell[69351, 2369, 77, 1, 20, "Text"],
+Cell[69431, 2372, 196, 3, 32, "NumberedEquation"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[69664, 2380, 102, 1, 28, "Subsubsection"],
+Cell[69769, 2383, 170, 6, 20, "Text"],
+Cell[69942, 2391, 156, 3, 38, "NumberedEquation"],
+Cell[70101, 2396, 302, 10, 20, "Text"],
+Cell[70406, 2408, 226, 4, 38, "NumberedEquation"],
+Cell[70635, 2414, 346, 6, 40, "NumberedEquation"],
+Cell[70984, 2422, 107, 1, 20, "Text"],
+Cell[71094, 2425, 400, 7, 40, "NumberedEquation"],
+Cell[71497, 2434, 243, 5, 29, "Text"],
+Cell[71743, 2441, 182, 4, 20, "NumberedEquation"],
+Cell[71928, 2447, 281, 6, 22, "NumberedEquation"],
+Cell[72212, 2455, 223, 5, 29, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[72484, 2466, 110, 1, 38, "Section"],
+Cell[72597, 2469, 397, 10, 29, "Text"],
+Cell[72997, 2481, 183, 4, 38, "NumberedEquation"],
+Cell[73183, 2487, 105, 1, 20, "Text"],
+Cell[73291, 2490, 234, 4, 26, "NumberedEquation"],
+Cell[73528, 2496, 254, 9, 24, "Text"],
+Cell[73785, 2507, 295, 6, 42, "NumberedEquation"],
+Cell[74083, 2515, 304, 6, 42, "NumberedEquation"],
+Cell[74390, 2523, 254, 7, 21, "Text"],
+Cell[74647, 2532, 182, 4, 25, "NumberedEquation"],
+Cell[74832, 2538, 271, 6, 28, "NumberedEquation"],
+Cell[75106, 2546, 199, 6, 21, "Text"],
+Cell[75308, 2554, 252, 4, 56, "NumberedEquation"],
+Cell[75563, 2560, 127, 1, 21, "Text"],
+Cell[75693, 2563, 357, 5, 56, "NumberedEquation"],
+Cell[76053, 2570, 438, 11, 36, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[76528, 2586, 99, 1, 44, "Section"],
+Cell[76630, 2589, 309, 7, 36, "Text"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+
+(***********************************************************************
+End of Mathematica Notebook file.
+***********************************************************************)
+

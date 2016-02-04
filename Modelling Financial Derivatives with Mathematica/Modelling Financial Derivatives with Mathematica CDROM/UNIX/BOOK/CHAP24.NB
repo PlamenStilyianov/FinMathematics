@@ -1,0 +1,2820 @@
+(***********************************************************************
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used on any computer system with Mathematica 3.0,
+MathReader 3.0, or any compatible application. The data for the notebook 
+starts with the line of stars above.
+
+To get the notebook into a Mathematica-compatible application, do one of 
+the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing the 
+word CacheID, otherwise Mathematica-compatible applications may try to 
+use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+***********************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[     83143,       2457]*)
+(*NotebookOutlinePosition[     84956,       2512]*)
+(*  CellTagsIndexPosition[     84912,       2508]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["\<\
+Chapter 24.
+Getting Jumpy over Dividends\
+\>", "Title",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  TextAlignment->Left,
+  TextJustification->0],
+
+Cell["The Cash Dividend Conundrum - What Is the Underlying?", "Subsubtitle",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["24.1 Introduction", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[TextData[{
+  "\nWe are now, finally, in a position to discuss a certain type of \
+discontinuity in the solution of option-pricing problems. This relates to the \
+payment of cash dividends on an underlying asset, at discrete points in time, \
+and involves certain types of junction condition, in the partial differential \
+equation framework. It is, under certain circumstances, readily modelled by \
+Monte Carlo simulation, so we are now in a position to discuss this - it is a \
+good application of the form of simulation where we look at the underlying at \
+a few discrete points in time.\n\nThroughout this chapter the term \"dividend\
+\" is used slightly sloppily, but in accordance with common practice, to \
+refer to the jump downwards in the stock price at the dividend date. There \
+are additional complications when the dividend stream, as in real life, is \
+uncertain, but here we shall be concerned with the case of a dividend stream \
+that is known. There are three types of known dividend in common \
+consideration:\n\n(1) continuous-yield model, as captured by the ",
+  Cell[BoxData[
+      \(TraditionalForm\`q\)]],
+  " parameter used throughout this text - this is a good model for FX \
+options, and a useful approximation for equity options;\n(2) discrete-yield \
+model, where a certain yield is paid at discrete points in time, with value ",
+  
+  Cell[BoxData[
+      \(TraditionalForm\`Q\ S\)]],
+  " with ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " the stock price at the dividend date, and ",
+  Cell[BoxData[
+      \(TraditionalForm\`Q\)]],
+  " the value of the discrete yield;\n(3) discrete-cash model, where a \
+certain cash value ",
+  Cell[BoxData[
+      \(TraditionalForm\`D\)]],
+  " is paid at the dividend date.\n\nType (1) has been dealt with explicitly \
+in several models, and we shall deal quickly with type (2) presently. It is \
+(3) which causes headaches, as the author found when trying to verify a \
+finite-difference model against the analytical models for cash dividends.\n\n\
+The reader may have wondered why we have not given a proper discussion of the \
+dividend issue before this point. In fact, the payment of cash dividends, \
+type (3), is a surprisingly subtle matter. Some standard texts give results \
+based on a prescription where the underlying is no longer the asset price, \
+but instead is the variable"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(TraditionalForm\`\(S\^*\) = 
+      S - \[Sum]\+\(i = 1\)\%n D\_i\ \[ExponentialE]\^\(\(-r\)\ t\_i\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where the stock price is depressed by the present values of dividends. \
+This is a well-established view (see for example, Hull, 1996, Section 11.2). \
+One assumes that ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  " follows a standard log-normal random walk, and it becomes the underlying \
+for the option-pricing problem. One has to come to a view as to the \
+volatility of ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  "and how it is related to that of ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  ", with which ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  " happens to coincide between the time of the last dividend payment before \
+expiry, and expiry.  \n\nAnother perfectly acceptable formulation is given by \
+Wilmott ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " (1993, Section 8.3), in terms of jump conditions, who argue that the \
+option price should be a continuous function of the dividend-jump-adjusted \
+stock price. We shall spell this out mathematically presently. This view is \
+of course consistent with using ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  " as the underlying, and demanding that the option price ",
+  Cell[BoxData[
+      \(TraditionalForm\`V\)]],
+  " should be a continuous function of ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  " - no problem there. But such a jump condition can be imposed in other \
+representations of the process, for example, with the real stock price ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " as the underlying. Then the jump condition plays a more active role in \
+relating the solution of the Black-Scholes equation just after the dividend \
+payment, to the one just before the payment. \n\nIn case (3), that of known \
+cash payments, the difficulty is that the view where ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  " is the underlying, and following a log-normal random walk, is \
+fundamentally inconsistent with the view that the real stock price ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " is the underlying, also following a log-normal random walk. This point \
+should not be confused with some practical details, such as:\n\n(a) how to \
+relate the volatility of ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " to that of ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  ";\n(b) how to stop the stock price going negative in a strict cash payment \
+model.\n\nOne can invent various schemes to try to cope with (a), and (b) is \
+easily handled by capping the cash payment by a yield limit. We shall see \
+examples of both of these. \n\nPerhaps the best way of illustrating these \
+points is by being a little careless. We shall assume the same volatility for \
+",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  ", fix a cash dividend, and observe the chaos. The inconsistencies are best \
+appreciated by making the dividend large, but they are there for any size \
+dividend. Our purpose here is first to expose the problem, and then to try to \
+reconcile the jump-condition picture, with the real stock price as \
+underlying, with the ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  " result given by (1), and also with Monte Carlo simulation. We begin the \
+next section with the latter.\n\nOur last point before proceeding to the \
+detail is to note that the management of cash dividends introduces an element \
+of \"model risk\". The price you get depends on what model you assume, and in \
+particular which underlying is regarded as log-normal. This being so, the \
+introduction of cash dividend modelling has much in common with interest-rate \
+derivatives, where there are several models to choose from. This is one \
+reason for discussing dividends at this point - it forms a convenient bridge \
+to the next chapter where we completely open up the range of distributions \
+for the underlying."
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic,
+  PageBreakWithin->Automatic]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["24.2 A Monte Carlo Approach", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "The first thing we shall do is to build a simple and clear picture through \
+Monte Carlo simulation. We shall add to the stock-price path a discrete jump \
+at a series of dividend dates. We shall keep it simple and work with our \
+standard samples ",
+  StyleBox["norm",
+    FontFamily->"Courier",
+    FontWeight->"Bold"],
+  ":"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(norm = \ 
+      Compile[{mu, \ sigma}, \ \n
+        Module[{va, \ vb, \ rad\  = \ 2.0, \ den}, 
+          While[rad\  >= 1.00, \n\t\t\t\((va\  = \ 2.0*Random[]\  - \ 1.0; 
+              vb\  = \ 2.0*Random[]\  - 1.0; \n\t\t\trad\  = \ 
+                va*va + vb*vb)\)]; 
+          den\  = \ Sqrt[\(-2.0\)*Log[rad]/rad]; \n\t\t\tmu + 
+            sigma*va*den]]; \)\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+We write a function that generates a sequence of discrete events, \
+where the stock price takes a discrete downward jump. The last event is the \
+valuation point, where no jump is applied.\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+diveventseq[s_, r_, q_, \[Sigma]_, EventTimes_List, divs_List, n_] \
+:=
+Module[{intervals = Prepend[Drop[RotateLeft[EventTimes]-EventTimes, -1], 
+First[EventTimes]],muscale = (r - q - \[Sigma]^2/2),extdivs,genint},
+extdivs = Append[divs, 0];
+genint = Transpose[{intervals, extdivs}];
+Table[
+FoldList[(#1*Exp[norm[muscale*#2[[1]], \[Sigma]*Sqrt[#2[[1]]]]]-#2[[2]])&, s, \
+genint], {i, n}] ];\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["\<\
+Here is just one path with a very large payment half-way through \
+the year to expiry:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(diveventseq[100, \ 0.1, 0, 0.2, \ {0.5, \ 1}, \ {50}, \ 1]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({{100, 29.7899489347644941`, 31.4569260813566931`}}\)], "Output"]
+}, Open  ]],
+
+Cell["Here are four such paths:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(diveventseq[100, \ 0.1, 0, 0.2, \ {0.5, \ 1}, \ {50}, \ 4]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({{100, 57.8139684893674665`, 57.3904430661424136`}, {100, 
+        76.8378921074158505`, 92.666878300355755`}, {100, 
+        63.4351609963844254`, 72.1160966445238216`}, {100, 
+        66.4360814333712568`, 58.0004282424290273`}}\)], "Output"]
+}, Open  ]],
+
+Cell["We need some standard Package functions, which we now load:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(Unprotect[In, \ Out]; \n
+    Needs["\<Statistics`DescriptiveStatistics`\>"]; \nOff[General::spell]; \n
+    Off[General::spell1]; \)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Now suppose that the list ",
+  StyleBox["divinfo",
+    FontFamily->"Courier",
+    FontWeight->"Bold"],
+  " supplied to the following function consists of pairs {time, payment}. \
+Then it is a trivial matter to write a function to value a European Call \
+option."
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(MonteCarloDivEuroCall[S_, \ K_, \ \[Sigma]_, \ r_, \ q_, \ t_, 
+        divinfo_, \ n_]\  := \n\t
+      Module[{times, \ divs}, \n\t\ttimes\  = \ 
+          First[Transpose[divinfo]]; \n\t\tAppendTo[times, \ 
+          t]; \n\t\tdivs\  = \ Last[Transpose[divinfo]]; \n
+        Map[\((Max[0, \ Last[#] - K] &)\), 
+            diveventseq[S, \ r, \ q, \ \[Sigma], \ times, \ divs, \ 
+              n]] // \n\t
+          Exp[\(-r\)*t]*{Mean[#], \ StandardErrorOfSampleMean[#]} &]\)], 
+  "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MonteCarloDivEuroCall[100, \ 100, \ 0.2, \ Log[1.05], \ 0, \ 
+      1, \ {{0.5, \ 20}}, 10000]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({2.52412836148976893`, 0.0725403742945219587`}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Let's get the variance down without doing anything complicated - \
+250,000 samples should do the trick\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MonteCarloDivEuroCall[100, \ 100, \ 0.2, \ Log[1.05], \ 0, \ 
+      1, \ {{0.5, \ 20}}, 250000]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({2.58776695250988009`, 0.0148750048088898623`}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+So now we have one pretty unambiguous estimate for the value. Let's \
+go for another, but before we do, let's get the result with no dividend, \
+using an otherwise identical function call:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(MonteCarloDivEuroCall[100, \ 100, \ 0.2, \ Log[1.05], \ 0, \ 
+      1, \ {{0.5, \ 0}}, 10000]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({10.7499811543778944`, 0.150771995400185936`}\)], "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+  "24.3 The ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  " Analytic Approach"
+}], "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "An approach that was introduced in Chapter 11 without critical comment is \
+the dividend-adjusted analytic model, as described by equation (1). This is \
+based on the idea that one reduces the stock price by the present value of \
+all the dividends, where the discounting is done at the risk-free rate. The \
+variable ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  " is regarded as the fundamental underlying asset. There is no difficulty \
+in applying this method."
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(Needs["\<Derivatives`BlackScholes`\>"]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(AnalyticalDivEuroCall[S_, \ K_, \ \[Sigma]_, \ r_, \ q_, \ t_, 
+        divinfo_List] := \n\t
+      Module[{adjprice}, \n\t\tadjprice\  = \ 
+          S\  - \ Sum[
+              divinfo[\([k, 2]\)]*Exp[\(-r\)*divinfo[\([k, 1]\)]], \ {k, \ 
+                1, \ Length[divinfo]}]; \n\t\tBlackScholesCall[adjprice, \ 
+          K, \ \[Sigma], \ r, \ q, \ t\ ]]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AnalyticalDivEuroCall[100, \ 100, \ 0.2, \ Log[1.05], \ 0, \ 
+      1, \ {{0.5, \ 20}}]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(1.94852850671232502`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+With no dividend, but an otherwise identical computation, we \
+get\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AnalyticalDivEuroCall[100, \ 100, \ 0.2, \ Log[1.05], \ 0, \ 
+      1, \ {{0.5, \ 0}}]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(10.3862794967195171`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+It should be clear that the dividend-adjusted result is completely \
+contradictory with the Monte Carlo result, while the result with no dividend \
+is consistent. We had better try it another way!\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["24.4 The Jump-Adjusted Finite-Difference Approach", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "In Chapter 4, Section 4.7, we implemented a transformation of the \
+Black-Scholes equation valid for time-dependent yields, that could be applied \
+to ",
+  StyleBox["discrete",
+    FontSlant->"Italic"],
+  " dividends with a certain known yield. This results in the jump condition \
+relating the values of an option just before and just after the dividend \
+payment:"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`V(S, \(t\_i - \)) = 
+      V(S  \[ExponentialE]\^\(-q\_i\), \(t\_i + \))\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The option is a continuous function of the jump-adjusted price. \
+Although we cannot infer the corresponding cash dividend rule directly from \
+the particular change of variables used in Chapter 4, it makes sense to use \
+the rule\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`V(S, \(t\_i - \)) = V(S\  - \ D\_i, \(t\_i + \))\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "to express continuity. A detailed argument as to why this holds in general \
+is given by Wilmott ",
+  StyleBox["et al",
+    FontSlant->"Italic"],
+  " (1993). However, there is the separate matter of whether the stock price \
+",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  ", or the adjusted price ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(\(S\^*\), \)\)]],
+  " is to be regarded as the underlying. In the latter case there is nothing \
+left to do, but in the former case some extra work is needed. We can use such \
+jump conditions directly with any of our finite-difference models. However, \
+it is more straightforward to use a standard two-time-level scheme, as the \
+three-time-level scheme needs a careful re-start after the dividend payment. \
+We shall therefore use the two-time-level Douglas scheme. This is chosen \
+deliberately as we do not wish our conclusions to be undermined by any \
+scepticism on the part of the reader regarding the author's judgement as to \
+good (i.e. exotic) and bad FD schemes! The dividend jump condition will be \
+applied making good use of ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  "'s built-in interpolation routines. We shall do enough to find out which \
+of the previous estimates is consistent with the FD approach with ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " as the underlying - readers may wish to clean up this scheme into \
+something more palatable, or explore the effect of adjusting volatilities \
+between the pre- and post-dividend-payment phases. We shall set it up in a \
+form tailored to the particular problem at hand, and stay resolutely \
+European, in order to keep it simple.\n\nFirst a reminder of the solver we \
+shall use:"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(CompTridiagSolve\  = \ \t\t\tCompile[{{a, \ _Real, \ 
+            1}, \ {b, _Real, \ 1}, \ \t\t\t{c, \ _Real, \ 
+            1}, \ {r, \ _Real, \ 1}}, \n\ \ \ \ Module[{len = Length[r], \ 
+            solution = r, \ \taux\  = \ 1/\((b[\([1]\)])\), \ \t\t\taux1 = 
+              r, \ a1\  = \ Prepend[a, \ 0.0], \ 
+            iter}, \ \tsolution[\([1]\)]\  = \ aux\ *r[\([1]\)]; \ \t\tDo[
+            aux1[\([iter]\)]\  = \ 
+              c[\([iter - 1]\)]\ aux; \n\t\t\t\t\t\ \ \ \ aux\  = \ 
+              1/\((b[\([iter]\)]\  - \ 
+                    a1[\([iter]\)]*
+                      aux1[\([iter]\)])\); \n\t\t\t\t\t\t\ \ \
+solution[\([iter]\)]\  = \ \((r[\([iter]\)] - 
+                    a1[\([iter]\)]\ solution[\([iter - 
+                            1]\)])\)\ aux, \n\t\ \ \ \ {iter, \ 2, \ 
+              len}]; \ \t\t\t\tDo[
+            solution[\([iter]\)]\  -= \ 
+              aux1[\([iter + 1]\)]\ solution[\([iter + 
+                      1]\)], \n\t\ \ \ \ {iter, \ len - 1, \ 1, \ \(-1\)}]; 
+          solution]]; \)\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Here are the standard functions expressing the change of variables:\
+\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[{
+    \(\(NonDimExpiry[T_, \[Sigma]_] := \(\[Sigma]\^2\ T\)\/2; \)\), 
+    \(\(kone[r_, \[Sigma]_] := \(2  r\)\/\[Sigma]\^2; \)\), 
+    \(\(ktwo[r_, q_, sd_] := \(2\ \((r - q)\)\)\/sd\^2; \)\), 
+    \(ValuationMultiplier[strike_, r_, q_, x_, tau_, sd_] := 
+      strike\ Exp[\(-\(1\/2\)\)\ \((ktwo[r, q, sd] - 
+                  1)\)\ x - \((1\/4\ \((ktwo[r, q, sd] - 1)\)\^2 + 
+                  kone[r, sd])\)\ tau]\)}], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["Here is the initial condition:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(CallExercise[x_, r_, q_, sd_] := 
+      Max[Exp[1\/2\ \((ktwo[r, q, sd] - 1)\)\ x]\ \((Exp[x] - 1)\), 
+        0]; \)\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["Here are the boundary conditions:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(f[x_, tau_, r_, q_, sd_] := 0; \n
+    g[x_, tau_, r_, q_, sd_] := 
+      Exp[1\/2\ \((ktwo[r, q, sd] + 1)\)\ x + 
+            1\/4\ \((\((ktwo[r, q, sd] - 1)\)\^2 + 4\ kone[r, sd])\)\ tau] - 
+        Exp[1\/2\ \((ktwo[r, q, sd] - 1)\)\ x + 
+            1\/4\ \((\((ktwo[r, q, sd] - 1)\)\^2)\)\ tau]; \)], "Input",
+  CellFrame->False,
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  InitializationCell->True,
+  AspectRatioFixed->True],
+
+Cell["Here are the grid parameters:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+M=40; nminus = 320; nplus = 320;
+dx = 0.01; dtau = 0.0005; alpha = dtau/dx^2\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  PageBreakWithin->True,
+  GroupPageBreakWithin->True,
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(5.`\)], "Output",
+  PageBreakWithin->True,
+  GroupPageBreakWithin->True]
+}, Open  ]],
+
+Cell["\<\
+We have matched the dimensionless time, the time-steps and the \
+number of them:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \({NonDimExpiry[1, \ 0.2], \ M*dtau}\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \({0.0200000000000000044`, 0.02`}\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+Now we set up, evolve and post-process the result in the usual way:\
+\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(initial = 
+      Table[CallExercise[\((k - 1 - nminus)\)\ dx, Log[1.05], 0, 0.2], \ {k, 
+          nminus + nplus + 1}]; \n
+    lower = Table[
+        f[\(-nminus\)\ dx, \((m - 1)\)\ dtau, Log[1.05], 0, 0.2], \ {m, \ 
+          1, \ M + 1}]; \n
+    upper = Table[
+        g[\(+nplus\)\ dx, \ \ \((m - 1)\)\ dtau, Log[1.05], 0, 0.2], \ {m, \ 
+          1, \ M + 1}]; \nwold\  = \ initial; \nwvold\  = \ wold; \ 
+    wnew\  = \ wold; \)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \(DougCMatrix[alpha_, \ nminus_, \ nplus_]\  := \n
+      Sequence[Table[1 - 6*alpha, \ {nplus + nminus - 2}], \n
+        Table[10 + 12*alpha, \ {nplus + nminus - 1}], \n
+        Table[1 - 6*alpha, \ {nplus + nminus - 2}]]; \n\n
+    DougDMatrix[alpha_, \ vec_List]\  := \ 
+      Module[{temp}, \n
+        temp\  = \ \((10\  - \ 12*alpha)\)*
+              vec\  + \ \((1 + 6*alpha)\)*\((RotateRight[vec]\  + \ 
+                  RotateLeft[vec])\); \n
+        temp[\([1]\)]\  = \ 
+          Simplify[First[temp]\  - \((1 + 6*alpha)\)*Last[vec]/2]; \n
+        temp[\([\(-1\)]\)]\  = \ 
+          Simplify[Last[temp]\  - \((1 + 6*alpha)\)*First[vec]/2]; \n
+        temp]; \n\nCMat\  = \ DougCMatrix[alpha, nminus, nplus]; \)], "Input",\
+
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+For[m=2, m<=M+1, m++,
+(wvold = wold; wold = wnew;
+rhs = DougDMatrix[alpha, Take[wold, {2, -2}]]+
+Table[Which[
+k==1, alpha*(lower[[m-1]] + lower[[m]])/2,
+k== nplus + nminus-1,  alpha*(upper[[m-1]] + upper[[m]])/2,
+True, 0],
+{k, 1, nplus + nminus-1}];
+temp = CompTridiagSolve[CMat, rhs];
+wnew = Join[{lower[[m]]}, temp, {upper[[m]]}])]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell["\<\
+interpoldatab = Table[{(k - nminus - 1)*dx, wnew[[k]]}, {k, 1, \
+nminus + nplus + 1}]; 
+ufuncb = Interpolation[interpoldatab, InterpolationOrder -> 3];
+Valuation[strike_, r_, q_, S_, T_, sd_] := 
+  ValuationMultiplier[strike, r, q, Log[S/strike], (sd^2*T)/2, sd]*
+   ufuncb[Log[S/strike]]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell["\<\
+We plot the error, and tabulate the results and errors to ensure \
+that things are under control:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(\(Plot[
+      Valuation[100, Log[1.05], 0, S, 1, 0.2] - 
+        BlackScholesCall[S, 100, 0.2, Log[1.05], 0, 1], {S, 80, 120}, 
+      PlotPoints \[Rule] 50, PlotRange \[Rule] All]; \)\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[GraphicsData["PostScript", "\<\
+%!
+%%Creator: Mathematica
+%%AspectRatio: .61803 
+MathPictureStart
+/Mabs {
+Mgmatrix idtransform
+Mtmatrix dtransform
+} bind def
+/Mabsadd { Mabs
+3 -1 roll add
+3 1 roll add
+exch } bind def
+%% Graphics
+/Courier findfont 10  scalefont  setfont
+% Scaling calculations
+-1.88095 0.0238095 1.33846 801.627 [
+[.2619 .52434 -6 -9 ]
+[.2619 .52434 6 0 ]
+[.5 .52434 -9 -9 ]
+[.5 .52434 9 0 ]
+[.7381 .52434 -9 -9 ]
+[.7381 .52434 9 0 ]
+[.97619 .52434 -9 -9 ]
+[.97619 .52434 9 0 ]
+[.01131 .05586 -42 -4.5 ]
+[.01131 .05586 0 4.5 ]
+[.01131 .13602 -42 -4.5 ]
+[.01131 .13602 0 4.5 ]
+[.01131 .21619 -42 -4.5 ]
+[.01131 .21619 0 4.5 ]
+[.01131 .29635 -42 -4.5 ]
+[.01131 .29635 0 4.5 ]
+[.01131 .37651 -42 -4.5 ]
+[.01131 .37651 0 4.5 ]
+[.01131 .45667 -42 -4.5 ]
+[.01131 .45667 0 4.5 ]
+[.01131 .617 -42 -4.5 ]
+[.01131 .617 0 4.5 ]
+[ 0 0 0 0 ]
+[ 1 .61803 0 0 ]
+] MathScale
+% Start of Graphics
+1 setlinecap
+1 setlinejoin
+newpath
+0 g
+.25 Mabswid
+[ ] 0 setdash
+.2619 .53684 m
+.2619 .54309 L
+s
+[(90)] .2619 .52434 0 1 Mshowa
+.5 .53684 m
+.5 .54309 L
+s
+[(100)] .5 .52434 0 1 Mshowa
+.7381 .53684 m
+.7381 .54309 L
+s
+[(110)] .7381 .52434 0 1 Mshowa
+.97619 .53684 m
+.97619 .54309 L
+s
+[(120)] .97619 .52434 0 1 Mshowa
+.125 Mabswid
+.07143 .53684 m
+.07143 .54059 L
+s
+.11905 .53684 m
+.11905 .54059 L
+s
+.16667 .53684 m
+.16667 .54059 L
+s
+.21429 .53684 m
+.21429 .54059 L
+s
+.30952 .53684 m
+.30952 .54059 L
+s
+.35714 .53684 m
+.35714 .54059 L
+s
+.40476 .53684 m
+.40476 .54059 L
+s
+.45238 .53684 m
+.45238 .54059 L
+s
+.54762 .53684 m
+.54762 .54059 L
+s
+.59524 .53684 m
+.59524 .54059 L
+s
+.64286 .53684 m
+.64286 .54059 L
+s
+.69048 .53684 m
+.69048 .54059 L
+s
+.78571 .53684 m
+.78571 .54059 L
+s
+.83333 .53684 m
+.83333 .54059 L
+s
+.88095 .53684 m
+.88095 .54059 L
+s
+.92857 .53684 m
+.92857 .54059 L
+s
+.25 Mabswid
+0 .53684 m
+1 .53684 L
+s
+.02381 .05586 m
+.03006 .05586 L
+s
+[(-0.0016)] .01131 .05586 1 0 Mshowa
+.02381 .13602 m
+.03006 .13602 L
+s
+[(-0.0015)] .01131 .13602 1 0 Mshowa
+.02381 .21619 m
+.03006 .21619 L
+s
+[(-0.0014)] .01131 .21619 1 0 Mshowa
+.02381 .29635 m
+.03006 .29635 L
+s
+[(-0.0013)] .01131 .29635 1 0 Mshowa
+.02381 .37651 m
+.03006 .37651 L
+s
+[(-0.0012)] .01131 .37651 1 0 Mshowa
+.02381 .45667 m
+.03006 .45667 L
+s
+[(-0.0011)] .01131 .45667 1 0 Mshowa
+.02381 .617 m
+.03006 .617 L
+s
+[(-0.0009)] .01131 .617 1 0 Mshowa
+.125 Mabswid
+.02381 .07189 m
+.02756 .07189 L
+s
+.02381 .08793 m
+.02756 .08793 L
+s
+.02381 .10396 m
+.02756 .10396 L
+s
+.02381 .11999 m
+.02756 .11999 L
+s
+.02381 .15206 m
+.02756 .15206 L
+s
+.02381 .16809 m
+.02756 .16809 L
+s
+.02381 .18412 m
+.02756 .18412 L
+s
+.02381 .20015 m
+.02756 .20015 L
+s
+.02381 .23222 m
+.02756 .23222 L
+s
+.02381 .24825 m
+.02756 .24825 L
+s
+.02381 .26428 m
+.02756 .26428 L
+s
+.02381 .28032 m
+.02756 .28032 L
+s
+.02381 .31238 m
+.02756 .31238 L
+s
+.02381 .32841 m
+.02756 .32841 L
+s
+.02381 .34445 m
+.02756 .34445 L
+s
+.02381 .36048 m
+.02756 .36048 L
+s
+.02381 .39254 m
+.02756 .39254 L
+s
+.02381 .40858 m
+.02756 .40858 L
+s
+.02381 .42461 m
+.02756 .42461 L
+s
+.02381 .44064 m
+.02756 .44064 L
+s
+.02381 .47271 m
+.02756 .47271 L
+s
+.02381 .48874 m
+.02756 .48874 L
+s
+.02381 .50477 m
+.02756 .50477 L
+s
+.02381 .5208 m
+.02756 .5208 L
+s
+.02381 .55287 m
+.02756 .55287 L
+s
+.02381 .5689 m
+.02756 .5689 L
+s
+.02381 .58493 m
+.02756 .58493 L
+s
+.02381 .60097 m
+.02756 .60097 L
+s
+.02381 .03983 m
+.02756 .03983 L
+s
+.02381 .0238 m
+.02756 .0238 L
+s
+.02381 .00776 m
+.02756 .00776 L
+s
+.25 Mabswid
+.02381 0 m
+.02381 .61803 L
+s
+.5 Mabswid
+.02381 .45451 m
+.04273 .42133 L
+.06337 .38729 L
+.08275 .35733 L
+.10139 .33048 L
+.12123 .30412 L
+.14033 .28091 L
+.16063 .25861 L
+.18019 .23942 L
+.199 .22307 L
+.21902 .2079 L
+.23829 .1954 L
+.25683 .18526 L
+.27656 .17646 L
+.29555 .16987 L
+.31574 .16476 L
+.32583 .16278 L
+.33074 .16184 L
+.33519 .16101 L
+.33743 .16062 L
+.33804 .16051 L
+.33838 .16046 L
+.33869 .16041 L
+.33924 .16035 L
+.33985 .16034 L
+.34042 .16034 L
+.34096 .16034 L
+.34144 .16034 L
+.34197 .16034 L
+.34254 .16034 L
+.34315 .16035 L
+.34367 .16035 L
+.34424 .16036 L
+.34664 .16039 L
+.34922 .16045 L
+.3539 .16057 L
+.35858 .16074 L
+.35987 .1608 L
+.36057 .16083 L
+.36092 .16085 L
+.36124 .16087 L
+.36186 .16111 L
+.36254 .16141 L
+.36371 .16194 L
+.36905 .16417 L
+.37166 .16506 L
+.3728 .16538 L
+.37405 .16568 L
+.37523 .1659 L
+.3758 .166 L
+Mistroke
+.37632 .16606 L
+.37682 .16612 L
+.37736 .16617 L
+.37794 .1662 L
+.37848 .16622 L
+.37905 .16622 L
+.37968 .1662 L
+.38 .16619 L
+.38034 .16616 L
+.38096 .1661 L
+.38157 .16602 L
+.38215 .16593 L
+.38324 .16569 L
+.38382 .16554 L
+.38446 .16464 L
+.38576 .16261 L
+.38808 .15882 L
+.39335 .1503 L
+.39576 .14678 L
+.3983 .14363 L
+.40047 .14152 L
+.4017 .14062 L
+.40284 .14 L
+.40348 .13975 L
+.40384 .13964 L
+.40418 .13956 L
+.40479 .13948 L
+.40543 .13946 L
+.40601 .13953 L
+.40655 .13965 L
+.40715 .14192 L
+.40779 .14481 L
+.41306 .17072 L
+.41804 .19542 L
+.42066 .20718 L
+.42345 .21792 L
+.42588 .22527 L
+.42727 .22845 L
+.4279 .22963 L
+.42857 .23069 L
+.42914 .23142 L
+.42976 .23105 L
+.43032 .22703 L
+.43085 .22314 L
+.43331 .20359 L
+.44247 .12289 L
+.4473 .08617 L
+.44973 .07193 L
+.45113 .06549 L
+.45175 .06312 L
+Mistroke
+.45241 .06087 L
+.45277 .05981 L
+.45311 .06223 L
+.45343 .06563 L
+.45377 .06935 L
+.45522 .08617 L
+.45785 .11972 L
+.46286 .19001 L
+.468 .26122 L
+.47272 .31634 L
+.47399 .3283 L
+.47518 .33809 L
+.47577 .34248 L
+.47641 .34506 L
+.47678 .34123 L
+.47712 .33747 L
+.47777 .33011 L
+.48322 .25468 L
+.48801 .17765 L
+.4931 .09753 L
+.49533 .06613 L
+.49774 .0366 L
+.49841 .02933 L
+.49912 .0222 L
+.49972 .01656 L
+.50006 .01472 L
+.50038 .01787 L
+.50286 .04624 L
+.51188 .1857 L
+.51704 .2714 L
+.51958 .30996 L
+.52191 .34171 L
+.52301 .35503 L
+.52354 .36112 L
+.52403 .36473 L
+.52455 .36176 L
+.5251 .35827 L
+.52628 .34991 L
+.53102 .30536 L
+.53592 .24735 L
+.54113 .18216 L
+.54367 .15224 L
+.54605 .12663 L
+.54709 .11647 L
+.54766 .11123 L
+.54819 .10768 L
+.54877 .10984 L
+.5494 .11247 L
+.5505 .11775 L
+.55524 .14815 L
+Mistroke
+.55956 .18349 L
+.56459 .22864 L
+.56681 .24831 L
+.56924 .26902 L
+.57038 .2781 L
+.57159 .2874 L
+.57218 .29169 L
+.57274 .29403 L
+.57324 .29395 L
+.57379 .29375 L
+.57443 .29337 L
+.575 .29289 L
+.57629 .29139 L
+.57749 .28951 L
+.57862 .28734 L
+.58351 .2744 L
+.5888 .25636 L
+.59123 .24761 L
+.59384 .23846 L
+.59511 .23424 L
+.59631 .23044 L
+.59683 .22885 L
+.59739 .22798 L
+.59799 .2284 L
+.59856 .22884 L
+.60089 .23119 L
+.60347 .23466 L
+.60887 .24415 L
+.61387 .25458 L
+.61914 .26602 L
+.62131 .27059 L
+.62194 .27187 L
+.62253 .27262 L
+.62364 .27375 L
+.62619 .27612 L
+.62856 .27807 L
+.63765 .2837 L
+.64277 .28598 L
+.64524 .28697 L
+.64632 .28739 L
+.64693 .28763 L
+.6475 .28795 L
+.64867 .28884 L
+.64979 .28968 L
+.65225 .29154 L
+.65669 .29487 L
+.66679 .30224 L
+.68598 .31826 L
+.70637 .33597 L
+.72601 .35287 L
+Mistroke
+.74491 .37002 L
+.76501 .3887 L
+.78437 .40691 L
+.80299 .42462 L
+.82281 .44433 L
+.84189 .4634 L
+.86217 .48381 L
+.8817 .50385 L
+.90049 .52344 L
+.92049 .54431 L
+.93974 .56455 L
+.95825 .58425 L
+.97619 .60332 L
+Mfstroke
+0 0 m
+1 0 L
+1 .61803 L
+0 .61803 L
+closepath
+clip
+newpath
+% End of Graphics
+MathPictureEnd
+\
+\>"], "Graphics",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  Evaluatable->False,
+  AspectRatioFixed->True,
+  ImageSize->{207.75, 128.125},
+  ImageMargins->{{34, 0}, {0, 0}},
+  ImageRegion->{{0, 1}, {0, 1}},
+  ImageCache->GraphicsData["Bitmap", "\<\
+CF5dJ6E]HGAYHf4PAg9QL6QYHg<PAVmbKF5d0`40003?0000P1000`40O003h00Ocgoo003?Ool00<mo
+o`00cgoo003?Ool00<moo`00cgoo003?Ool00<moo`00cgoo003?Ool00<moo`00;7oo00<007ooOol0
+X7oo000/Ool00`00Oomoo`2POol002aoo`03001oogoo04Uoo`03001oogoo05Aoo`00;7oo00<007oo
+Ool0BGoo00<007ooOol0E7oo000/Ool00`00Oomoo`19Ool00`00Oomoo`1DOol002aoo`03001oogoo
+04Uoo`03001oogoo05Aoo`00;7oo00<007ooOol0BGoo0P00EGoo0008Ool20004Ool20004Ool20004
+Ool20003Ool30004Ool20004Ool00`00Oomoo`19Ool2001EOol000Moo`04001oogoo0003Ool20003
+Ool01000Oomoo`000Woo00@007ooOol000=oo`03001oogoo009oo`04001oogoo0003Ool00`00Oomo
+o`19Ool2001EOol00003Ool0000000<00005Ool007ooOol00008Ool01000Oomoo`000Woo00@007oo
+Ool000=oo`03001oogoo009oo`04001oogoo0003Ool2001:Ool2001EOol000Moo`04001oogoo0008
+Ool01000Oomoo`000Woo00@007ooOol000=oo`03001oogoo009oo`<000Aoo`03001oogoo045oo`80
+00Ioo`8005Eoo`001goo00@007ooOol000Qoo`04001oogoo0002Ool01000Oomoo`000goo00<007oo
+Ool00Woo00<007ooOol017oo00<007ooOol0@Goo0P001Woo0P00EGoo0008Ool2000:Ool20004Ool2
+0003Ool20005Ool30003Ool00`00Oomoo`11Ool20006Ool2001EOol002aoo`03001oogoo045oo`80
+00Ioo`8005Eoo`00;7oo00<007ooOol0@Goo0P001Goo00<007oo0000EGoo000/Ool00`00Oomoo`11
+Ool20005Ool00`00Ool0001EOol002aoo`03001oogoo045oo`8000Eoo`03001oo`0005Eoo`00;7oo
+00<007ooOol0@Goo00<007oo000017oo00<007oo00001Woo00<007ooOol0C7oo000/Ool00`00Oomo
+o`10Ool01000Oomoo`0017oo00<007oo00001Woo00<007ooOol0C7oo000/Ool00`00Oomoo`10Ool0
+1000Oomoo`0017oo00@007ooOol000Eoo`8004eoo`0027oo0P0017oo0P0017oo0P0017oo0P000goo
+0`000goo0`0017oo00<007ooOol0@7oo00@007ooOol000Aoo`04001oogoo0005Ool2001=Ool000Mo
+o`04001oogoo0003Ool20003Ool01000Oomoo`000Woo00@007ooOol000=oo`03001oogoo00Eoo`05
+001oogooOol00012Ool01000Oomoo`0017oo00@007ooOol000Eoo`8004eoo`0000=oo`0000000`00
+00Eoo`00Oomoo`0000Qoo`04001oogoo0002Ool01000Oomoo`000goo00<007ooOol01Goo00@007oo
+Oomoo`8003]oo`03001oogoo00=oo`04001oogoo0004Ool01000Oomoo`001Goo0P00CGoo0007Ool0
+1000Oomoo`0027oo00@007ooOol0009oo`04001oogoo0003Ool00`00Oomoo`02Ool30004Ool00`00
+Oomoo`0iOol30004Ool01000Oomoo`000goo00D007ooOomoo`0000Aoo`03001oo`0004eoo`001goo
+00@007ooOol000Qoo`04001oogoo0002Ool01000Oomoo`000goo00<007ooOol00Woo00<007ooOol0
+17oo00<007ooOol0>7oo0P0000=oo`00Ool00goo00@007ooOol000=oo`05001oogooOol00004Ool0
+0`00Ool0001=Ool000Qoo`8000Yoo`8000Aoo`8000=oo`8000Aoo`@000=oo`03001oogoo03Qoo`04
+001oogoo0004Ool01000Oomoo`000goo00D007ooOomoo`0000Aoo`03001oo`0004eoo`00;7oo00<0
+07ooOol0:Woo2`000Woo00D007ooOomoo`0000Aoo`04001oogoo0003Ool01@00Oomoogoo000017oo
+00<007oo0000CGoo000/Ool00`00Oomoo`0WOol3000;Ool30003Ool01@00Oomoogoo00000goo00D0
+07ooOomoo`0000=oo`03001oogoo009oo`03001oo`0004eoo`00;7oo00<007ooOol097oo0`0057oo
+00D007ooOomoo`0000=oo`05001oogooOol00003Ool00`00Oomoo`02Ool01000Oomoo`00C7oo000/
+Ool00`00Oomoo`0SOol00`00Oomoo`0EOol01@00Oomoogoo00000goo00D007ooOomoo`0000=oo`03
+001oogoo009oo`04001oogoo001<Ool002aoo`03001oogoo025oo`8001Uoo`04001oogoo0003Ool0
+1@00Oomoogoo00000goo00<007ooOol00Woo00@007ooOol004aoo`00;7oo00<007ooOol07Woo0`00
+6goo00@007ooOol000=oo`05001oogooOol00003Ool00`00Oomoo`02Ool01000Oomoo`00C7oo000/
+Ool00`00Oomoo`0MOol00`00Oomoo`0LOol01000Oomoo`000goo00D007ooOomoo`0000=oo`03001o
+ogoo009oo`04001oogoo001<Ool000Qoo`8000Aoo`8000Aoo`8000Aoo`8000=oo`<000Aoo`<000=o
+o`03001oogoo01aoo`03001oogoo01ioo`03001oo`0000=oo`05001oogooOol00003Ool00`00Oomo
+o`02Ool01000Oomoo`00C7oo0007Ool01000Oomoo`000goo0P000goo00@007ooOol0009oo`04001o
+ogoo0003Ool00`00Oomoo`04Ool00`00Oomoo`02Ool00`00Oomoo`0KOol00`00Oomoo`0OOol00`00
+Ool00003Ool01@00Oomoogoo00000goo00<007ooOol00Woo00D007ooOomoo`0004]oo`0000=oo`00
+00000`0000Eoo`00Oomoo`0000Qoo`04001oogoo0002Ool01000Oomoo`000goo00<007ooOol00Woo
+10000goo0P006goo00<007ooOol087oo0P0017oo00D007ooOomoo`0000=oo`05001oogooOol00004
+Ool00`00Oomoo`19Ool000Moo`04001oogoo0008Ool01000Oomoo`000Woo00@007ooOol000=oo`03
+001oogoo009oo`03001oo`0000Aoo`03001oogoo01Uoo`03001oogoo025oo`8000Aoo`05001oogoo
+Ool00003Ool01@00Oomoogoo000017oo00<007ooOol0BGoo0007Ool01000Oomoo`0027oo00@007oo
+Ool0009oo`04001oogoo0003Ool00`00Oomoo`02Ool00`00Ool00004Ool00`00Oomoo`0HOol00`00
+Oomoo`0SOol00`00Oomoo`03Ool01000Oomoo`000goo00D007ooOomoo`0000Aoo`03001oogoo009o
+o`8004Eoo`0027oo0P002Woo0P0017oo0P000goo0P001Goo0P0017oo00<007ooOol05goo00<007oo
+Ool0:Woo00@007ooOol000Aoo`04001oogoo0004Ool00`00Oomoo`02Ool20015Ool002aoo`03001o
+ogoo01Ioo`03001oogoo02]oo`04001oogoo0004Ool01000Oomoo`0017oo00<007ooOol00Woo00<0
+07oo0000A7oo000/Ool00`00Oomoo`0EOol00`00Oomoo`0/Ool01000Oomoo`0017oo00@007ooOol0
+00Aoo`05001oogooOol00002Ool00`00Oomoo`12Ool002aoo`03001oogoo01Aoo`03001oogoo02eo
+o`04001oogoo0004Ool01000Oomoo`0017oo00D007ooOomoo`0000=oo`03001oogoo045oo`00;7oo
+00<007ooOol04Woo0P00<7oo00@007ooOol000Aoo`04001oogoo0005Ool01000Oomoo`000goo00<0
+07ooOol0@Goo000/Ool00`00Oomoo`0AOol00`00Oomoo`0`Ool01000Oomoo`0017oo00@007ooOol0
+00Eoo`03001oo`0000Eoo`03001oogoo041oo`00;7oo00<007ooOol047oo00<007ooOol0<Goo00@0
+07ooOol000Aoo`04001oogoo0005Ool00`00Ool00005Ool20011Ool002aoo`03001oogoo00moo`03
+001oogoo039oo`04001oogoo0004Ool00`00Ool00006Ool00`00Ool00006Ool20010Ool000Qoo`80
+00Aoo`8000Aoo`8000Aoo`8000=oo`<000=oo`<000Aoo`03001oogoo00moo`03001oogoo039oo`04
+001oogoo0004Ool00`00Ool00006Ool20009Ool2000nOol000Moo`04001oogoo0003Ool20003Ool0
+1000Oomoo`000Woo00@007ooOol000=oo`03001oogoo00Eoo`05001oogooOol0000@Ool00`00Oomo
+o`0dOol00`00Ool00004Ool00`00Ool00006Ool2000:Ool3000lOol00003Ool0000000<00005Ool0
+07ooOol00008Ool01000Oomoo`000Woo00@007ooOol000=oo`03001oogoo00Eoo`04001oogooOol2
+000>Ool00`00Oomoo`0eOol20006Ool2000DOol00`00Oomoo`0jOol000Moo`04001oogoo0008Ool0
+1000Oomoo`000Woo00@007ooOol000=oo`03001oogoo00=oo`8000Aoo`03001oogoo00aoo`03001o
+ogoo03Ioo`8000Ioo`8001Eoo`8003Yoo`001goo00@007ooOol000Qoo`04001oogoo0002Ool01000
+Oomoo`000goo00<007ooOol01Goo00D007ooOomoo`0000ioo`03001oogoo03Ioo`8000Ioo`8001Mo
+o`03001oogoo03Moo`0027oo0P002Woo0P0017oo0P000goo0P0017oo0`0017oo00<007ooOol02goo
+00<007ooOol0=goo0P001Woo0P0067oo0P00=goo000/Ool00`00Oomoo`0:Ool00`00Oomoo`0hOol2
+0006Ool2000JOol00`00Oomoo`0dOol002aoo`03001oogoo00Uoo`03001oogoo03Uoo`8000Ioo`80
+01]oo`03001oogoo03=oo`00;7oo00<007ooOol02Goo00<007ooOol0>Goo0P001Woo0P0077oo00<0
+07ooOol0<Woo000/Ool00`00Oomoo`08Ool00`00Oomoo`0jOol20006Ool2000MOol00`00Oomoo`0a
+Ool002aoo`03001oogoo00Moo`03001oogoo03aoo`03001oogoo00Aoo`8001ioo`03001oogoo031o
+o`00;7oo00<007ooOol01goo00<007ooOol0@goo0P007goo00<007ooOol0;goo000/Ool00`00Oomo
+o`06Ool00`00Oomoo`14Ool00`00Oomoo`0OOol00`00Oomoo`0^Ool000Qoo`8000Aoo`8000Aoo`80
+00Aoo`8000=oo`<000=oo`@000=oo`03001oogoo00Ioo`03001oogoo04Aoo`03001oogoo021oo`03
+001oogoo02eoo`001goo00@007ooOol000=oo`8000=oo`04001oogoo0002Ool01000Oomoo`000goo
+00<007ooOol00goo00<007ooOol00goo00<007ooOol01Goo00<007ooOol0JGoo00<007ooOol0;7oo
+00000goo0000000300001Goo001oogoo000027oo00@007ooOol0009oo`04001oogoo0003Ool00`00
+Oomoo`04Ool00`00Oomoo`02Ool20005Ool00`00Oomoo`1[Ool00`00Oomoo`0[Ool000Moo`04001o
+ogoo0008Ool01000Oomoo`000Woo00@007ooOol000=oo`03001oogoo00Eoo`05001oogooOol00005
+Ool00`00Oomoo`1]Ool00`00Oomoo`0ZOol000Moo`04001oogoo0008Ool01000Oomoo`000Woo00@0
+07ooOol000=oo`03001oogoo009oo`04001oogoo0003Ool00`00Oomoo`03Ool00`00Oomoo`1^Ool0
+0`00Oomoo`0YOol000Qoo`8000Yoo`8000Aoo`8000=oo`8000Eoo`8000Aoo`03001oogoo009oo`03
+001oogoo071oo`03001oogoo02Qoo`00;7oo00<007ooOol00Woo00<007ooOol0LGoo00<007ooOol0
+9goo000/Ool01@00Oomoogoo0000MGoo0P009goo000/Ool01@00Oomoogoo0000Mgoo00<007ooOol0
+97oo000/Ool01000Oomoo`00NGoo00<007ooOol08goo000/Ool01000Oomoo`00NGoo00<007ooOol0
+8goo000/Ool00`00Ool0001kOol00`00Oomoo`0ROol002aoo`8007eoo`03001oogoo025oo`0027oo
+0P0017oo0P0017oo0P0017oo0P000goo0`000goo0`0017oo0P00OWoo0P008Goo0007Ool01000Oomo
+o`000goo0P000goo00@007ooOol0009oo`04001oogoo0003Ool00`00Oomoo`03Ool00`00Oomoo`03
+Ool00`00Oomoo`1oOol00`00Oomoo`0NOol00003Ool0000000<00005Ool007ooOol00008Ool01000
+Oomoo`000Woo00@007ooOol000=oo`03001oogoo00=oo`03001oogoo00=oo`80085oo`03001oogoo
+01eoo`001goo00@007ooOol000Qoo`04001oogoo0002Ool01000Oomoo`000goo00<007ooOol00goo
+00<007ooOol00goo00<007ooOol0PGoo00<007ooOol077oo0007Ool01000Oomoo`0027oo00@007oo
+Ool0009oo`04001oogoo0003Ool00`00Oomoo`03Ool00`00Oomoo`03Ool00`00Oomoo`22Ool00`00
+Oomoo`0KOol000Qoo`8000Yoo`8000Aoo`8000=oo`8000Aoo`8000Eoo`03001oogoo08=oo`03001o
+ogoo01Yoo`00;7oo00<007ooOol07Woo0`0017oo0P006Woo0`0017oo0P0017oo0P0067oo0`000goo
+0`0017oo0P003Goo00<007ooOol01goo0`000goo10000goo0P000goo000/Ool00`00Oomoo`0QOol0
+1000Oomoo`000Woo00<007ooOol067oo00<007ooOol00Woo00@007ooOol0009oo`04001oogoo000H
+Ool00`00Oomoo`03Ool00`00Oomoo`02Ool01000Oomoo`003Goo00<007ooOol01goo00<007ooOol0
+0goo00<007ooOol00Woo00@007ooOol0009oo`00;7oo00<007ooOol07goo0`000Woo00@007ooOol0
+01Yoo`03001oogoo009oo`04001oogoo0002Ool01000Oomoo`0067oo00<007ooOol00goo00<007oo
+Ool00Woo00@007ooOol000ioo`03001oogoo00Ioo`03001oogoo00Aoo`05001oogooOol00002Ool1
+0001Ool1Ool002aoo`03001oogoo01ioo`04001oogoo0002Ool01000Oomoo`006Woo00<007ooOol0
+0Woo00@007ooOol0009oo`04001oogoo000HOol00`00Oomoo`03Ool00`00Oomoo`02Ool01000Oomo
+o`003goo00<007ooOol01Goo00<007ooOol01Goo00@007ooOol0009oo`40005oo`5oo`00;7oo00<0
+07ooOol07Woo00@007ooOol0009oo`04001oogoo000JOol00`00Oomoo`02Ool01000Oomoo`000Woo
+00@007ooOol001Qoo`03001oogoo00=oo`03001oogoo009oo`04001oogoo000@Ool00`00Oomoo`04
+Ool00`00Oomoo`02Ool01000Oomoo`000Woo00@007ooOol0009oo`00;7oo00<007ooOol07goo0P00
+17oo0P006Woo0P001Goo0P0017oo0P0067oo0P0017oo0P001Goo0P004Woo00<007ooOol00Woo0P00
+1Goo0P0017oo0P000goo000/Ool00`00Oomoo`2:Ool00`00Oomoo`0COol002aoo`03001oogoo08Yo
+o`03001oogoo01=oo`00;7oo00<007ooOol0Rgoo00<007ooOol04Woo000XOonR0005Ool002aoo`03
+001oogoo02=oo`03001oogoo02=oo`03001oogoo02Aoo`03001oogoo01Yoo`03001oogoo00Ioo`03
+001oogoo00Moo`00;7oo00<007ooOol0SWoo00<007ooOol03goo000/Ool00`00Oomoo`2?Ool00`00
+Oomoo`0>Ool002aoo`03001oogoo091oo`03001oogoo00eoo`00;7oo00<007ooOol0TGoo00<007oo
+Ool037oo000/Ool00`00Oomoo`2BOol00`00Oomoo`0;Ool002aoo`03001oogoo09=oo`03001oogoo
+00Yoo`00;7oo00<007ooOol0U7oo00<007ooOol02Goo000/Ool00`00Oomoo`2EOol00`00Oomoo`08
+Ool000Qoo`8000Aoo`8000Aoo`8000Aoo`8000Aoo`8000=oo`<000Aoo`03001oogoo09Ioo`03001o
+ogoo00Moo`001goo00@007ooOol000=oo`8000=oo`04001oogoo0002Ool01000Oomoo`000Woo00@0
+07ooOol000Eoo`05001oogooOol0002ROol00003Ool0000000<00005Ool007ooOol00008Ool01000
+Oomoo`000Woo00@007ooOol0009oo`04001oogoo0003Ool30003Ool2002QOol000Moo`04001oogoo
+0008Ool01000Oomoo`000Woo00@007ooOol0009oo`04001oogoo0002Ool01000Oomoo`000goo00<0
+07ooOol0X7oo0007Ool01000Oomoo`0027oo00@007ooOol0009oo`04001oogoo0002Ool01000Oomo
+o`000Woo00@007ooOol00:Ioo`0027oo0P002Woo0P0017oo0P0017oo0P0017oo0P00Ygoo003?Ool0
+0<moo`00cgoo003?Ool00<moo`00cgoo003?Ool00<moo`00cgoo003?Ool00<moo`00cgoo003?Ool0
+0001\
+\>"],
+  ImageRangeCache->{{{0, 206.75}, {127.125, 0}} -> {68.5466, -0.00175867, 
+  0.260195, 7.72818*^-6}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(samples = 
+      TableForm[
+        Join[{{"\<S\>", \ "\<Doug(2T)\>", "\<Exact\>", \ "\<Error\>"}}, \n\t
+          Table[\((PaddedForm[N[#1], {6, 4}] &)\)/@\n\t\t{S, \ 
+                Valuation[100, Log[1.05], 0, S, 1, 
+                  0.2], \n\t\t\t\t\t\tBlackScholesCall[S, 100, 0.2, 
+                  Log[1.05], 0, 
+                  1], \n\t\t\t\t\t\tValuation[100, Log[1.05], 0, S, 1, 0.2] - 
+                  BlackScholesCall[S, 100, 0.2, Log[1.05], 0, 1]}, \n\t{S, 
+              90, 110, 2}]]]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    TagBox[GridBox[{
+          {"\<\"S\"\>", "\<\"Doug(2T)\"\>", "\<\"Exact\"\>", 
+            "\<\"Error\"\>"},
+          {
+            TagBox[
+              InterpretationBox["\<\" 90.0000\"\>",
+                90.0,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\"  5.0492\"\>",
+                5.0492424643161069,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\"  5.0507\"\>",
+                5.0506840545616001,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" -0.0014\"\>",
+                -0.0014415902454931739,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)]},
+          {
+            TagBox[
+              InterpretationBox["\<\" 92.0000\"\>",
+                92.0,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\"  5.9477\"\>",
+                5.9476566458427023,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\"  5.9491\"\>",
+                5.94911876588084,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" -0.0015\"\>",
+                -0.0014621200381377264,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)]},
+          {
+            TagBox[
+              InterpretationBox["\<\" 94.0000\"\>",
+                94.0,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\"  6.9325\"\>",
+                6.9324987617456175,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\"  6.9340\"\>",
+                6.9339679998665815,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" -0.0015\"\>",
+                -0.0014692381209640004,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)]},
+          {
+            TagBox[
+              InterpretationBox["\<\" 96.0000\"\>",
+                96.0,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\"  8.0021\"\>",
+                8.0020803583537639,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\"  8.0036\"\>",
+                8.0035760482972904,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" -0.0015\"\>",
+                -0.0014956899435265569,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)]},
+          {
+            TagBox[
+              InterpretationBox["\<\" 98.0000\"\>",
+                98.0,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\"  9.1538\"\>",
+                9.1538340023186429,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\"  9.1554\"\>",
+                9.1554276281509601,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" -0.0016\"\>",
+                -0.0015936258323172581,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)]},
+          {
+            TagBox[
+              InterpretationBox["\<\" 100.0000\"\>",
+                100.0,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" 10.3846\"\>",
+                10.384627402605856,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" 10.3863\"\>",
+                10.386279496719517,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" -0.0017\"\>",
+                -0.0016520941136608513,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)]},
+          {
+            TagBox[
+              InterpretationBox["\<\" 102.0000\"\>",
+                102.0,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" 11.6908\"\>",
+                11.690769328681602,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" 11.6923\"\>",
+                11.69229979436944,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" -0.0015\"\>",
+                -0.0015304656878374345,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)]},
+          {
+            TagBox[
+              InterpretationBox["\<\" 104.0000\"\>",
+                104.0,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" 13.0678\"\>",
+                13.067830038181262,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" 13.0692\"\>",
+                13.069208035029099,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" -0.0014\"\>",
+                -0.0013779968478377924,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)]},
+          {
+            TagBox[
+              InterpretationBox["\<\" 106.0000\"\>",
+                106.0,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" 14.5111\"\>",
+                14.511097010304569,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" 14.5124\"\>",
+                14.512409898911578,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" -0.0013\"\>",
+                -0.0013128886070088441,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)]},
+          {
+            TagBox[
+              InterpretationBox["\<\" 108.0000\"\>",
+                108.0,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" 16.0159\"\>",
+                16.01585444049611,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" 16.0171\"\>",
+                16.017122321788946,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" -0.0013\"\>",
+                -0.0012678812928363925,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)]},
+          {
+            TagBox[
+              InterpretationBox["\<\" 110.0000\"\>",
+                110.0,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" 17.5773\"\>",
+                17.57727012097293,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" 17.5785\"\>",
+                17.578485701247487,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\" -0.0012\"\>",
+                -0.0012155802745574817,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)]}
+          },
+        RowSpacings->1,
+        ColumnSpacings->3,
+        RowAlignments->Baseline,
+        ColumnAlignments->{Left}],
+      (TableForm[ #]&)]], "Output",
+  FontSize->8]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Jump Adjustment for Cash Dividend", "Subsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  PageBreakAbove->Automatic],
+
+Cell["\<\
+We have got the FD model working well for the standard case with no \
+dividend payment. Now let's look at the adjustments needed for dividends. We \
+need to implement the jump condition at the dividend date, and make an \
+adjustment to the upper boundary condition prior (in real time) to the \
+payment. Let's pursue the detailed set-up.\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["Here are the grid parameters:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+M=40;
+nminus = 320;
+nplus = 320;
+dx = 0.01; 
+dtau = 0.0005; 
+alpha = dtau/dx^2;
+
+divm = 21; (* discrete dividend paid half-way *)
+cashdiv = 20; (* big to test it properly! *)
+strike = 100;
+ko = kone[Log[1.05],0.2];
+kt = ktwo[Log[1.05],0,0.2];\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell["\<\
+Here is the dividend jump correction to the upper boundary \
+condition:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(DivCorrUBC[strike_, \ r_, \ q_, \ tau_, \ sd_, cashdiv_, \ 
+        divtime_]\  := \n\t
+      cashdiv*Exp[kone[r, sd]*\((sd^2*divtime/2 - tau)\)]/
+          ValuationMultiplier[strike, r, q, nplus*dx, tau, sd]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+The following function implements part of the jump condition, \
+ensuring that the resulting price stays within range, i.e. positive. This is \
+done at the lower end of the grid by capping the yield at 70%. The reader can \
+investigate the effect of varying this cap - it does not materially alter our \
+conclusions, but makes very small shifts to the details of the \
+valuation.\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+FixedInterp[k_, dx_, nminus_, kt_, cashdiv_, strike_, interfunc_] \
+:=
+Module[{q, new},
+q = If[cashdiv*Exp[-(k-nminus-1)*dx]/strike < 0.7, -Log[1 - \
+cashdiv*Exp[-(k-nminus-1)*dx]/strike], -Log[1-0.7]];
+new = Which[
+q > 99999, 
+0,
+(k-nminus-1)*dx - q < -(nminus-1)*dx, 
+0,
+True,
+Exp[0.5*(kt-1)*q]*interfunc[(k-nminus-1)*dx -q]
+];
+new]
+\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Now we set up, evolve and post-process the result in the usual way:\
+\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(initial = 
+      Table[CallExercise[\((k - 1 - nminus)\)\ dx, Log[1.05], 0, 0.2], \ {k, 
+          nminus + nplus + 1}]; \n
+    lower = Table[
+        f[\(-nminus\)\ dx, \((m - 1)\)\ dtau, Log[1.05], 0, 0.2], \ {m, \ 
+          1, \ M + 1}]; \n
+    upper = Table[
+        g[\(+nplus\)\ dx, \ \ \((m - 1)\)\ dtau, Log[1.05], 0, 0.2], \ {m, \ 
+          1, \ M + 1}]; \nwold\  = \ initial; \nwvold\  = \ wold; \n
+    wnew\  = \ wold; \n
+    points\  = \ 
+      Table[\((k - nminus - 1)\)*dx, \ \ {k, \ 2, \ nplus + nminus}]; \)], 
+  "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+For[m=2, m<=M+1, m++,
+(wvold = wold;
+wold = wnew;
+rhs = DougDMatrix[alpha, Take[wold, {2, -2}]]+
+Table[
+Which[
+k==1, alpha*(lower[[m-1]] + lower[[m]])/2,
+k== nplus + nminus-1,  alpha*(upper[[m-1]] + upper[[m]])/2,
+True, 0],
+{k, 1, nplus + nminus-1}];
+temp = CompTridiagSolve[CMat, rhs];
+
+If[m==divm, 
+(Print[\"Doing Dividend Jump Adjustments\"];
+interpoldata = Transpose[{points,temp}];
+divfunc = Interpolation[interpoldata, InterpolationOrder -> 3];
+vnew = Table[
+FixedInterp[k,dx,nminus,kt,cashdiv,strike,divfunc], {k, 2, nplus+nminus}];
+temp = vnew;
+(* having corrected interior, do upper boundary condition *)
+Do[upper[[m]] -= DivCorrUBC[100, Log[1.05], 0, (m-1)*dtau, 0.20 \
+,cashdiv,0.5],
+{m, divm, M+1}];
+),];
+wnew = Join[{lower[[m]]}, temp, {upper[[m]]}])]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  PageBreakWithin->Automatic,
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    \("Doing Dividend Jump Adjustments"\)], "Print"]
+}, Open  ]],
+
+Cell["\<\
+interpoldatab = Table[{(k - nminus - 1)*dx, wnew[[k]]}, {k, 1, \
+nminus + nplus + 1}]; 
+ufuncb = Interpolation[interpoldatab, InterpolationOrder -> 3];
+Valuation[strike_, r_, q_, S_, T_, sd_] := 
+  ValuationMultiplier[strike, r, q, Log[S/strike], (sd^2*T)/2, sd]*
+   ufuncb[Log[S/strike]]\
+\>", "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell["\<\
+We plot and tabulate the results in the neighbourhood of the \
+at-the-money value of interest:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(samples = 
+      TableForm[
+        Join[{{"\<S\>", \ "\<Doug(2T) with Cash Div\>"}}, \n\t
+          Table[\((PaddedForm[N[#1], {6, 4}] &)\)/@\n\t\t{S, \ 
+                Valuation[100, Log[1.05], 0, S, 1, 0.2]}, \n\t{S, 98, 102, 
+              1}]]]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  AspectRatioFixed->True],
+
+Cell[BoxData[
+    TagBox[GridBox[{
+          {"\<\"S\"\>", "\<\"Doug(2T) with Cash Div\"\>"},
+          {
+            TagBox[
+              InterpretationBox["\<\" 98.0000\"\>",
+                98.0,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\"  2.0874\"\>",
+                2.0873507198966568,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)]},
+          {
+            TagBox[
+              InterpretationBox["\<\" 99.0000\"\>",
+                99.0,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\"  2.3174\"\>",
+                2.3173788176116337,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)]},
+          {
+            TagBox[
+              InterpretationBox["\<\" 100.0000\"\>",
+                100.0,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\"  2.5645\"\>",
+                2.5645305524360547,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)]},
+          {
+            TagBox[
+              InterpretationBox["\<\" 101.0000\"\>",
+                101.0,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\"  2.8293\"\>",
+                2.8292775835370576,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)]},
+          {
+            TagBox[
+              InterpretationBox["\<\" 102.0000\"\>",
+                102.0,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)], 
+            TagBox[
+              InterpretationBox["\<\"  3.1120\"\>",
+                3.1120456044723839,
+                AutoDelete->True],
+              (PaddedForm[ #, {6, 4}]&)]}
+          },
+        RowSpacings->1,
+        ColumnSpacings->3,
+        RowAlignments->Baseline,
+        ColumnAlignments->{Left}],
+      (TableForm[ #]&)]], "Output",
+  FontSize->8]
+}, Open  ]],
+
+Cell["\<\
+The value of interest is 2.5645, which compares well with the Monte \
+Carlo simulated value of 2.5877 with a standard error of 0.015. The \
+analytical model has been out-voted in this naive set of calculations.
+
+The FD implementation of a jump condition can also be used when dealing with \
+American-style options. It is simpler to code the Monte Carlo version for the \
+European case. But we really need to find out what is causing the difference \
+between the results. \
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["24.5 Analytical Models - a Second Look", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "To reconcile the two numerical schemes and the simple analytical treatment \
+we must take a closer look at the random processes involved. We will do so \
+for just one dividend payment between initiation and expiry, though the \
+principle is the same for many cash dividends. We shall also keep the \
+volatility fixed at a constant, though one can also experiment with two \
+different volatilities for the two stages. Suppose that the underlying price \
+at initiation is ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  ". Suppose that the dividend ",
+  Cell[BoxData[
+      \(TraditionalForm\`D\)]],
+  " is paid at time ",
+  Cell[BoxData[
+      \(TraditionalForm\`t\_1\)]],
+  ". Just before time ",
+  Cell[BoxData[
+      \(TraditionalForm\`t\_1\)]],
+  ", the underlying price, under standard assumptions, is given by"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`S\ \[ExponentialE]\^\(x\ \[Sigma]\ \@t\_1 + \((r - \
+\[Sigma]\^2\/2)\)\ t\_1\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where ",
+  Cell[BoxData[
+      \(TraditionalForm\`x\)]],
+  " is distributed ",
+  Cell[BoxData[
+      \(TraditionalForm\`N(0, 1)\)]],
+  ". If the dividend is defined to be the effective jump in the stock price, \
+the price just after the dividend is paid is "
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`S\ \[ExponentialE]\^\(x\ \[Sigma]\ \@t\_1 + \((r - \
+\[Sigma]\^2\/2)\)\ t\_1\) - D\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Assuming that this then follows a new random walk, the price at \
+expiry will be\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`S\_T = 
+      S\ \[ExponentialE]\^\(\((r - \[Sigma]\^2\/2)\)\ T + y\ \[Sigma]\ \@\(T \
+- t\_1\) + x\ \[Sigma]\ \@t\_1\) - 
+        D\ \[ExponentialE]\^\(y\ \[Sigma]\ \@\(T - t\_1\) + \((r - \
+\[Sigma]\^2\/2)\)\ \((T - t\_1)\)\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where ",
+  Cell[BoxData[
+      \(TraditionalForm\`y\)]],
+  " is also ",
+  Cell[BoxData[
+      \(TraditionalForm\`N(0, 1)\)]],
+  ". This is in a form that is very similar to a spread option on two assets. \
+Indeed, the fact that this expiry variable is not log-normal, and \
+hypothetically could become negative, arises for the same reasons as \
+discussed in Chapter 23. In practice, ",
+  Cell[BoxData[
+      \(TraditionalForm\`D\)]],
+  " is much smaller than ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  ", so we can discard most of the concerns that apply to a general spread \
+option. But we can value it accurately by similar methods. To save space, let \
+us define"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[{
+    \(TraditionalForm\`S\&~ = 
+      S\ \[ExponentialE]\^\(\((r - \[Sigma]\^2\/2)\)\ T\)\), 
+    \(TraditionalForm\`D\&~ = 
+      D\ \[ExponentialE]\^\(\((r - \[Sigma]\^2\/2)\)\ \((T - t\_1)\)\)\)}], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["so that", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`S\_T = 
+      S\&~\ \[ExponentialE]\^\(y\ \[Sigma]\ \@\(T - t\_1\) + x\ \[Sigma]\ \@t\
+\_1\) - D\&~\ \[ExponentialE]\^\(y\ \[Sigma]\ \@\(T - t\_1\)\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["and the payoff for a call is given by", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`Max[
+      S\&~\ \[ExponentialE]\^\(y\ \[Sigma]\ \@\(T - t\_1\) + x\ \[Sigma]\ \@t\
+\_1\) - D\&~\ \[ExponentialE]\^\(y\ \[Sigma]\ \@\(T - t\_1\)\) - K, 0]\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "This means that we only need to do the integration from the lower limit ",
+  Cell[BoxData[
+      \(TraditionalForm\`x\_min\)]],
+  "to infinity, where"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`x\_min = \(log(K\ \[ExponentialE]\^\(\(-y\)\ \[Sigma]\ \
+\@\(T - t\_1\)\) + D\&~) - log(S\&~)\)\/\(\[Sigma]\ \@t\_1\)\)], 
+  "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "We can express this as a ",
+  StyleBox["Mathematica",
+    FontSlant->"Italic"],
+  " function:"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(\(DivCallLimit[y_, \ S_, \ K_, \ D_, \ r_, \ \[Sigma]_, \ td_, \ 
+        T_]\  := \n\t\((Log[
+              K\ Exp[\(-y\)\ \[Sigma]\ Sqrt[T - td]]\  + \ 
+                D\ Exp[\((r - \[Sigma]^2/2)\) \((T - td)\)]]\  - \ 
+            Log[S\ \ Exp[\((r - \[Sigma]^2/2)\) T]])\)/\((\[Sigma]\ Sqrt[
+              td])\)\n\)\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["Now we do the valuation as for a spread:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(DivCallIntegral[S_, \ K_, \ D_, \ r_, \ \[Sigma]_, \ td_, \ T_, \ 
+        range_]\  := \n\t
+      Exp[\(-r\)*T]/\((2\ Pi)\)\ NIntegrate[
+          Exp[\(-\((x^2\  + \ y^2)\)\)/
+                2]*\((S*
+                  Exp[\((r\  - \ \[Sigma]^2/2)\)*T\  + \ 
+                      y*\[Sigma]*Sqrt[T\  - \ td]\  + \ 
+                      x*\[Sigma]*Sqrt[td]]\  - \ 
+                D*Exp[y*\[Sigma]*
+                        Sqrt[T\  - \ 
+                            td]\  + \ \((r\  - \ \[Sigma]^2/2)\)*\((T\  - \ 
+                            td)\)]\  - \ K)\), \ {y, \ \(-range\), \ 
+            range}, \ {x, \ 
+            DivCallLimit[y, \ S, \ K, \ D, \ r, \ \[Sigma], \ td, \ T], \ 
+            range}]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["Here is the value of our running example. ", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(DivCallIntegral[100, \ 100, \ 20, \ Log[1.05], \ 0.2, \ 0.5, \ 1, \ 
+      8]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(2.56562170119745935`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+This agrees well with the Monte Carlo result and the FD result, as \
+it should. Another independent check on this model is that if the dividend is \
+paid an instant before expiry, it is as though the strike were increased by \
+the dividend - we can check that this is the case. \
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(DivCallIntegral[100, \ 100, \ 20, \ Log[1.05], \ 0.2, \ 1, \ 1, \ 
+      10]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(3.21676696572489273`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(BlackScholesCall[100, \ 100 + 20, \ \ 0.2, Log[1.05], \ 0, \ 1]\)], 
+  "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  PageBreakWithin->True,
+  GroupPageBreakWithin->True],
+
+Cell[BoxData[
+    \(3.21676680245222357`\)], "Output",
+  GroupPageBreakWithin->True]
+}, Open  ]],
+
+Cell[TextData[{
+  "So it has to be appreciated that if we allow the real stock price to \
+follow a log-normal random walk at all times to the dividend payment, and \
+then thereafter, the resulting expiry distribution is not in fact log-normal \
+at all, and is actually bivariate.\n\nReaders should follow through the above \
+calculation when the model is a type (2) model, and the dividend is of the \
+form ",
+  Cell[BoxData[
+      \(TraditionalForm\`Q\ S\)]],
+  ". Then the log-normal character is preserved, and the option can be valued \
+as though the initial price were ",
+  Cell[BoxData[
+      \(TraditionalForm\`S(1 - Q)\)]],
+  ". The results from this analytical model then agree with Monte Carlo or FD \
+results, as the reader may also wish to check. "
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell["Moment Matching in the Log-Normal Approximation", "Subsection",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "So far, in the view that the real stock price is the underlying, we have \
+found that the expiry distribution is akin to that for a spread. In general, \
+spreads do not admit a good log-normal distribution, but as the dividend is \
+typically small compared to the stock price, we can go for a log-normal \
+model. The approach is the same as we have taken for Asian and Basket \
+options, and we match the first and second moments of the expiry distribution \
+in the usual way. This leads to an interesting result. Matching of the means \
+says that the variable to be used is just ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  "! But this is not enough on its own. The effective price is just the \
+standard adjustment, but there is also a shift in the effective volatility. \
+It is a simple matter to check that the effective volatility is given by"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`\@\(\[Sigma]\^2 + \(log(1 + \(\((1 - \[ExponentialE]\^\
+\(\(-\[Sigma]\^2\)\ td\))\)\ \((2\ S\ D\ \[ExponentialE]\^\(\(-r\)\ td\) - \
+D\^2\ \[ExponentialE]\^\(\(-2\)\ r\ td\))\)\)\/\((S - D\ \
+\[ExponentialE]\^\(\(-r\)\ td\))\)\^2)\)\/T\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where the time to the only dividend payment is ",
+  Cell[BoxData[
+      \(TraditionalForm\`td\)]],
+  ". It is a simple matter to implement this correction:"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(VolEff[\[Sigma]_, \ T_, \ td_, \ r_, \ S_, \ D_]\  := \ 
+      Sqrt[\[Sigma]^2\  + \ 
+          1/T*Log[1\  + \ \((2*S*D*Exp[\(-r\)*td]\  - \ 
+                      D^2\ Exp[\(-2\)*r*td])\)*\((1\  - \ 
+                        Exp[\(-\[Sigma]^2\)\ td])\)/\((S\  - \ 
+                          D*Exp[\(-r\)*td])\)^2]]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+When the underlying has a volatility of 20%, the effective \
+volatility to use in the log-normal approximation is given by\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(VolEff[0.2, \ 1, \ 0.5, \ Log[1.05], \ 100, \ 20]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(0.225191469171311986`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+or about 22.5%. We can now create a Black-Scholes analytical \
+approximation to the case where the real stock price is the underlying:\
+\>", 
+  "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(AccAnalyticalDivEuroCall[S_, \ K_, \ \[Sigma]_, \ r_, \ q_, \ t_, \ 
+        td_, \ D_] := \n\t
+      Module[{adjprice, \ adjvol}, \n\t\tadjprice\  = \ 
+          S\  - D*Exp[\(-r\)*td]; \n\t\tadjvol\  = \ 
+          VolEff[\[Sigma], \ t, \ td, \ r, \ S, \ D]; \n\t\tBlackScholesCall[
+          adjprice, \ K, \ adjvol, \ r, \ q, \ t\ ]]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell["\<\
+Here are the results of this simplified model with the dividend \
+paid half-way, and just before expiry:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AccAnalyticalDivEuroCall[100, \ 100, \ 0.2, \ Log[1.05], \ 0, \ 1, \ 
+      0.5, \ 20]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(2.58740701898521052`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AccAnalyticalDivEuroCall[100, \ 100, \ 0.2, \ Log[1.05], \ 0, \ 1, \ 
+      1, \ 20]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(3.27750405003165923`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+These should be compared with the pure effective price models:\
+\>",
+   "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AnalyticalDivEuroCall[100, \ 100, \ 0.2, \ Log[1.05], \ 0, \ 
+      1, \ {{0.5, \ 20}}]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(1.94852850671232502`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AnalyticalDivEuroCall[100, \ 100, \ 0.2, \ Log[1.05], \ 0, \ 
+      1, \ {{1, \ 20}}]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(2.05839812706870262`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+These are considerably closer to the numerically computed values. \
+For smaller dividends we have closer results - here are the exact, the \
+vol-adjusted and the folklore estimates for a 5% dividend:\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(DivCallIntegral[100, \ 100, \ 5, \ Log[1.05], \ 0.2, \ 0.5, \ 1, \ 
+      8]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(7.71977481569317358`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AccAnalyticalDivEuroCall[100, \ 100, \ 0.2, \ Log[1.05], \ 0, \ 1, \ 
+      0.5, \ 5]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(7.71699995760721435`\)], "Output"]
+}, Open  ]],
+
+Cell["The first two agree, but the last is rather lower:", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AnalyticalDivEuroCall[100, \ 100, \ 0.2, \ Log[1.05], \ 0, \ 
+      1, \ {{0.5, \ 5}}]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}},
+  GroupPageBreakWithin->True],
+
+Cell[BoxData[
+    \(7.52291752343552388`\)], "Output",
+  GroupPageBreakWithin->True]
+}, Open  ]],
+
+Cell["\<\
+The difference is amplified if the dividend is paid just before \
+expiry. \
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(DivCallIntegral[100, \ 100, \ 5, \ Log[1.05], \ 0.2, \ 1, \ 1, \ 8]\)], 
+  "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(7.9655678418268021`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AccAnalyticalDivEuroCall[100, \ 100, \ 0.2, \ Log[1.05], \ 0, \ 1, \ 
+      1, \ 5]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(7.95620013005671466`\)], "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AnalyticalDivEuroCall[100, \ 100, \ 0.2, \ Log[1.05], \ 0, \ 
+      1, \ {{1, \ 5}}]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(7.5862547194341019`\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "But note that with a 5% yield there is a material (5%) difference in the \
+option value computed by the two methods. The simple PV-dividend rule simply \
+cannot be used with any confidence in the view where the stock price is the \
+underlying, but if used with the volatility adjustment also in place, good \
+results can be obtained, again, if you believe the fundamental log-normal \
+assumptions apply to the asset price and not to ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  ". \n\nAll of these considerations have American-style counterparts, only \
+this time the problem is matching the numerical results for ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " the underlying with the RGW model of American Calls discussed previously, \
+in Chapter 11. If one implements an FD model of Americans using a jump \
+condition, using the straightforward modification of the FD example given \
+here, the results will differ markedly from the RGW values applied with the \
+same volatility. \n\nThe use of an effective volatility is also briefly \
+discussed by Hull (1996). That author remarks that the volatility of the \
+risky component is approximately equal to the volatility of the whole stock \
+price multiplied by"
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(TraditionalForm\`S\/\(S - V\)\)], "NumberedEquation",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "where ",
+  Cell[BoxData[
+      \(TraditionalForm\`V\)]],
+  " is the present value of the dividends. If we apply this as a fixed \
+constant to the 20% dividend, we would get a volatility of "
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(20*100/80 // N\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(25.`\)], "Output"]
+}, Open  ]],
+
+Cell["and a value of", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AnalyticalDivEuroCall[100, \ 100, \ 0.25, \ Log[1.05], \ 0, \ 
+      1, \ {{0.5, \ 20}}]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(3.25641785002118311`\)], "Output"]
+}, Open  ]],
+
+Cell["\<\
+which is now too high. For the more reasonable case of 5 units of \
+cash, we get a value of\
+\>", "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(AnalyticalDivEuroCall[100, \ 100, \ 0.25, \ Log[1.05], \ 0, \ 
+      1, \ {{0.5, \ 5}}]\)], "Input",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[BoxData[
+    \(9.40941581207356847`\)], "Output"]
+}, Open  ]],
+
+Cell[TextData[{
+  "which again is too high. It may be possible to get better agreement, and \
+indeed a consistent view, by building a volatility term structure based on \
+(12). The only ",
+  StyleBox["simple",
+    FontSlant->"Italic"],
+  " way to get good agreement between the analytical models and the numerical \
+models, with the stock price as the underlying, is to regard the variable ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  " as a component of a log-normal approximation, and to make the volatility \
+adjustment we have given in equation (11)."
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["24.6 Remarks", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "Although we have, hopefully, explained the different answers which result \
+when ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  " are treated as the underlying, we have not given a view as to the \"right\
+\" choice. It is hard to come to a firm view. The personal view of the author \
+is that treating the real-world stock price as the underlying gives a more \
+realistic view of the dependence of the option value on the time at which the \
+dividend is paid, as can be seen by considering two limiting cases. If the \
+dividend is paid immediately, we would expect to use the Black-Scholes \
+formula with ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " replaced by essentially ",
+  Cell[BoxData[
+      \(TraditionalForm\`S - D\)]],
+  ". At the other extreme, if the dividend is paid just before the expiry of \
+a (Call) option, we would expect it to be valued by the Black-Scholes formula \
+with the strike ",
+  Cell[BoxData[
+      \(TraditionalForm\`K\)]],
+  " replaced by ",
+  Cell[BoxData[
+      \(TraditionalForm\`K + D\)]],
+  ". These limits are captured perfectly in the picture in which ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " is the underlying, but not at all, so far as this author can see, by the \
+",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  " picture. \n\nFans of trees may wonder what happens if binomial trees are \
+used. If ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  " is the underlying, there are no surprises and everything ties up with the \
+",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  " analytical model if it exists. As described by Section 15.3 of Hull \
+(1996), the fixed cash dividend model applied directly to a tree in the ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  "-picture results in a non-recombining tree. This is precisely because of \
+the deviation from log-normality. If you have the patience to build a \
+non-re-combining tree, you will find the same result as obtained here in \
+Monte Carlo and finite-difference models. In fact, you can use a standard \
+recombining tree with a jump condition implemented by interpolation, in much \
+the same way as in our finite-difference model, and again get the same \
+result. The difference between the use of ",
+  Cell[BoxData[
+      \(TraditionalForm\`S\)]],
+  " and ",
+  Cell[BoxData[
+      \(TraditionalForm\`\(S\^*\)\)]],
+  " is a fundamental matter of principle, and not affected by whether we \
+model analytically, by finite differences, by Monte Carlo, or by trees - it \
+must be appreciated."
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Chapter 24 Bibliography", "Section",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}],
+
+Cell[TextData[{
+  "\nHull, J.C., 1996, ",
+  StyleBox["Options, Futures, and Other Derivatives",
+    FontSlant->"Italic"],
+  ", 3rd edition, Prentice-Hall.\n\nWilmott, P., Dewynne, J. and Howison, S., \
+1993, ",
+  StyleBox["Option Pricing - Mathematical Models and Computation",
+    FontSlant->"Italic"],
+  ", Oxford Financial Press."
+}], "Text",
+  CellMargins->{{6, Inherited}, {Inherited, Inherited}}]
+}, Open  ]]
+}, Open  ]]
+},
+FrontEndVersion->"Macintosh 3.0",
+ScreenRectangle->{{0, 1152}, {0, 850}},
+AutoGeneratedPackage->None,
+WindowToolbars->{},
+CellGrouping->Automatic,
+WindowSize->{554, 661},
+WindowMargins->{{17, Automatic}, {Automatic, 5}},
+PrintingCopies->1,
+PrintingStartingPageNumber->454,
+PrintingPageRange->{1, Automatic},
+PageHeaders->{{Inherited, Inherited, Cell[ 
+        TextData[ {"24. Discrete Dividends"}]]}, {Cell[ 
+        TextData[ {"24. Discrete Dividends"}]], Inherited, Inherited}},
+PageFooters->{{Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}, {Inherited, Cell[ 
+        TextData[ {
+          CounterBox[ "Page"]}]], Inherited}},
+PrintingOptions->{"PrintingMargins"->{{0, 0}, {57, 57}},
+"PaperSize"->{439, 716},
+"PrintCellBrackets"->False,
+"PrintRegistrationMarks"->False,
+"PrintMultipleHorizontalPages"->False,
+"FirstPageHeader"->False,
+"FacingPages"->True},
+PrivateNotebookOptions->{"ColorPalette"->{RGBColor, 128}},
+ShowCellLabel->False,
+ShowCellTags->False,
+RenderingOptions->{"ObjectDithering"->True,
+"RasterDithering"->False},
+Magnification->1,
+StyleDefinitions -> "Default.nb",
+MacintoshSystemPageSetup->"\<\
+00<0004/0B`000003;T8`?n3ohP==PTh0b85N`?P0080004/0B`000006G<AP001
+0000I00000400@4100800BL?00400@S<]<0000000000064/01T1T00000000000
+00000000007oo@S<bH3oo@001HL:o`00\>"
+]
+
+
+(***********************************************************************
+Cached data follows.  If you edit this Notebook file directly, not using
+Mathematica, you must remove the line containing CacheID at the top of 
+the file.  The cache data will then be recreated when you save this file 
+from within Mathematica.
+***********************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1731, 51, 169, 6, 174, "Title"],
+Cell[1903, 59, 133, 1, 47, "Subsubtitle"],
+
+Cell[CellGroupData[{
+Cell[2061, 64, 141, 3, 50, "Section"],
+Cell[2205, 69, 2484, 45, 462, "Text"],
+Cell[4692, 116, 203, 4, 45, "NumberedEquation"],
+Cell[4898, 122, 4141, 87, 558, "Text",
+  PageBreakAbove->Automatic,
+  PageBreakWithin->Automatic]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[9076, 214, 103, 1, 38, "Section"],
+Cell[9182, 217, 415, 10, 40, "Text"],
+Cell[9600, 229, 457, 9, 76, "Input"],
+Cell[10060, 240, 269, 5, 29, "Text"],
+Cell[10332, 247, 526, 13, 112, "Input",
+  InitializationCell->True],
+Cell[10861, 262, 167, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[11053, 270, 148, 2, 25, "Input"],
+Cell[11204, 274, 85, 1, 36, "Output"]
+}, Open  ]],
+Cell[11304, 278, 98, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[11427, 283, 148, 2, 25, "Input"],
+Cell[11578, 287, 264, 4, 48, "Output"]
+}, Open  ]],
+Cell[11857, 294, 132, 1, 20, "Text"],
+Cell[11992, 297, 219, 4, 62, "Input"],
+Cell[12214, 303, 350, 9, 29, "Text"],
+Cell[12567, 314, 569, 11, 112, "Input"],
+
+Cell[CellGroupData[{
+Cell[13161, 329, 184, 3, 37, "Input"],
+Cell[13348, 334, 80, 1, 36, "Output"]
+}, Open  ]],
+Cell[13443, 338, 183, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[13651, 346, 185, 3, 37, "Input"],
+Cell[13839, 351, 80, 1, 36, "Output"]
+}, Open  ]],
+Cell[13934, 355, 269, 5, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[14228, 364, 183, 3, 37, "Input"],
+Cell[14414, 369, 79, 1, 36, "Output"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[14542, 376, 180, 6, 38, "Section"],
+Cell[14725, 384, 567, 11, 52, "Text"],
+Cell[15295, 397, 128, 2, 25, "Input"],
+Cell[15426, 401, 448, 8, 76, "Input"],
+
+Cell[CellGroupData[{
+Cell[15899, 413, 177, 3, 25, "Input"],
+Cell[16079, 418, 54, 1, 36, "Output"]
+}, Open  ]],
+Cell[16148, 422, 147, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[16320, 430, 176, 3, 25, "Input"],
+Cell[16499, 435, 54, 1, 36, "Output"]
+}, Open  ]],
+Cell[16568, 439, 277, 5, 29, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[16882, 449, 125, 1, 38, "Section"],
+Cell[17010, 452, 454, 10, 40, "Text"],
+Cell[17467, 464, 190, 3, 20, "NumberedEquation"],
+Cell[17660, 469, 311, 6, 40, "Text"],
+Cell[17974, 477, 169, 3, 20, "NumberedEquation"],
+Cell[18146, 482, 1812, 35, 184, "Text"],
+Cell[19961, 519, 1132, 20, 137, "Input"],
+Cell[21096, 541, 150, 4, 20, "Text"],
+Cell[21249, 547, 555, 10, 137, "Input",
+  InitializationCell->True],
+Cell[21807, 559, 103, 1, 20, "Text"],
+Cell[21913, 562, 263, 6, 52, "Input",
+  InitializationCell->True],
+Cell[22179, 570, 106, 1, 20, "Text"],
+Cell[22288, 573, 464, 10, 94, "Input",
+  InitializationCell->True],
+Cell[22755, 585, 102, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[22882, 590, 239, 7, 36, "Input",
+  PageBreakWithin->True],
+Cell[23124, 599, 92, 3, 36, "Output",
+  PageBreakWithin->True]
+}, Open  ]],
+Cell[23231, 605, 161, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[23417, 613, 124, 2, 25, "Input"],
+Cell[23544, 617, 65, 1, 36, "Output"]
+}, Open  ]],
+Cell[23624, 621, 150, 4, 20, "Text"],
+Cell[23777, 627, 548, 12, 112, "Input"],
+Cell[24328, 641, 808, 16, 176, "Input"],
+Cell[25139, 659, 441, 13, 124, "Input"],
+Cell[25583, 674, 396, 9, 80, "Input"],
+Cell[25982, 685, 178, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[26185, 693, 299, 6, 50, "Input"],
+Cell[26487, 701, 17653, 612, 136, 6924, 473, "GraphicsData", 
+"PostScript", "Graphics"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[44177, 1318, 622, 12, 100, "Input"],
+Cell[44802, 1332, 8521, 241, 148, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[53360, 1578, 141, 2, 32, "Subsection",
+  PageBreakAbove->Automatic],
+Cell[53504, 1582, 418, 7, 52, "Text"],
+Cell[53925, 1591, 102, 1, 20, "Text"],
+Cell[54030, 1594, 350, 15, 145, "Input"],
+Cell[54383, 1611, 152, 4, 20, "Text"],
+Cell[54538, 1617, 299, 5, 50, "Input"],
+Cell[54840, 1624, 459, 8, 52, "Text"],
+Cell[55302, 1634, 417, 17, 168, "Input"],
+Cell[55722, 1653, 150, 4, 20, "Text"],
+Cell[55875, 1659, 642, 15, 137, "Input"],
+
+Cell[CellGroupData[{
+Cell[56542, 1678, 902, 29, 300, "Input",
+  PageBreakWithin->Automatic],
+Cell[57447, 1709, 66, 1, 20, "Print"]
+}, Open  ]],
+Cell[57528, 1713, 396, 9, 80, "Input"],
+Cell[57927, 1724, 175, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[58127, 1732, 366, 8, 62, "Input"],
+Cell[58496, 1742, 2131, 64, 85, "Output"]
+}, Open  ]],
+Cell[60642, 1809, 552, 10, 73, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[61243, 1825, 114, 1, 38, "Section"],
+Cell[61360, 1828, 908, 21, 73, "Text"],
+Cell[62271, 1851, 196, 3, 24, "NumberedEquation"],
+Cell[62470, 1856, 346, 10, 29, "Text"],
+Cell[62819, 1868, 200, 3, 24, "NumberedEquation"],
+Cell[63022, 1873, 161, 4, 20, "Text"],
+Cell[63186, 1879, 345, 6, 24, "NumberedEquation"],
+Cell[63534, 1887, 765, 20, 62, "Text"],
+Cell[64302, 1909, 294, 6, 40, "NumberedEquation"],
+Cell[64599, 1917, 80, 1, 20, "Text"],
+Cell[64682, 1920, 270, 5, 22, "NumberedEquation"],
+Cell[64955, 1927, 110, 1, 20, "Text"],
+Cell[65068, 1930, 275, 5, 24, "NumberedEquation"],
+Cell[65346, 1937, 238, 6, 20, "Text"],
+Cell[65587, 1945, 238, 4, 38, "NumberedEquation"],
+Cell[65828, 1951, 182, 6, 20, "Text"],
+Cell[66013, 1959, 411, 7, 62, "Input"],
+Cell[66427, 1968, 113, 1, 20, "Text"],
+Cell[66543, 1971, 800, 16, 76, "Input"],
+Cell[67346, 1989, 115, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[67486, 1994, 167, 3, 25, "Input"],
+Cell[67656, 1999, 54, 1, 36, "Output"]
+}, Open  ]],
+Cell[67725, 2003, 359, 6, 40, "Text"],
+
+Cell[CellGroupData[{
+Cell[68109, 2013, 166, 3, 25, "Input"],
+Cell[68278, 2018, 54, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[68369, 2024, 211, 5, 25, "Input",
+  PageBreakWithin->True],
+Cell[68583, 2031, 84, 2, 36, "Output"]
+}, Open  ]],
+Cell[68682, 2036, 829, 16, 96, "Text"],
+
+Cell[CellGroupData[{
+Cell[69536, 2056, 126, 1, 32, "Subsection"],
+Cell[69665, 2059, 950, 15, 96, "Text"],
+Cell[70618, 2076, 355, 5, 48, "NumberedEquation"],
+Cell[70976, 2083, 244, 6, 20, "Text"],
+Cell[71223, 2091, 405, 7, 50, "Input"],
+Cell[71631, 2100, 203, 4, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[71859, 2108, 139, 2, 25, "Input"],
+Cell[72001, 2112, 55, 1, 36, "Output"]
+}, Open  ]],
+Cell[72071, 2116, 218, 5, 29, "Text"],
+Cell[72292, 2123, 427, 7, 76, "Input"],
+Cell[72722, 2132, 185, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[72932, 2140, 176, 3, 25, "Input"],
+Cell[73111, 2145, 54, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[73202, 2151, 174, 3, 25, "Input"],
+Cell[73379, 2156, 54, 1, 36, "Output"]
+}, Open  ]],
+Cell[73448, 2160, 146, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[73619, 2168, 177, 3, 25, "Input"],
+Cell[73799, 2173, 54, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[73890, 2179, 175, 3, 25, "Input"],
+Cell[74068, 2184, 54, 1, 36, "Output"]
+}, Open  ]],
+Cell[74137, 2188, 280, 5, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[74442, 2197, 166, 3, 25, "Input"],
+Cell[74611, 2202, 54, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[74702, 2208, 175, 3, 25, "Input"],
+Cell[74880, 2213, 54, 1, 36, "Output"]
+}, Open  ]],
+Cell[74949, 2217, 123, 1, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[75097, 2222, 206, 4, 25, "Input"],
+Cell[75306, 2228, 84, 2, 36, "Output"]
+}, Open  ]],
+Cell[75405, 2233, 155, 4, 20, "Text"],
+
+Cell[CellGroupData[{
+Cell[75585, 2241, 160, 3, 25, "Input"],
+Cell[75748, 2246, 53, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[75838, 2252, 173, 3, 25, "Input"],
+Cell[76014, 2257, 54, 1, 36, "Output"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[76105, 2263, 174, 3, 25, "Input"],
+Cell[76282, 2268, 53, 1, 36, "Output"]
+}, Open  ]],
+Cell[76350, 2272, 1322, 22, 172, "Text"],
+Cell[77675, 2296, 130, 2, 29, "NumberedEquation"],
+Cell[77808, 2300, 278, 7, 29, "Text"],
+
+Cell[CellGroupData[{
+Cell[78111, 2311, 104, 2, 25, "Input"],
+Cell[78218, 2315, 38, 1, 20, "Output"]
+}, Open  ]],
+Cell[78271, 2319, 87, 1, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[78383, 2324, 178, 3, 20, "Input"],
+Cell[78564, 2329, 54, 1, 20, "Output"]
+}, Open  ]],
+Cell[78633, 2333, 172, 4, 21, "Text"],
+
+Cell[CellGroupData[{
+Cell[78830, 2341, 177, 3, 20, "Input"],
+Cell[79010, 2346, 54, 1, 20, "Output"]
+}, Open  ]],
+Cell[79079, 2350, 639, 13, 64, "Text"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[79767, 2369, 88, 1, 44, "Section"],
+Cell[79858, 2372, 2716, 63, 245, "Text"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+Cell[82611, 2440, 99, 1, 44, "Section"],
+Cell[82713, 2443, 402, 10, 80, "Text"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+
+(***********************************************************************
+End of Mathematica Notebook file.
+***********************************************************************)
+
